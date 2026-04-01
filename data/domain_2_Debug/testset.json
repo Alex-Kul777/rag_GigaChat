@@ -1,0 +1,20 @@
+{
+    "query_1": {
+        "query_id": "query_1",
+        "query": "Что такое RAG?",
+        "relevant_docs": ["Глоссарий RAG_page_1", "Глоссарий RAG_page_2"],
+        "reference_answer": "RAG (Retrieval-Augmented Generation) - это архитектура, которая сочетает поиск информации и генерацию текста."
+    },
+    "query_2": {
+        "query_id": "query_2",
+        "query": "Что такое эмбеддинги?",
+        "relevant_docs": ["Глоссарий RAG_page_1"],
+        "reference_answer": "Эмбеддинги - это векторные представления текста."
+    },
+    "query_3": {
+        "query_id": "query_3",
+        "query": "Что такое ретривер?",
+        "relevant_docs": ["Глоссарий RAG_page_1"],
+        "reference_answer": "Ретривер - это компонент, который выполняет поиск по индексу."
+    }
+}

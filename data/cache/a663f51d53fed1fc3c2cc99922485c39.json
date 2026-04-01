@@ -1,0 +1,30 @@
+{
+  "PSLV_C56_page_1": {
+    "text": "satellite and VELOX-AM as a co-passenger satellite With other 5 Satellites, All\nsatellites from this mission belongs to Singapore.",
+    "metadata": {
+      "source_file": "PSLV_C56.pdf",
+      "source_path": "data\\domain_3_WikiEval_1row\\books\\PSLV_C56.pdf",
+      "author": "(anonymous)",
+      "title": "(anonymous)",
+      "subject": "(unspecified)",
+      "keywords": "",
+      "page_number": 1,
+      "total_pages": 2,
+      "chunk_id": 0
+    }
+  },
+  "PSLV_C56_page_2": {
+    "text": "Government of India. It was established in 1969 with the aim of developing space\ntechnology and conducting space research. ISRO is responsible for the country's\nspace program, which includes satellite launches, space exploration, and the\ndevelopment of space-related technologies.\nISRO has achieved several significant milestones over the years. It successfully\nlaunched its first satellite, Aryabhata, in 1975.",
+    "metadata": {
+      "source_file": "PSLV_C56.pdf",
+      "source_path": "data\\domain_3_WikiEval_1row\\books\\PSLV_C56.pdf",
+      "author": "(anonymous)",
+      "title": "(anonymous)",
+      "subject": "(unspecified)",
+      "keywords": "",
+      "page_number": 2,
+      "total_pages": 2,
+      "chunk_id": 0
+    }
+  }
+}

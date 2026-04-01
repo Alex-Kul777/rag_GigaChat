@@ -1,0 +1,14 @@
+{
+  "cache_key": "ac111ef8c6d4e74d487d4da598fa39bb",
+  "directory": "data\\domain_2_Debug\\books",
+  "recursive": true,
+  "chunk_size": 500,
+  "timestamp": "2026-03-27T19:03:56.013657",
+  "num_documents": 4,
+  "metadata": {
+    "num_pages": 23,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "has_metadata": true
+  }
+}

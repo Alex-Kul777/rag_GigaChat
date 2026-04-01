@@ -1,0 +1,30 @@
+{
+  "PSLV_C56_page_1": {
+    "text": "PSLV-C56\nCONTEXT VERSION 1\nThe PSLV-C56 is the 58th mission of Indian Space Research Organisation's Polar\nSatellite Launch Vehicle (PSLV) and the 17th flight of the PSLV-CA variant, and\nwill be get launched from Satish Dhawan Space Centre First Launch Pad ( FLP ).\nLaunch It is Scheduled to get launched on Sunday, 30 July 2023 at 06:30 IST /\n01:00 UTC from Satish Dhawan Space Centre, Sriharikota, Andhra Pradesh, India.\nThis is a dedicated commercial mission through NSIL with DS-SAR as primary\nsatellite and VELOX-AM as a co-passenger satellite With other 5 Satellites, All\nsatellites from this mission belongs to Singapore.",
+    "metadata": {
+      "source_file": "PSLV_C56.pdf",
+      "source_path": "data\\domain_3_WikiEval_1row\\books\\PSLV_C56.pdf",
+      "author": "(anonymous)",
+      "title": "(anonymous)",
+      "subject": "(unspecified)",
+      "keywords": "",
+      "page_number": 1,
+      "total_pages": 2,
+      "chunk_id": 0
+    }
+  },
+  "PSLV_C56_page_2": {
+    "text": "development of space-related technologies.\nISRO has achieved several significant milestones over the years. It successfully\nlaunched its first satellite, Aryabhata, in 1975.",
+    "metadata": {
+      "source_file": "PSLV_C56.pdf",
+      "source_path": "data\\domain_3_WikiEval_1row\\books\\PSLV_C56.pdf",
+      "author": "(anonymous)",
+      "title": "(anonymous)",
+      "subject": "(unspecified)",
+      "keywords": "",
+      "page_number": 2,
+      "total_pages": 2,
+      "chunk_id": 0
+    }
+  }
+}

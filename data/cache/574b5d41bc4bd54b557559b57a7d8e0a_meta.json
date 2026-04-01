@@ -1,0 +1,14 @@
+{
+  "cache_key": "574b5d41bc4bd54b557559b57a7d8e0a",
+  "directory": "data\\domain_1_AI\\books",
+  "recursive": true,
+  "chunk_size": 500,
+  "timestamp": "2026-03-27T16:26:02.714074",
+  "num_documents": 670,
+  "metadata": {
+    "num_pages": 4290,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "has_metadata": true
+  }
+}

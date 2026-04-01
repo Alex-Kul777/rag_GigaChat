@@ -1,0 +1,16 @@
+{
+  "q000": {
+    "query": "Question: When is the scheduled launch date and time for the PSLV-C56 mission, and where will it be launched from?",
+    "relevant_docs": [
+      "PSLV_C56.pdf"
+    ],
+    "reference_answer": "Answer: The PSLV-C56 mission is scheduled to be launched on Sunday, 30 July 2023 at 06:30 IST / 01:00 UTC. It will be launched from the Satish Dhawan Space Centre, Sriharikota, Andhra Pradesh, India."
+  },
+  "q001": {
+    "query": "Question: What is the objective of the Uzbekistan-Afghanistan-Pakistan Railway Project and how is it expected to enhance trade and logistics efficiency?",
+    "relevant_docs": [
+      "Uzbekistan_Afghanistan_Pakistan_Railway_Project.pdf"
+    ],
+    "reference_answer": "Answer: The objective of the Uzbekistan-Afghanistan-Pakistan Railway Project is to create a direct railway link between Uzbekistan and Pakistan, passing through Afghanistan's territory. This project aims to enhance trade and logistics efficiency by establishing a 573-km rail connection that would connect Tashkent, the capital of Uzbekistan, to Kabul and Peshawar, the capitals of Afghanistan and Pakistan, respectively. The implementation of this project is anticipated to strengthen trade relations between Pakistan and South Asia. The trilateral agreement signed by Pakistan, Afghanistan, and Uzbekistan aims to significantly reduce cargo delivery times between Uzbekistan and Pakistan by approximately five days. The railway route will traverse through Termez, Mazar-i-Sharif, and Logar in Afghanistan, and continue to the Kharlachi border crossing in Pakistan's northwestern Kurram district. This railway is designed to facilitate both passenger and freight services, fostering regional trade and contributing to overall economic growth in the area."
+  }
+}
