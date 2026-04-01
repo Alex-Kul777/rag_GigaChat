@@ -311,11 +311,11 @@ python experiment.py --pdf_dir data/domain_4_WikiEval_2row/books --testset data/
 
 ## 📄 License
 
-[Your License Here]
+[MIT License]
 
 ## 📧 Contact
 
-[Your Contact Information]
+[Куликов Алексей kulikov_alexei@mail.ru]
 
 ---
 
