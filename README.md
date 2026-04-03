@@ -46,8 +46,8 @@ This project implements a **Retrieval-Augmented Generation (RAG)** system for an
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd <project-directory>
+git clone https://github.com/Alex-Kul777/rag_GigaChat.git
+cd rag_GigaChat
 ```
 
 2. Create virtual environment:
