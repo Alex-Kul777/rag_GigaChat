@@ -1,0 +1,74 @@
+================================================================================
+ОТЧЕТ ПО ЭКСПЕРИМЕНТУ
+ID: domain_4_WikiEval_2row_experiment_20260403_090235
+Дата: 2026-04-03T09:02:49.034074
+================================================================================
+
+КОНФИГУРАЦИЯ:
+----------------------------------------
+  experiment_name: domain_4_WikiEval_2row_experiment
+  retrieval_type: dense
+  k_retrieve: 5
+  num_test_samples: 2
+  num_errors: 0
+  avg_retrieval_time: 0.0
+  avg_generation_time: 6.570312142372131
+  llm_model: GigaChat-2-Max
+  embedding_model: GigaChat-2-Max
+  chunk_size: 800
+  chunk_overlap: 100
+  temperature: 0.7
+  max_tokens: 2000
+  device: cuda
+
+МЕТРИКИ ПОИСКА:
+----------------------------------------
+  MAP: 1.0000
+  MRR: 1.0000
+
+  Precision@k:
+    P@1: 1.0000
+    P@3: 0.6667
+    P@5: 0.5000
+    P@10: 0.5000
+
+  Recall@k:
+    R@1: 1.0000
+    R@3: 1.0000
+    R@5: 1.0000
+    R@10: 1.0000
+
+  NDCG@k:
+    NDCG@1: 1.0000
+    NDCG@3: 1.0000
+    NDCG@5: 1.0000
+    NDCG@10: 1.0000
+
+МЕТРИКИ ГЕНЕРАЦИИ:
+----------------------------------------
+  bert_score_f1: 0.0000
+  rougeL: 0.4836
+  rouge2: 0.4113
+  bleu: 0.2832
+  rouge1: 0.6383
+
+ДЕТАЛЬНЫЕ РЕЗУЛЬТАТЫ ПО ЗАПРОСАМ:
+----------------------------------------
+
+q000: Question: When is the scheduled launch date and time for the PSLV-C56 mission, a...
+  Релевантные документы: 1
+  Найденные документы: 4
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. PSLV_C56_page_1 (score: 1.000)
+    2. Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_1 (score: 1.000)
+    3. PSLV_C56_page_2 (score: 1.000)
+
+q001: Question: What is the objective of the Uzbekistan-Afghanistan-Pakistan Railway P...
+  Релевантные документы: 1
+  Найденные документы: 4
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_1 (score: 1.000)
+    2. Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_2 (score: 1.000)
+    3. PSLV_C56_page_1 (score: 1.000)

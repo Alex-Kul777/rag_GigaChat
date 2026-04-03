@@ -1,0 +1,101 @@
+================================================================================
+ОТЧЕТ ПО ЭКСПЕРИМЕНТУ
+ID: wikieval_experiment_WikiEval_5row_20260402_145805
+Дата: 2026-04-02T14:58:27.149868
+================================================================================
+
+КОНФИГУРАЦИЯ:
+----------------------------------------
+  experiment_name: wikieval_experiment_WikiEval_5row
+  retrieval_type: dense
+  k_retrieve: 5
+  num_test_samples: 5
+  num_errors: 0
+  avg_retrieval_time: 0.0
+  avg_generation_time: 4.223646116256714
+  llm_model: Qwen/Qwen2.5-0.5B-Instruct
+  embedding_model: intfloat/multilingual-e5-base
+  chunk_size: 800
+  chunk_overlap: 100
+  temperature: 0.2
+  max_tokens: 2000
+  device: cuda
+
+МЕТРИКИ ПОИСКА:
+----------------------------------------
+  MAP: 1.0000
+  MRR: 1.0000
+
+  Precision@k:
+    P@1: 1.0000
+    P@3: 0.6667
+    P@5: 0.5200
+    P@10: 0.5200
+
+  Recall@k:
+    R@1: 1.0000
+    R@3: 1.0000
+    R@5: 1.0000
+    R@10: 1.0000
+
+  NDCG@k:
+    NDCG@1: 1.0000
+    NDCG@3: 1.0000
+    NDCG@5: 1.0000
+    NDCG@10: 1.0000
+
+МЕТРИКИ ГЕНЕРАЦИИ:
+----------------------------------------
+  bert_score_f1: 0.0000
+  bleu: 0.2911
+  rougeL: 0.4978
+  rouge1: 0.6253
+  rouge2: 0.4338
+
+ДЕТАЛЬНЫЕ РЕЗУЛЬТАТЫ ПО ЗАПРОСАМ:
+----------------------------------------
+
+q000: Question: When is the scheduled launch date and time for the PSLV-C56 mission, a...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. PSLV_C56_page_1 (score: 1.000)
+    2. Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_1 (score: 1.000)
+    3. Theranostics_page_6 (score: 1.000)
+
+q001: Question: What is the objective of the Uzbekistan-Afghanistan-Pakistan Railway P...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_1 (score: 1.000)
+    2. Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_2 (score: 1.000)
+    3. PSLV_C56_page_1 (score: 1.000)
+
+q002: Question: When was PharmaCann founded and what is its headquarters location?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. PharmaCann_page_1 (score: 1.000)
+    2. PharmaCann_page_2 (score: 1.000)
+    3. Theranostics_page_6 (score: 1.000)
+
+q003: Question: Who directed the film Oppenheimer and who stars as J. Robert Oppenheim...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Oppenheimer__film__page_1 (score: 1.000)
+    2. Oppenheimer__film__page_2 (score: 1.000)
+    3. Theranostics_page_1 (score: 1.000)
+
+q004: Question: What is theranostics and how does it combine diagnostic and therapeuti...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Theranostics_page_6 (score: 1.000)
+    2. Theranostics_page_3 (score: 1.000)
+    3. Theranostics_page_2 (score: 1.000)

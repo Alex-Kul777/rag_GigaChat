@@ -3,12 +3,12 @@
   "directory": "data\\domain_3_WikiEval_1row\\books",
   "recursive": true,
   "chunk_size": 800,
-  "timestamp": "2026-04-01T13:32:42.536769",
+  "timestamp": "2026-04-02T15:28:38.680524",
   "num_documents": 2,
   "metadata": {
     "num_pages": 3,
     "chunk_size": 800,
-    "chunk_overlap": 50,
+    "chunk_overlap": 100,
     "has_metadata": true
   }
 }

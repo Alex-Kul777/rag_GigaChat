@@ -1,0 +1,506 @@
+================================================================================
+ОТЧЕТ ПО ЭКСПЕРИМЕНТУ
+ID: wikieval_experiment_full_20260402_162357
+Дата: 2026-04-02T16:27:02.063830
+================================================================================
+
+КОНФИГУРАЦИЯ:
+----------------------------------------
+  experiment_name: wikieval_experiment_full
+  retrieval_type: dense
+  k_retrieve: 5
+  num_test_samples: 50
+  num_errors: 0
+  avg_retrieval_time: 0.0
+  avg_generation_time: 3.676615056991577
+  llm_model: GigaChat-2-Max
+  embedding_model: GigaChat-2-Max
+  chunk_size: 800
+  chunk_overlap: 100
+  temperature: 0.7
+  max_tokens: 2000
+  device: cuda
+
+МЕТРИКИ ПОИСКА:
+----------------------------------------
+  MAP: 1.0000
+  MRR: 0.9767
+
+  Precision@k:
+    P@1: 0.9600
+    P@3: 0.7933
+    P@5: 0.6080
+    P@10: 0.6080
+
+  Recall@k:
+    R@1: 0.9600
+    R@3: 1.0000
+    R@5: 1.0000
+    R@10: 1.0000
+
+  NDCG@k:
+    NDCG@1: 0.9600
+    NDCG@3: 0.9900
+    NDCG@5: 1.0000
+    NDCG@10: 1.0000
+
+МЕТРИКИ ГЕНЕРАЦИИ:
+----------------------------------------
+  rougeL: 0.3358
+  rouge2: 0.2620
+  bert_score_f1: 0.0000
+  rouge1: 0.4331
+  bleu: 0.1487
+
+ДЕТАЛЬНЫЕ РЕЗУЛЬТАТЫ ПО ЗАПРОСАМ:
+----------------------------------------
+
+q000: Question: When is the scheduled launch date and time for the PSLV-C56 mission, a...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. PSLV_C56_page_1 (score: 1.000)
+    2. Volcanism_on_Venus_page_7 (score: 1.000)
+    3. SpaceX_Starship_page_2 (score: 1.000)
+
+q001: Question: What is the objective of the Uzbekistan-Afghanistan-Pakistan Railway P...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_1 (score: 1.000)
+    2. Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_2 (score: 1.000)
+    3. PSLV_C56_page_1 (score: 1.000)
+
+q002: Question: When was PharmaCann founded and what is its headquarters location?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. PharmaCann_page_1 (score: 1.000)
+    2. PharmaCann_page_2 (score: 1.000)
+    3. Modernizing_Opioid_Treatment_Access_Act_page_1 (score: 1.000)
+
+q003: Question: Who directed the film Oppenheimer and who stars as J. Robert Oppenheim...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Oppenheimer__film__page_1 (score: 1.000)
+    2. Oppenheimer__film__page_2 (score: 1.000)
+    3. 80th_Venice_Film_Festival_page_1 (score: 1.000)
+
+q004: Question: What is theranostics and how does it combine diagnostic and therapeuti...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Theranostics_page_6 (score: 1.000)
+    2. Theranostics_page_3 (score: 1.000)
+    3. Theranostics_page_2 (score: 1.000)
+
+q005: Question: What is the human climate niche and how is it estimated?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Human_climate_niche_page_2 (score: 1.000)
+    2. Human_climate_niche_page_1 (score: 1.000)
+    3. Pandemic_prevention_page_6 (score: 1.000)
+
+q006: Question: What is the taxonomy of Dasypoda radchenkoi, and what is its relations...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Dasypoda_radchenkoi_page_1 (score: 1.000)
+    2. Dasypoda_radchenkoi_page_2 (score: 1.000)
+    3. Dasypoda_radchenkoi_page_3 (score: 1.000)
+
+q007: Question: What is the main product of Fremantle Octopus and where is it based?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Fremantle_Octopus_page_1 (score: 1.000)
+    2. Fremantle_Octopus_page_2 (score: 1.000)
+    3. FoodFutureCo_page_2 (score: 1.000)
+
+q008: Question: Who is the Managing Director of FoodFutureCo and what are some of her ...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. FoodFutureCo_page_1 (score: 1.000)
+    2. FoodFutureCo_page_2 (score: 1.000)
+    3. Moud_Goba_page_2 (score: 1.000)
+
+q009: Question: What was the purpose of designing and building the Fiat Ecobasic conce...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Fiat_Ecobasic_page_1 (score: 1.000)
+    2. Fiat_Ecobasic_page_2 (score: 1.000)
+    3. SpaceX_Starship_page_1 (score: 1.000)
+
+q010: Question: What is the purpose of the Rainbow Plaque programme in the UK, and how...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Rainbow_plaque_page_1 (score: 1.000)
+    2. Theranostics_page_3 (score: 1.000)
+    3. 2022_Hormozgan_earthquakes_page_4 (score: 1.000)
+
+q011: Question: What is the Zubaydah Trail and when was it constructed?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Zubaydah_Trail_page_1 (score: 1.000)
+    2. Zubaydah_Trail_page_2 (score: 1.000)
+    3. Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_1 (score: 1.000)
+
+q012: Question: When was the Chimnabai Clock Tower completed, and who was it named aft...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Chimnabai_Clock_Tower_page_2 (score: 1.000)
+    2. Chimnabai_Clock_Tower_page_1 (score: 1.000)
+    3. Tomb_of_Alexander_Stewart__Earl_of_Buchan_page_4 (score: 1.000)
+
+q013: Question: When did Trolleybus Route 20 in Shanghai start its operations, and wha...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Shanghai_Trolleybus_Route_20_page_1 (score: 1.000)
+    2. Shanghai_Trolleybus_Route_20_page_3 (score: 1.000)
+    3. Shanghai_Trolleybus_Route_20_page_2 (score: 1.000)
+
+q014: Question: When did the Inter Expo Center in Sofia, Bulgaria open, and how has it...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Inter_Expo_Center_page_2 (score: 1.000)
+    2. Inter_Expo_Center_page_1 (score: 1.000)
+    3. PSLV_C56_page_2 (score: 1.000)
+
+q015: Question: When did Pope Benedict XVI become the head of the Catholic Church and ...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Pope_Benedict_XVI_page_2 (score: 1.000)
+    2. Pope_Benedict_XVI_page_1 (score: 1.000)
+    3. Siege_of_Mariupol_page_1 (score: 1.000)
+
+q016: Question: What caused the crash of Yeti Airlines Flight 691 in Pokhara, Nepal?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Yeti_Airlines_Flight_691_page_1 (score: 1.000)
+    2. Yeti_Airlines_Flight_691_page_5 (score: 1.000)
+    3. Yeti_Airlines_Flight_691_page_3 (score: 1.000)
+
+q017: Question: How does the height and thrust of the Starship rocket compare to other...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. SpaceX_Starship_page_2 (score: 1.000)
+    2. SpaceX_Starship_page_3 (score: 1.000)
+    3. SpaceX_Starship_page_6 (score: 1.000)
+
+q018: Question: What is the Kyzylkum Desert known for in terms of its natural resource...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Kyzylkum_Desert_page_2 (score: 1.000)
+    2. Kyzylkum_Desert_page_1 (score: 1.000)
+    3. Kyzylkum_Desert_page_4 (score: 1.000)
+
+q019: Question: When will the 80th annual Venice International Film Festival take plac...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. 80th_Venice_Film_Festival_page_2 (score: 1.000)
+    2. 80th_Venice_Film_Festival_page_4 (score: 1.000)
+    3. 80th_Venice_Film_Festival_page_1 (score: 1.000)
+
+q020: Question: Where is Myosotis angustata endemic to, and what is its conservation s...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Myosotis_angustata_page_2 (score: 1.000)
+    2. Blakistonia_plata_page_1 (score: 1.000)
+    3. Blakistonia_plata_page_2 (score: 1.000)
+
+q021: Question: Where is Mount Brown located and what is its elevation?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Mount_Brown__Liberty_County__Montana__page_3 (score: 1.000)
+    2. Mount_Brown__Liberty_County__Montana__page_2 (score: 1.000)
+    3. Blakistonia_plata_page_1 (score: 1.000)
+
+q022: Question: Where is the type locality of the Laoshan tree frog and what is its si...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Rhacophorus_laoshan_page_1 (score: 1.000)
+    2. Rhacophorus_laoshan_page_2 (score: 1.000)
+    3. Pandemic_prevention_page_3 (score: 1.000)
+
+q023: Question: When was the Roanoke and Tar River Railroad fully merged into the Seab...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Roanoke_and_Tar_River_Railroad_page_1 (score: 1.000)
+    2. Roanoke_and_Tar_River_Railroad_page_2 (score: 1.000)
+    3. Moore_County_substation_attack_page_6 (score: 1.000)
+
+q024: Question: What organizations has Moud Goba been involved with and what is her cu...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Moud_Goba_page_1 (score: 1.000)
+    2. Moud_Goba_page_2 (score: 1.000)
+    3. Moud_Goba_page_3 (score: 1.000)
+
+q025: Question: What is the purpose of the Modernizing Opioid Treatment Access Act, an...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Modernizing_Opioid_Treatment_Access_Act_page_2 (score: 1.000)
+    2. Modernizing_Opioid_Treatment_Access_Act_page_1 (score: 1.000)
+    3. Modernizing_Opioid_Treatment_Access_Act_page_3 (score: 1.000)
+
+q026: Question: When and where did Gaucho Americano have its world premiere, and when ...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Gaucho_Americano_page_1 (score: 1.000)
+    2. Gaucho_Americano_page_2 (score: 1.000)
+    3. Miss_Grand_Dominican_Republic_2023_page_3 (score: 1.000)
+
+q027: Question: Where is the type locality of the Blakistonia plata spider and what is...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Blakistonia_plata_page_1 (score: 1.000)
+    2. Mount_Brown__Liberty_County__Montana__page_3 (score: 1.000)
+    3. Dasypoda_radchenkoi_page_2 (score: 1.000)
+
+q028: Question: How many teams participate in the Turkish Women's Football Super Leagu...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Turkish_Women's_Football_Super_League_page_1 (score: 1.000)
+    2. Turkish_Women's_Football_Super_League_page_3 (score: 1.000)
+    3. Turkish_Women's_Football_Super_League_page_2 (score: 1.000)
+
+q029: Question: Who is buried in the Tomb of Alexander Stewart, and what is the condit...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Tomb_of_Alexander_Stewart__Earl_of_Buchan_page_4 (score: 1.000)
+    2. Tomb_of_Alexander_Stewart__Earl_of_Buchan_page_1 (score: 1.000)
+    3. Tomb_of_Alexander_Stewart__Earl_of_Buchan_page_3 (score: 1.000)
+
+q030: Question: When was the 5th Separate Guards Tatsin Red Banner Order of Suvorov Ta...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. 5th_Guards_Tank_Brigade_page_1 (score: 1.000)
+    2. Wagner_Group_rebellion_page_2 (score: 1.000)
+    3. Wagner_Group_rebellion_page_5 (score: 1.000)
+
+q031: Question: How long did the Siege of Mariupol last, and what was the outcome?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Siege_of_Mariupol_page_3 (score: 1.000)
+    2. Siege_of_Mariupol_page_1 (score: 1.000)
+    3. Siege_of_Mariupol_page_4 (score: 1.000)
+
+q032: Question: Which countries and international organizations have imposed sanctions...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. International_sanctions_during_the_Russo_Ukrainian_War_page_2 (score: 1.000)
+    2. International_sanctions_during_the_Russo_Ukrainian_War_page_5 (score: 1.000)
+    3. International_sanctions_during_the_Russo_Ukrainian_War_page_3 (score: 1.000)
+
+q033: Question: What factors contributed to the Sri Lankan economic crisis?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Sri_Lankan_economic_crisis__2019_present__page_3 (score: 1.000)
+    2. Sri_Lankan_economic_crisis__2019_present__page_2 (score: 1.000)
+    3. Sri_Lankan_economic_crisis__2019_present__page_5 (score: 1.000)
+
+q034: Question: How many people were killed and injured in the 2022 Hormozgan earthqua...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. 2022_Hormozgan_earthquakes_page_1 (score: 1.000)
+    2. 2022_Hormozgan_earthquakes_page_3 (score: 1.000)
+    3. 2022_Hormozgan_earthquakes_page_2 (score: 1.000)
+
+q035: Question: How many people were killed and injured in the mass shooting during th...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Highland_Park_parade_shooting_page_1 (score: 1.000)
+    2. Highland_Park_parade_shooting_page_4 (score: 1.000)
+    3. Highland_Park_parade_shooting_page_2 (score: 1.000)
+
+q036: Question: What are some of the controversies surrounding Uber?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Controversies_involving_Uber_page_1 (score: 1.000)
+    2. Controversies_involving_Uber_page_4 (score: 1.000)
+    3. Controversies_involving_Uber_page_6 (score: 1.000)
+
+q037: Question: What was the estimated timeline for fully restoring power in Moore Cou...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Moore_County_substation_attack_page_1 (score: 1.000)
+    2. Moore_County_substation_attack_page_4 (score: 1.000)
+    3. Moore_County_substation_attack_page_2 (score: 1.000)
+
+q038: Question: What caused the ethnic violence in Manipur in 2023, and what were the ...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Myanmar_civil_war__2021_present__page_1 (score: 1.000)
+    2. Myanmar_civil_war__2021_present__page_4 (score: 1.000)
+    3. 2023_Manipur_violence_page_3 (score: 1.000)
+
+q039: Question: What was the size and payload of the Chinese balloon that was spotted ...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. 2023_Chinese_balloon_incident_page_2 (score: 1.000)
+    2. 2023_Chinese_balloon_incident_page_5 (score: 1.000)
+    3. 2023_Chinese_balloon_incident_page_3 (score: 1.000)
+
+q040: Question: What were the temperatures and snowfall amounts during the cold snap i...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. 2023_Afghanistan_cold_snap_page_1 (score: 1.000)
+    2. 2022_Hormozgan_earthquakes_page_2 (score: 1.000)
+    3. 2023_Afghanistan_cold_snap_page_2 (score: 1.000)
+
+q041: Question: When was GPT-4 released and what are some of its capabilities?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. GPT_4_page_2 (score: 1.000)
+    2. GPT_4_page_5 (score: 1.000)
+    3. GPT_4_page_3 (score: 1.000)
+
+q042: Question: What is the current status of the Myanmar civil war, and how many peop...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Myanmar_civil_war__2021_present__page_1 (score: 1.000)
+    2. Myanmar_civil_war__2021_present__page_4 (score: 1.000)
+    3. Myanmar_civil_war__2021_present__page_3 (score: 1.000)
+
+q043: Question: When and where will the Miss Grand Dominican Republic 2023 pageant be ...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Miss_Grand_Dominican_Republic_2023_page_1 (score: 1.000)
+    2. Miss_Grand_Dominican_Republic_2023_page_2 (score: 1.000)
+    3. Miss_Grand_Dominican_Republic_2023_page_3 (score: 1.000)
+
+q044: Question: What was the cause of the rebellion staged by the Wagner Group in 2023...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Wagner_Group_rebellion_page_2 (score: 1.000)
+    2. Wagner_Group_rebellion_page_5 (score: 1.000)
+    3. Myanmar_civil_war__2021_present__page_1 (score: 1.000)
+
+q045: Question: What caused the gas supply outage in Sheffield, England in December 20...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. 2022_Sheffield_gas_supply_outage_page_2 (score: 1.000)
+    2. 2022_Sheffield_gas_supply_outage_page_5 (score: 1.000)
+    3. Moore_County_substation_attack_page_1 (score: 1.000)
+
+q046: Question: What sparked the civil unrest and protests in Iran in September 2022, ...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Mahsa_Amini_protests_page_3 (score: 1.000)
+    2. Mahsa_Amini_protests_page_2 (score: 1.000)
+    3. Mahsa_Amini_protests_page_5 (score: 1.000)
+
+q047: Question: What types of volcanoes are found on Venus, and how do they differ fro...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Volcanism_on_Venus_page_7 (score: 1.000)
+    2. Volcanism_on_Venus_page_3 (score: 1.000)
+    3. Volcanism_on_Venus_page_2 (score: 1.000)
+
+q048: Question: What are some measures for pandemic prevention?...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Pandemic_prevention_page_2 (score: 1.000)
+    2. Pandemic_prevention_page_5 (score: 1.000)
+    3. Pandemic_prevention_page_6 (score: 1.000)
+
+q049: Question: What are the main science objectives of the JUICE orbiter and what moo...
+  Релевантные документы: 1
+  Найденные документы: 5
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. Volcanism_on_Venus_page_7 (score: 1.000)
+    2. Jupiter_Icy_Moons_Explorer_page_6 (score: 1.000)
+    3. Jupiter_Icy_Moons_Explorer_page_2 (score: 1.000)

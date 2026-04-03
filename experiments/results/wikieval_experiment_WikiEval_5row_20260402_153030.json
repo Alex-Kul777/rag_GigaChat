@@ -1,0 +1,481 @@
+{
+  "experiment_id": "wikieval_experiment_WikiEval_5row_20260402_153030",
+  "timestamp": "2026-04-02T15:30:50.101941",
+  "config": {
+    "experiment_name": "wikieval_experiment_WikiEval_5row",
+    "retrieval_type": "dense",
+    "k_retrieve": 5,
+    "num_test_samples": 5,
+    "num_errors": 0,
+    "avg_retrieval_time": 0.0,
+    "avg_generation_time": 3.8354235649108888,
+    "llm_model": "GigaChat-2-Max",
+    "embedding_model": "GigaChat-2-Max",
+    "chunk_size": 800,
+    "chunk_overlap": 100,
+    "temperature": 0.2,
+    "max_tokens": 2000,
+    "device": "cuda"
+  },
+  "retrieval_metrics": {
+    "map": 1.0,
+    "mrr": 1.0,
+    "precision_at_k": {
+      "1": 1.0,
+      "3": 0.6666666666666666,
+      "5": 0.52,
+      "10": 0.52
+    },
+    "recall_at_k": {
+      "1": 1.0,
+      "3": 1.0,
+      "5": 1.0,
+      "10": 1.0
+    },
+    "ndcg_at_k": {
+      "1": 1.0,
+      "3": 1.0,
+      "5": 1.0,
+      "10": 1.0
+    }
+  },
+  "generation_metrics": {
+    "rouge2": 0.42679010885354296,
+    "rougeL": 0.49261696781141556,
+    "rouge1": 0.6091682778802937,
+    "bleu": 0.2849488024481374,
+    "bert_score_f1": 0.0
+  },
+  "detailed_predictions": {
+    "q000": {
+      "query": "Question: When is the scheduled launch date and time for the PSLV-C56 mission, and where will it be launched from?",
+      "query_id": "q000",
+      "retrieved_docs": [
+        {
+          "doc_id": "PSLV_C56_page_1",
+          "score": 1.0,
+          "text": "PSLV-C56\nCONTEXT VERSION 1\nThe PSLV-C56 is the 58th mission of Indian Space Research Organisation's Polar\nSatellite Launch Vehicle (PSLV) and the 17th flight of the PSLV-CA variant, and\nwill be get launched from Satish Dhawan Space Centre First Launch Pad ( FLP ).\nLaunch It is Scheduled to get launched on Sunday, 30 July 2023 at 06:30 IST /\n01:00 UTC from Satish Dhawan Space Centre, Sriharikota, Andhra Pradesh, India.\nThis is a dedicated commercial mission through NSIL with DS-SAR as primary\nsatellite and VELOX-AM as a co-passenger satellite With other 5 Satellites, All\nsatellites from this mission belongs to Singapore."
+        },
+        {
+          "doc_id": "Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_1",
+          "score": 1.0,
+          "text": "South Asia. The trilateral agreement spanning 760 kilometers was signed by\nPakistan, Afghanistan, and Uzbekistan, aiming to significantly reduce cargo\ndelivery times between Uzbekistan and Pakistan by approximately five days.The\nrailway route will traverse through Termez, Mazar-i-Sharif, and Logar in\nAfghanistan, and continue to the Kharlachi border crossing in Pakistan's\nnorthwestern Kurram district. Designed to facilitate both passenger and freight\nservices, the railway is poised to foster regional trade and contribute to\noverall economic growth in the area."
+        },
+        {
+          "doc_id": "Theranostics_page_6",
+          "score": 1.0,
+          "text": "ensuring effective treatment and reducing systemic toxicity. Targeted drug\ndelivery systems hold promise in the treatment of cancer, cardiovascular\ndiseases, and other conditions, as they allow for personalized and site-specific\ntherapy.\nGene therapy Gene therapy is a therapeutic approach that involves modifying or\nreplacing faulty genes to treat or prevent diseases. In theranostics, gene\ntherapy can be com Theranostics is a biweekly peer-reviewed open access medical\njournal established in January 2011 and published by Ivyspring International\nPublisher. The editor-in-chief is Xiaoyuan Chen (National Institute of\nBiomedical Imaging and Bioengineering). It covers biomedical research of\ninterest for theranostics."
+        },
+        {
+          "doc_id": "PSLV_C56_page_2",
+          "score": 1.0,
+          "text": "development of space-related technologies.\nISRO has achieved several significant milestones over the years. It successfully\nlaunched its first satellite, Aryabhata, in 1975."
+        },
+        {
+          "doc_id": "Oppenheimer__film__page_1",
+          "score": 1.0,
+          "text": "the United States Atomic Energy Commission. Murphy signed on to portray\nOppenheimer in October, with others in the main cast joining between November\n2021 and April 2022. Pre-production was underway by January 2022, with filming\ntaking place from February to May."
+        }
+      ],
+      "retrieved_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "retrieved_docs_ids": [
+        "PSLV_C56_page_1",
+        "Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_1",
+        "Theranostics_page_6",
+        "PSLV_C56_page_2",
+        "Oppenheimer__film__page_1"
+      ],
+      "relevant_docs": [
+        "PSLV_C56.pdf"
+      ],
+      "generated_answer": "The scheduled launch date and time for the PSLV-C56 mission is Sunday, 30 July 2023 at 06:30 IST / 01:00 UTC. It will be launched from Satish Dhawan Space Centre First Launch Pad (FLP), Sriharikota, Andhra Pradesh, India.",
+      "retrieval_time": 0,
+      "generation_time": 2.3642361164093018,
+      "success": true
+    },
+    "q001": {
+      "query": "Question: What is the objective of the Uzbekistan-Afghanistan-Pakistan Railway Project and how is it expected to enhance trade and logistics efficiency?",
+      "query_id": "q001",
+      "retrieved_docs": [
+        {
+          "doc_id": "Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_1",
+          "score": 1.0,
+          "text": "South Asia. The trilateral agreement spanning 760 kilometers was signed by\nPakistan, Afghanistan, and Uzbekistan, aiming to significantly reduce cargo\ndelivery times between Uzbekistan and Pakistan by approximately five days.The\nrailway route will traverse through Termez, Mazar-i-Sharif, and Logar in\nAfghanistan, and continue to the Kharlachi border crossing in Pakistan's\nnorthwestern Kurram district. Designed to facilitate both passenger and freight\nservices, the railway is poised to foster regional trade and contribute to\noverall economic growth in the area."
+        },
+        {
+          "doc_id": "Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_2",
+          "score": 1.0,
+          "text": "logistics sectors. The increased connectivity will attract investment and spur\neconomic development in the areas surrounding the railway stations.\nOverall, the railway project is expected to have a transformative effect on the\nregion. It will improve trade, strengthen regional cooperation, and contribute\nto economic growth and development in Afghanistan and Pakistan"
+        },
+        {
+          "doc_id": "PSLV_C56_page_1",
+          "score": 1.0,
+          "text": "PSLV-C56\nCONTEXT VERSION 1\nThe PSLV-C56 is the 58th mission of Indian Space Research Organisation's Polar\nSatellite Launch Vehicle (PSLV) and the 17th flight of the PSLV-CA variant, and\nwill be get launched from Satish Dhawan Space Centre First Launch Pad ( FLP ).\nLaunch It is Scheduled to get launched on Sunday, 30 July 2023 at 06:30 IST /\n01:00 UTC from Satish Dhawan Space Centre, Sriharikota, Andhra Pradesh, India.\nThis is a dedicated commercial mission through NSIL with DS-SAR as primary\nsatellite and VELOX-AM as a co-passenger satellite With other 5 Satellites, All\nsatellites from this mission belongs to Singapore."
+        },
+        {
+          "doc_id": "Theranostics_page_3",
+          "score": 1.0,
+          "text": "ensuring effective treatment and reducing systemic toxicity. Targeted drug\ndelivery systems hold promise in the treatment of cancer, cardiovascular\ndiseases, and other conditions, as they allow for personalized and site-specific\ntherapy.\nGene therapy Gene therapy is a therapeutic approach that involves modifying or\nreplacing faulty genes to treat or prevent diseases."
+        },
+        {
+          "doc_id": "Theranostics_page_1",
+          "score": 1.0,
+          "text": "specific area chosen by the sonographer. Another approach involves linking\nmonoclonal antibodies (capable of targeting different molecular targets) to\nnanoparticles. This strategy enhances the drug's affinity and specificity"
+        }
+      ],
+      "retrieved_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "retrieved_docs_ids": [
+        "Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_1",
+        "Uzbekistan_Afghanistan_Pakistan_Railway_Project_page_2",
+        "PSLV_C56_page_1",
+        "Theranostics_page_3",
+        "Theranostics_page_1"
+      ],
+      "relevant_docs": [
+        "Uzbekistan_Afghanistan_Pakistan_Railway_Project.pdf"
+      ],
+      "generated_answer": "### Objective of the Uzbekistan-Afghanistan-Pakistan Railway Project\n\nThe **Uzbekistan-Afghanistan-Pakistan Railway Project** aims to create an efficient transportation corridor connecting **Uzbekistan**, **Afghanistan**, and **Pakistan**. The main objectives include:\n\n1. **Reduction in Cargo Delivery Times**: \n   - By establishing a direct rail link, the project seeks to significantly decrease delivery times between Uzbekistan and Pakistan by about **five days**.\n   \n2. **Facilitation of Passenger and Freight Services**: \n   - The railway line will support both passenger travel and freight transport, thereby enhancing mobility and commerce within the region.\n   \n3. **Promotion of Regional Trade**: \n   - Improved connectivity is anticipated to boost cross-border trade among participating countries, leading to greater economic integration.\n   \n4. **Economic Growth Stimulation**: \n   - Increased connectivity along the railway path will encourage investments in infrastructure and related industries, contributing to overall economic development.\n\n### Enhancement of Trade and Logistics Efficiency\n\nThe project envisions several key benefits for improving trade and logistics efficiency:\n\n1. **Shorter Transit Times**: \n   - A reduction in transit time will lead to lower costs associated with storage and handling, making exports more competitive internationally.\n   \n2. **Increased Connectivity**: \n   - Better links across borders will enable smoother movement of goods, minimizing delays caused by inefficient customs procedures or inadequate road networks.\n   \n3. **Boosting Investment Opportunities**: \n   - Attractive opportunities for businesses near railway stations can stimulate local economies and create jobs.\n   \n4. **Strengthening Regional Cooperation**: \n   - Collaboration between governments on issues such as security, customs regulations, and standardization will further enhance operational efficiencies.\n\nBy achieving these goals, the Uzbekistan-Afghanistan-Pakistan Railway Project has the potential to transform the region’s trade landscape and provide significant socio-economic advantages.",
+      "retrieval_time": 0,
+      "generation_time": 8.395975112915039,
+      "success": true
+    },
+    "q002": {
+      "query": "Question: When was PharmaCann founded and what is its headquarters location?",
+      "query_id": "q002",
+      "retrieved_docs": [
+        {
+          "doc_id": "PharmaCann_page_1",
+          "score": 1.0,
+          "text": "PharmaCann\nCONTEXT VERSION 1\nFound in 2014 by Theodore Scott, PharmaCann is an American cannabis company\nheadquartered in the state of Illinois, with operations spanning several states.\nPharmaCann is one of the largest cannabis suppliers in the United States."
+        },
+        {
+          "doc_id": "PharmaCann_page_2",
+          "score": 1.0,
+          "text": "PharmaCann\nCONTEXT VERSION 2\nFound in 2014 by Theodore Scott, PharmaCann is an American cannabis company\nheadquartered in the state of Illinois, with operations spanning several states.\nPharmaCann is one of the largest cannabis suppliers in the United States.\nPharmaCann is one of the largest cannabis suppliers in the United States,\nproviding both Medical and Recreational cannabis products in accordance with\nstate's laws and policies."
+        },
+        {
+          "doc_id": "Theranostics_page_6",
+          "score": 1.0,
+          "text": "ensuring effective treatment and reducing systemic toxicity. Targeted drug\ndelivery systems hold promise in the treatment of cancer, cardiovascular\ndiseases, and other conditions, as they allow for personalized and site-specific\ntherapy.\nGene therapy Gene therapy is a therapeutic approach that involves modifying or\nreplacing faulty genes to treat or prevent diseases. In theranostics, gene\ntherapy can be com Theranostics is a biweekly peer-reviewed open access medical\njournal established in January 2011 and published by Ivyspring International\nPublisher. The editor-in-chief is Xiaoyuan Chen (National Institute of\nBiomedical Imaging and Bioengineering). It covers biomedical research of\ninterest for theranostics."
+        },
+        {
+          "doc_id": "Theranostics_page_3",
+          "score": 1.0,
+          "text": "ensuring effective treatment and reducing systemic toxicity. Targeted drug\ndelivery systems hold promise in the treatment of cancer, cardiovascular\ndiseases, and other conditions, as they allow for personalized and site-specific\ntherapy.\nGene therapy Gene therapy is a therapeutic approach that involves modifying or\nreplacing faulty genes to treat or prevent diseases."
+        },
+        {
+          "doc_id": "Oppenheimer__film__page_1",
+          "score": 1.0,
+          "text": "the United States Atomic Energy Commission. Murphy signed on to portray\nOppenheimer in October, with others in the main cast joining between November\n2021 and April 2022. Pre-production was underway by January 2022, with filming\ntaking place from February to May."
+        }
+      ],
+      "retrieved_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "retrieved_docs_ids": [
+        "PharmaCann_page_1",
+        "PharmaCann_page_2",
+        "Theranostics_page_6",
+        "Theranostics_page_3",
+        "Oppenheimer__film__page_1"
+      ],
+      "relevant_docs": [
+        "PharmaCann.pdf"
+      ],
+      "generated_answer": "Based on the given contexts, PharmaCann was founded in 2014 and its headquarters is located in the state of Illinois.",
+      "retrieval_time": 0,
+      "generation_time": 2.2922801971435547,
+      "success": true
+    },
+    "q003": {
+      "query": "Question: Who directed the film Oppenheimer and who stars as J. Robert Oppenheimer in the film?",
+      "query_id": "q003",
+      "retrieved_docs": [
+        {
+          "doc_id": "Oppenheimer__film__page_1",
+          "score": 1.0,
+          "text": "the United States Atomic Energy Commission. Murphy signed on to portray\nOppenheimer in October, with others in the main cast joining between November\n2021 and April 2022. Pre-production was underway by January 2022, with filming\ntaking place from February to May."
+        },
+        {
+          "doc_id": "Oppenheimer__film__page_2",
+          "score": 1.0,
+          "text": "the United States Atomic Energy Commission. The ensemble supporting cast\nincludes Florence Pugh, Josh Hartnett, Casey Affleck, Rami Malek and Kenneth\nBranagh. The project was announced in September 2021 after Universal Pictures\nwon a bidding war for Nolan's screenplay. Murphy signed on to portray\nOppenheimer in October, with others in the main cast joining between November\n2021 and April 2022."
+        },
+        {
+          "doc_id": "Theranostics_page_1",
+          "score": 1.0,
+          "text": "specific area chosen by the sonographer. Another approach involves linking\nmonoclonal antibodies (capable of targeting different molecular targets) to\nnanoparticles. This strategy enhances the drug's affinity and specificity"
+        },
+        {
+          "doc_id": "Theranostics_page_4",
+          "score": 1.0,
+          "text": "specific area chosen by the sonographer. Another approach involves linking\nmonoclonal antibodies (capable of targeting different molecular targets) to\nnanoparticles. This strategy enhances the drug's affinity and specificity"
+        },
+        {
+          "doc_id": "Theranostics_page_6",
+          "score": 1.0,
+          "text": "ensuring effective treatment and reducing systemic toxicity. Targeted drug\ndelivery systems hold promise in the treatment of cancer, cardiovascular\ndiseases, and other conditions, as they allow for personalized and site-specific\ntherapy.\nGene therapy Gene therapy is a therapeutic approach that involves modifying or\nreplacing faulty genes to treat or prevent diseases. In theranostics, gene\ntherapy can be com Theranostics is a biweekly peer-reviewed open access medical\njournal established in January 2011 and published by Ivyspring International\nPublisher. The editor-in-chief is Xiaoyuan Chen (National Institute of\nBiomedical Imaging and Bioengineering). It covers biomedical research of\ninterest for theranostics."
+        }
+      ],
+      "retrieved_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "retrieved_docs_ids": [
+        "Oppenheimer__film__page_1",
+        "Oppenheimer__film__page_2",
+        "Theranostics_page_1",
+        "Theranostics_page_4",
+        "Theranostics_page_6"
+      ],
+      "relevant_docs": [
+        "Oppenheimer__film_.pdf"
+      ],
+      "generated_answer": "Based on the given context, Christopher Nolan is not explicitly mentioned but it states \"Universal Pictures won a bidding war for Nolan's screenplay.\" Therefore, we infer that Christopher Nolan directed the film \"Oppenheimer\". Cillian Murphy stars as J. Robert Oppenheimer in the film.",
+      "retrieval_time": 0,
+      "generation_time": 2.415135622024536,
+      "success": true
+    },
+    "q004": {
+      "query": "Question: What is theranostics and how does it combine diagnostic and therapeutic approaches in precision medicine?",
+      "query_id": "q004",
+      "retrieved_docs": [
+        {
+          "doc_id": "Theranostics_page_6",
+          "score": 1.0,
+          "text": "ensuring effective treatment and reducing systemic toxicity. Targeted drug\ndelivery systems hold promise in the treatment of cancer, cardiovascular\ndiseases, and other conditions, as they allow for personalized and site-specific\ntherapy.\nGene therapy Gene therapy is a therapeutic approach that involves modifying or\nreplacing faulty genes to treat or prevent diseases. In theranostics, gene\ntherapy can be com Theranostics is a biweekly peer-reviewed open access medical\njournal established in January 2011 and published by Ivyspring International\nPublisher. The editor-in-chief is Xiaoyuan Chen (National Institute of\nBiomedical Imaging and Bioengineering). It covers biomedical research of\ninterest for theranostics."
+        },
+        {
+          "doc_id": "Theranostics_page_3",
+          "score": 1.0,
+          "text": "ensuring effective treatment and reducing systemic toxicity. Targeted drug\ndelivery systems hold promise in the treatment of cancer, cardiovascular\ndiseases, and other conditions, as they allow for personalized and site-specific\ntherapy.\nGene therapy Gene therapy is a therapeutic approach that involves modifying or\nreplacing faulty genes to treat or prevent diseases."
+        },
+        {
+          "doc_id": "Theranostics_page_2",
+          "score": 1.0,
+          "text": "radiotracer used for diagnostic imaging can be utilized to deliver therapeutic\ndoses of radiation to the diseased tissue.\nMagnetic resonance imagine Magnetic resonance imaging (MRI) is a non-invasive\nimaging technique that utilizes strong magnetic fields and radiofrequency pulses\nto generate detailed anatomical and functional images of the body. MRI provides\nexcellent soft tissue contrast and is widely used in theranostics for its\nability to visualize anatomical structures and assess physiological processes.In\ntheranostics, MRI allows for the detection and characterization of tumors,"
+        },
+        {
+          "doc_id": "Theranostics_page_5",
+          "score": 1.0,
+          "text": "radiotracer used for diagnostic imaging can be utilized to deliver therapeutic\ndoses of radiation to the diseased tissue.\nMagnetic resonance imagine Magnetic resonance imaging (MRI) is a non-invasive\nimaging technique that utilizes strong magnetic fields and radiofrequency pulses\nto generate detailed anatomical and functional images of the body. MRI provides\nexcellent soft tissue contrast and is widely used in theranostics for its\nability to visualize anatomical structures and assess physiological processes.In\ntheranostics, MRI allows for the detection and characterization of tumors,"
+        },
+        {
+          "doc_id": "Theranostics_page_1",
+          "score": 1.0,
+          "text": "specific area chosen by the sonographer. Another approach involves linking\nmonoclonal antibodies (capable of targeting different molecular targets) to\nnanoparticles. This strategy enhances the drug's affinity and specificity"
+        }
+      ],
+      "retrieved_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "retrieved_docs_ids": [
+        "Theranostics_page_6",
+        "Theranostics_page_3",
+        "Theranostics_page_2",
+        "Theranostics_page_5",
+        "Theranostics_page_1"
+      ],
+      "relevant_docs": [
+        "Theranostics.pdf"
+      ],
+      "generated_answer": "Theranostics is an interdisciplinary field within precision medicine that integrates diagnostics with targeted therapies. By combining diagnostic tools like MRI and radionuclide imaging with specific treatments such as gene therapy or targeted drug delivery systems, theranostics enables more precise identification and management of diseases. \n\nIn this approach, advanced imaging techniques provide detailed information about disease location, extent, and characteristics, while tailored therapeutic interventions ensure that treatment is delivered directly to affected areas, minimizing side effects and improving efficacy. For example, nanoparticles linked to monoclonal antibodies enhance drug affinity and specificity towards particular molecular targets, leading to improved outcomes in patients suffering from various illnesses including cancers and cardiovascular disorders.",
+      "retrieval_time": 0,
+      "generation_time": 3.7094907760620117,
+      "success": true
+    }
+  },
+  "execution_time": 19.21521258354187,
+  "status": "completed",
+  "error_message": null,
+  "advanced_metrics": {
+    "faithfulness": 0.72,
+    "answer_relevancy": 0.9649242694626541,
+    "context_relevancy": 0.9,
+    "detailed_results": {
+      "individual_results": {
+        "faithfulness": [
+          1.0,
+          0.6,
+          1.0,
+          0.3333333333333333,
+          0.6666666666666666
+        ],
+        "answer_relevancy": [
+          0.9484005454277941,
+          0.9502534052538131,
+          0.9857993998991258,
+          0.9779774697978945,
+          0.9621905269346431
+        ],
+        "context_relevancy": [
+          1.0,
+          1.0,
+          1.0,
+          0.5,
+          1.0
+        ]
+      },
+      "dataframe": {
+        "Faithfulness": {
+          "0": 1.0,
+          "1": 0.6,
+          "2": 1.0,
+          "3": 0.3333333333333333,
+          "4": 0.6666666666666666
+        },
+        "Answer_Relevance": {
+          "0": 0.9484005454277941,
+          "1": 0.9502534052538131,
+          "2": 0.9857993998991258,
+          "3": 0.9779774697978945,
+          "4": 0.9621905269346431
+        },
+        "Context_Relevance": {
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 0.5,
+          "4": 1.0
+        }
+      }
+    }
+  },
+  "token_stats": {
+    "num_requests": 5,
+    "total_prompt_tokens": 116,
+    "total_completion_tokens": 665,
+    "total_tokens": 781,
+    "avg_tokens_per_request": 156.2,
+    "estimated_cost_usd": 7.81e-05
+  },
+  "balance_stats": null,
+  "system_configuration": {
+    "model_config": {
+      "llm_model_name": "GigaChat-2-Max",
+      "embedding_model_name": "GigaChat-2-Max",
+      "max_new_tokens": 2000,
+      "temperature": 0.2,
+      "top_p": 0.9,
+      "repetition_penalty": 1.1,
+      "default_k_retrieve": 5,
+      "max_context_length": 2000,
+      "device": "cuda",
+      "mode": "ui",
+      "use_retriever": true,
+      "use_8bit_quantization": false,
+      "use_4bit_quantization": false
+    },
+    "data_config": {
+      "data_dir": "data",
+      "corpus_dir": "data\\corpus",
+      "cache_dir": "data\\cache",
+      "vectorstore_dir": "data\\vectorstore",
+      "experiments_dir": "experiments",
+      "logs_dir": "logs",
+      "metadata_dir": "data\\metadata",
+      "documents_dirs": {
+        "debug": "data\\domain_2_Debug\\books",
+        "ai": "data\\domain_1_AI\\books",
+        "test": "data\\test_docs"
+      },
+      "pdf_max_pages": 1000,
+      "pdf_max_doc_size": 50000000,
+      "pdf_method": "auto",
+      "chunk_size": 800,
+      "chunk_overlap": 100,
+      "chunk_separators": [
+        "\n\n",
+        "\n",
+        ".",
+        "!",
+        "?",
+        ",",
+        " ",
+        ""
+      ],
+      "cache_enabled": true,
+      "force_reload": false,
+      "supported_extensions": [
+        ".pdf",
+        ".txt",
+        ".json",
+        ".csv"
+      ]
+    },
+    "vectorstore_config": {
+      "vector_store_type": "faiss",
+      "faiss_index_type": "flat",
+      "faiss_nlist": 100,
+      "faiss_nprobe": 10,
+      "persist_dir": "data\\vectorstore",
+      "save_on_update": true
+    },
+    "experiment_config": {
+      "ks_eval": [
+        1,
+        3,
+        5,
+        10
+      ],
+      "batch_size": 32,
+      "save_results": true,
+      "save_detailed_predictions": true,
+      "detailed_logging": true,
+      "log_level": "INFO"
+    },
+    "logging_config": {
+      "log_level": "INFO",
+      "log_format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+      "log_date_format": "%Y-%m-%d %H:%M:%S",
+      "log_to_file": true,
+      "log_to_console": true,
+      "log_file_name": "logs/rag_app.log"
+    },
+    "gigachat_config": {
+      "enabled": true,
+      "model": "GigaChat-2-Max",
+      "scope": "GIGACHAT_API_B2B",
+      "verify_ssl_certs": false,
+      "base_url": null,
+      "timeout": 60,
+      "max_retries": 3,
+      "api_key_configured": true
+    },
+    "pipeline_config": {
+      "chunk_size": 800,
+      "chunk_overlap": 100,
+      "vector_store_initialized": true,
+      "embedding_type": "gigachat",
+      "llm_type": "gigachat"
+    }
+  },
+  "meta": {
+    "exported_at": "2026-04-02T15:31:59.777421",
+    "exporter_version": "1.0",
+    "file_format": "experiment_result"
+  }
+}

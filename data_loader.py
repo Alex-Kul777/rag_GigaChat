@@ -14,6 +14,7 @@ from typing import Dict, List, Optional, Any, Union
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from datetime import datetime
+from tqdm import tqdm
 import random
 
 # LangChain imports
@@ -292,7 +293,7 @@ class DocumentLoader:
                     'page_number': i + 1
                 })
 
-            print ( f"load_pdf_with_metadata , logging_config.log_level.upper() = {logging_config.log_level.upper()}")
+            #print ( f"load_pdf_with_metadata , logging_config.log_level.upper() = {logging_config.log_level.upper()}")
             # ========== НОВЫЙ КОД: Сохранение текстовых файлов при DEBUG ==========
             # Проверяем уровень логирования
             if logging_config.log_level.upper() == "DEBUG":
@@ -368,7 +369,7 @@ class DocumentLoader:
         else:
             pdf_files = list(directory.glob(glob_pattern))
         
-        for pdf_file in pdf_files:
+        for pdf_file in tqdm(pdf_files, desc="Обработка PDF файлов"):
             docs = self.load_pdf_with_metadata(pdf_file)
             documents.extend(docs)
         
@@ -939,4 +940,6 @@ if __name__ == "__main__":
 
     #main()
     #main(["--pdf_dir", "data/domain_3_WikiEval_1row/books"])        
-    main(["--pdf_dir", "data/domain_4_WikiEval_2row/books"])        
+    #main(["--pdf_dir", "data/domain_4_WikiEval_2row/books"])        
+    main(["--pdf_dir", "data/domain_7_UAV/books"])        
+    

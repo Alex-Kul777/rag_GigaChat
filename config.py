@@ -45,8 +45,17 @@ class ModelConfig:
     embedding_model_name: str = "GigaChat-2-Max"
     
     # Параметры генерации
-    max_new_tokens: int = 1000
+    max_new_tokens: int = 2000
+
+    #temperature: float = 0.7
     temperature: float = 0.7
+
+    # Конфигурация для RAGAS метрик
+    ragas_max_tokens: int = 2000  # Максимальное количество токенов для RAGAS метрик
+    ragas_temperature: float = 0.2
+    ragas_timeout: int = 160
+    max_retries: int = 3
+
     top_p: float = 0.9
     repetition_penalty: float = 1.1
     
@@ -56,8 +65,8 @@ class ModelConfig:
     max_context_length: int = 2000
     
     # Устройство
-    device: str = "cpu"  # Принудительно CPU для экономии памяти
-    # device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    #device: str = "cpu"  # Принудительно CPU для экономии памяти
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
     
     # Режим работы
     mode: str = "ui"
@@ -86,7 +95,7 @@ class DataConfig:
     documents_dirs: Dict[str, Path] = field(default_factory=lambda: {
         "debug": Path("data/domain_2_Debug/books"),
         "ai": Path("data/domain_1_AI/books"),
-        "test": Path("data/test_docs")
+        "UAV": Path("data/domain_7_UAV/books"),
     })
 
     # Параметры загрузки PDF
@@ -95,8 +104,8 @@ class DataConfig:
     pdf_method: str = "auto"  # "auto", "pypdf2", "pdfplumber"
     
     # Параметры разделения на чанки
-    chunk_size: int = 800
-    chunk_overlap: int = 100
+    chunk_size: int = 500
+    chunk_overlap: int = 80
     chunk_separators: List[str] = field(default_factory=lambda: ["\n\n", "\n", ".", "!", "?", ",", " ", ""])
     
     # Параметры кэширования

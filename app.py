@@ -4,8 +4,10 @@ app.py RAG Application - Единая точка входа
 1. UI режим (по умолчанию) - интерактивный Streamlit интерфейс
 2. Single Query режим - ответ на один вопрос
 3. Experiment режим - запуск серии экспериментов
+git commit -m "Initial commit"
+ git add .  
 
-
+ git remote add origin https://git.standard-data.ru/course_ragsystem_20260323/rag_akulikov.git
 """
 import sys
 import argparse

@@ -315,7 +315,7 @@ python experiment.py --pdf_dir data/domain_4_WikiEval_2row/books --testset data/
 
 ## 📧 Contact
 
-[Куликов Алексей kulikov_alexei@mail.ru]
+[Алексей К. Telegram @auditor2it]
 
 ---
 

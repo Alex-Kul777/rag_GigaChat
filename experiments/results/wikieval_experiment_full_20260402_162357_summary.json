@@ -1,0 +1,19 @@
+{
+  "experiment_id": "wikieval_experiment_full_20260402_162357",
+  "timestamp": "2026-04-02T16:27:02.063830",
+  "experiment_name": "wikieval_experiment_full",
+  "retrieval_type": "dense",
+  "k_retrieve": 5,
+  "status": "completed",
+  "map_score": 1.0,
+  "mrr_score": 0.9766666666666667,
+  "execution_time": 184.11285996437073,
+  "num_queries": 50,
+  "num_errors": 0,
+  "key_config": {
+    "llm_model": "GigaChat-2-Max",
+    "embedding_model": "GigaChat-2-Max",
+    "chunk_size": 800,
+    "temperature": 0.7
+  }
+}

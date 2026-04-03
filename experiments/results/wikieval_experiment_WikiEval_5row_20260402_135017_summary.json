@@ -1,0 +1,19 @@
+{
+  "experiment_id": "wikieval_experiment_WikiEval_5row_20260402_135017",
+  "timestamp": "2026-04-02T13:50:42.232761",
+  "experiment_name": "wikieval_experiment_WikiEval_5row",
+  "retrieval_type": "dense",
+  "k_retrieve": 5,
+  "status": "completed",
+  "map_score": 1.0,
+  "mrr_score": 1.0,
+  "execution_time": 24.26428508758545,
+  "num_queries": 5,
+  "num_errors": 0,
+  "key_config": {
+    "llm_model": "GigaChat-2-Max",
+    "embedding_model": "GigaChat-2-Max",
+    "chunk_size": 800,
+    "temperature": 0.2
+  }
+}

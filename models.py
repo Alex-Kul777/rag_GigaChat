@@ -299,7 +299,9 @@ class ExperimentResult:
     detailed_predictions: Dict[str, Any]
     execution_time: float
     status: ExperimentStatus = ExperimentStatus.COMPLETED
+    token_stats: Optional[Dict[str, Any]] = None  
     
+    balance_stats: Optional[Dict[str, Any]] = None     
     error_message: Optional[str] = None
     advanced_metrics: Optional[Dict[str, Any]] = None  # Добавлено поле   
     
@@ -323,7 +325,10 @@ class ExperimentResult:
             'execution_time': self.execution_time,
             'status': self.status.value if hasattr(self.status, 'value') else str(self.status),
             'error_message': self.error_message,
-            'advanced_metrics': self.advanced_metrics if self.advanced_metrics else {}           
+            'advanced_metrics': self.advanced_metrics if self.advanced_metrics else {},
+            'token_stats': self.token_stats,
+            'balance_stats': self.balance_stats 
+
         }
     
     @property

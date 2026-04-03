@@ -1,0 +1,14 @@
+{
+  "cache_key": "ef6be85ca6ae7b6d6721ec1da25fc337",
+  "directory": "data\\domain_7_UAV\\books",
+  "recursive": true,
+  "chunk_size": 500,
+  "timestamp": "2026-04-03T08:43:01.814925",
+  "num_documents": 7632,
+  "metadata": {
+    "num_pages": 26012,
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "has_metadata": true
+  }
+}

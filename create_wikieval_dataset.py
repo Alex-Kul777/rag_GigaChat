@@ -239,7 +239,9 @@ def main(args_list=None):
 
 if __name__ == "__main__":
     #main(["--max_samples", "1", "--output_dir", "data/domain_3_WikiEval_1row"])
-    main(["--max_samples", "2", "--output_dir", "data/domain_4_WikiEval_2row"])
+    #main(["--max_samples", "2", "--output_dir", "data/domain_4_WikiEval_2row"])
+    #main(["--max_samples", "200", "--output_dir", "data/domain_5_WikiEval_full"])
+    main(["--max_samples", "5", "--output_dir", "data/domain_6_WikiEval_5row"])
     
     # Или если хотите запускать без аргументов:
     # main()

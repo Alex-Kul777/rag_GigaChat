@@ -16,8 +16,18 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.cell.cell import MergedCell
 
-logging.basicConfig(level=logging.INFO)
+
+
+
+# Импортируем конфигурацию
+from config import logging_config    
+from config import model_config
+
+# Настройка логирования
 logger = logging.getLogger(__name__)
+
+#logging.basicConfig(level=logging.INFO)
+#logger = logging.getLogger(__name__)
 
 
 class ExcelReporter:
@@ -277,6 +287,29 @@ class ExcelReporter:
             if gigachat_config.get('enabled'):
                 experiment_info['gigachat_model'] = gigachat_config.get('model', '')
 
+        # 🔥 ДОБАВИТЬ ИЗВЛЕЧЕНИЕ ТОКЕНОВ
+        token_stats = data.get('token_stats', {})
+        if token_stats:
+            experiment_info.update({
+                'total_tokens': token_stats.get('total_tokens', 0),
+                'total_prompt_tokens': token_stats.get('total_prompt_tokens', 0),
+                'total_completion_tokens': token_stats.get('total_completion_tokens', 0),
+                'num_requests': token_stats.get('num_requests', 0),
+                'avg_tokens_per_request': token_stats.get('avg_tokens_per_request', 0),
+                'estimated_cost_usd': token_stats.get('estimated_cost_usd', 0),
+            })
+
+        # Извлекаем статистику баланса
+        balance_stats = data.get('balance_stats', {})
+        if balance_stats:
+            total_delta = balance_stats.get('total_delta', {})
+            experiment_info.update({
+                'initial_balance': total_delta.get('balance', 0),
+                'final_balance': balance_stats.get('last_balance', {}).get('balance', 0),
+                'balance_spent': total_delta.get('balance', 0),
+                'balance_checks': balance_stats.get('num_checks', 0)
+            })
+
         return experiment_info
     
     def create_summary_dataframe(self, results: List[Dict[str, Any]]) -> pd.DataFrame:
@@ -319,11 +352,60 @@ class ExcelReporter:
             self._write_configurations_sheet(df, writer)
             self._write_best_experiments_sheet(df, writer)
             self._write_advanced_metrics_sheet(df, writer)
-        
+            self._write_token_usage_sheet(df, writer)
+            self._write_balance_sheet(df, writer)
+
         # Применяем стили
         self._apply_styling(output_path)
         
         logger.info(f"✅ Excel отчет создан: {output_path}")
+
+
+    # Добавить лист с балансом
+    def _write_balance_sheet(self, df: pd.DataFrame, writer):
+        """Запись информации о балансе"""
+        balance_cols = ['experiment_name', 'initial_balance', 'final_balance', 
+                        'balance_spent', 'balance_checks']
+
+        available_cols = [col for col in balance_cols if col in df.columns]
+
+        if available_cols:
+            balance_df = df[available_cols].copy()
+            column_names = {
+                'experiment_name': 'Эксперимент',
+                'initial_balance': 'Начальный баланс',
+                'final_balance': 'Конечный баланс',
+                'balance_spent': 'Потрачено',
+                'balance_checks': 'Проверок баланса'
+            }
+            balance_df = balance_df.rename(columns=column_names)
+            balance_df.to_excel(writer, sheet_name='Баланс GigaChat', index=False)
+            logger.info("  ✅ Лист 'Баланс GigaChat' создан")
+
+    def _write_token_usage_sheet(self, df: pd.DataFrame, writer):
+        """
+        Запись информации об использовании токенов
+        """
+        token_cols = ['experiment_name', 'total_tokens', 'total_prompt_tokens', 
+                      'total_completion_tokens', 'num_requests', 
+                      'avg_tokens_per_request', 'estimated_cost_usd']
+
+        available_cols = [col for col in token_cols if col in df.columns]
+
+        if available_cols and len(available_cols) > 1:
+            token_df = df[available_cols].copy()
+            column_names = {
+                'experiment_name': 'Эксперимент',
+                'total_tokens': 'Всего токенов',
+                'total_prompt_tokens': 'Prompt токены',
+                'total_completion_tokens': 'Completion токены',
+                'num_requests': 'Кол-во запросов',
+                'avg_tokens_per_request': 'Ср. токенов на запрос',
+                'estimated_cost_usd': 'Оценочная стоимость ($)'
+            }
+            token_df = token_df.rename(columns=column_names)
+            token_df.to_excel(writer, sheet_name='Использование токенов', index=False)
+            logger.info("  ✅ Лист 'Использование токенов' создан")
 
     def _write_advanced_metrics_sheet(self, df: pd.DataFrame, writer):
         """
@@ -423,7 +505,18 @@ class ExcelReporter:
                     ('temperature', 'Temperature'),
                     ('k_retrieve', 'K (кол-во документов)')
                 ]
-            }
+            },
+            'Использование токенов': {
+                'start_col': 37,  # Рассчитайте правильную позицию
+                'columns': [
+                    ('total_tokens', 'Всего токенов'),
+                    ('total_prompt_tokens', 'Prompt токены'),
+                    ('total_completion_tokens', 'Completion токены'),
+                    ('num_requests', 'Кол-во запросов'),
+                    ('avg_tokens_per_request', 'Ср. токенов/запрос'),
+                    ('estimated_cost_usd', 'Стоимость ($)')
+                ]
+            }            
         }
         
         # Подготавливаем данные для вывода

@@ -1,0 +1,19 @@
+{
+  "experiment_id": "domain_4_WikiEval_2row_experiment_20260403_090235",
+  "timestamp": "2026-04-03T09:02:49.034074",
+  "experiment_name": "domain_4_WikiEval_2row_experiment",
+  "retrieval_type": "dense",
+  "k_retrieve": 5,
+  "status": "completed",
+  "map_score": 1.0,
+  "mrr_score": 1.0,
+  "execution_time": 13.17931866645813,
+  "num_queries": 2,
+  "num_errors": 0,
+  "key_config": {
+    "llm_model": "GigaChat-2-Max",
+    "embedding_model": "GigaChat-2-Max",
+    "chunk_size": 800,
+    "temperature": 0.7
+  }
+}

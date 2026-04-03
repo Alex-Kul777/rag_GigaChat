@@ -1,0 +1,14 @@
+{
+  "cache_key": "50c808a3282e7d2ad3e9281144905e7e",
+  "directory": "data\\domain_6_WikiEval_5row\\books",
+  "recursive": true,
+  "chunk_size": 800,
+  "timestamp": "2026-04-02T15:30:30.521975",
+  "num_documents": 14,
+  "metadata": {
+    "num_pages": 40,
+    "chunk_size": 800,
+    "chunk_overlap": 100,
+    "has_metadata": true
+  }
+}

@@ -329,6 +329,8 @@ class ExperimentRunner:
         # Получаем полную конфигурацию для сохранения в результате
         full_system_config = self._get_full_config(pipeline)
 
+        token_stats = pipeline.token_counter.get_stats_for_json() if hasattr(pipeline, 'token_counter') else {}
+
         # Подготовка результата
         experiment_result = ExperimentResult(
             experiment_id=experiment_id,
@@ -355,7 +357,8 @@ class ExperimentRunner:
             execution_time=execution_time,
             status=ExperimentStatus.COMPLETED if not errors else ExperimentStatus.FAILED,
             error_message="; ".join(errors[:5]) if errors else None,
-            advanced_metrics={}  # Инициализируем пустым словарем
+            advanced_metrics={},  # Инициализируем пустым словарем
+            token_stats=token_stats   # Добавляем токены в результат
         )
 
         # ==================== RAGAS МЕТРИКИ ====================
@@ -401,8 +404,8 @@ class ExperimentRunner:
                     scope='GIGACHAT_API_B2B',
                     verify_ssl_certs=False,
                     model=gigachat_config.model,
-                    temperature=0.1,
-                    max_tokens=500
+                    temperature=model_config.ragas_temperature,
+                    max_tokens=model_config.ragas_max_tokens
                 )
 
                 ragas_embeddings = GigaChatEmbeddings(
@@ -909,7 +912,16 @@ def main(args=None):
         embedding_type=args.embedding_type,
         llm_type=args.llm_type
     )
+    token_counter = pipeline.token_counter
 
+
+    # Получаем баланс до и после
+    if pipeline.gigachat_client:
+        initial_balance = pipeline.get_balance_info()
+        logger.info(f"Initial balance: {initial_balance}")
+    else:
+        initial_balance = None
+        logger.warning("No GigaChat client available, skipping balance tracking")
 
     # Загрузка документов
     pdf_dir = Path(args.pdf_dir)
@@ -939,13 +951,49 @@ def main(args=None):
     # Вывод итогов
     runner.print_results(result)
 
+    # Выводим статистику токенов
+    token_counter.print_summary()
+
+    # Сохраняем в файл
+    token_counter.save_to_file("token_stats.json")
+
+    # Получаем конечный баланс
+
+
+
+
+
+    if pipeline.gigachat_client:
+        final_balance = pipeline.get_balance_info()
+        logger.info(f"Final balance: {final_balance}")
+    else:
+        final_balance = None
+    
+    # Расчет дельты с проверкой
+    if initial_balance is not None and final_balance is not None:
+        delta = token_counter.calculate_balance_delta(initial_balance, final_balance)
+        
+        if delta.get('has_data'):
+            logger.info(f"Balance delta calculated: {delta}")
+
+            # Статистика
+            stats = token_counter.get_stats_for_json()
+            print(f"Статистика: {stats}")
+
+        else:
+            logger.warning(f"Could not calculate balance delta: {delta.get('error')}")
+    else:
+        logger.warning("Skipping balance delta calculation due to missing balance data")
 
     #generate_report_after_experiment()
     generate_excel_report()
 if __name__ == "__main__":
     #main()
-    #main(["--pdf_dir", "data/domain_3_WikiEval_1row/books", "--testset", "data/domain_3_WikiEval_1row/testset.json", "--name", "ikieval_experiment", "--force_reload"])
-    main(["--pdf_dir", "data/domain_4_WikiEval_2row/books", "--testset", "data/domain_4_WikiEval_2row/testset.json", "--name", "wikieval_experiment", "--force_reload"])
+    #main(["--pdf_dir", "data/domain_3_WikiEval_1row/books", "--testset", "data/domain_3_WikiEval_1row/testset.json", "--name", "WikiEval_1row_experiment", "--force_reload"])
+    main(["--pdf_dir", "data/domain_4_WikiEval_2row/books", "--testset", "data/domain_4_WikiEval_2row/testset.json", "--name", "domain_4_WikiEval_2row_experiment", "--force_reload"])
+    #main(["--pdf_dir", "data/domain_4_WikiEval_2row/books", "--testset", "data/domain_4_WikiEval_2row/testset.json", "--name", "wikieval_experiment", "--force_reload"])
+    #main(["--pdf_dir", "data/domain_5_WikiEval_full/books", "--testset", "data/domain_5_WikiEval_full/testset.json", "--name", "wikieval_experiment_full", "--force_reload"])
+    #main(["--pdf_dir", "data/domain_6_WikiEval_5row/books", "--testset", "data/domain_6_WikiEval_5row/testset.json", "--name", "wikieval_experiment_WikiEval_5row", "--force_reload"])
 
 #& d:/study/2026-03_RAG/.venv/Scripts/python.exe d:/study/2026-03_RAG/experiment.py --pdf_dir "data/domain_2_Debug/books" --testset "testset.json" --name "my_experiment" --force_reload
 #& d:/study/2026-03_RAG/.venv/Scripts/python.exe d:/study/2026-03_RAG/experiment.py --pdf_dir data/domain_3_WikiEval_1row/books  --testset data/domain_3_WikiEval_1row/testset.json --name wikieval_experiment  --force_reload

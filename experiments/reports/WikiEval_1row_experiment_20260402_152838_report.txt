@@ -1,0 +1,64 @@
+================================================================================
+ОТЧЕТ ПО ЭКСПЕРИМЕНТУ
+ID: WikiEval_1row_experiment_20260402_152838
+Дата: 2026-04-02T15:28:41.602370
+================================================================================
+
+КОНФИГУРАЦИЯ:
+----------------------------------------
+  experiment_name: WikiEval_1row_experiment
+  retrieval_type: dense
+  k_retrieve: 5
+  num_test_samples: 1
+  num_errors: 0
+  avg_retrieval_time: 0.0
+  avg_generation_time: 2.63468599319458
+  llm_model: GigaChat-2-Max
+  embedding_model: GigaChat-2-Max
+  chunk_size: 800
+  chunk_overlap: 100
+  temperature: 0.2
+  max_tokens: 2000
+  device: cuda
+
+МЕТРИКИ ПОИСКА:
+----------------------------------------
+  MAP: 1.0000
+  MRR: 1.0000
+
+  Precision@k:
+    P@1: 1.0000
+    P@3: 1.0000
+    P@5: 1.0000
+    P@10: 1.0000
+
+  Recall@k:
+    R@1: 1.0000
+    R@3: 1.0000
+    R@5: 1.0000
+    R@10: 1.0000
+
+  NDCG@k:
+    NDCG@1: 1.0000
+    NDCG@3: 1.0000
+    NDCG@5: 1.0000
+    NDCG@10: 1.0000
+
+МЕТРИКИ ГЕНЕРАЦИИ:
+----------------------------------------
+  rouge2: 0.5915
+  rouge1: 0.8219
+  bert_score_f1: 0.0000
+  rougeL: 0.7123
+  bleu: 0.5088
+
+ДЕТАЛЬНЫЕ РЕЗУЛЬТАТЫ ПО ЗАПРОСАМ:
+----------------------------------------
+
+q000: Question: When is the scheduled launch date and time for the PSLV-C56 mission, a...
+  Релевантные документы: 1
+  Найденные документы: 2
+  Время поиска: 0.000 сек
+  Топ-3 найденных документов:
+    1. PSLV_C56_page_1 (score: 1.000)
+    2. PSLV_C56_page_2 (score: 1.000)

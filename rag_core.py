@@ -6,6 +6,7 @@ import logging
 import time
 from typing import List, Dict, Optional, Any, TypedDict
 from pathlib import Path
+from tqdm import tqdm
 
 import bs4
 from langchain import hub
@@ -196,6 +197,75 @@ class VectorStoreManager:
     def create_from_texts_with_cache(self, texts: Dict[str, str], force_reload: bool = False) -> bool:
         """
         Создание FAISS индекса из текстов с использованием кэша
+        """
+        # Генерируем хеш для этого набора документов
+        doc_hash = self._get_hash(texts)
+
+        # Проверяем существование кэша
+        if not force_reload and self.check_cache_exists(doc_hash):
+            logger.info(f"📦 Загрузка FAISS индекса из кэша (хеш: {doc_hash})")
+            if self.load_from_disk(doc_hash):
+                return True
+            else:
+                logger.warning("Не удалось загрузить из кэша, создаем заново")
+
+        logger.info(f"🔄 Создание FAISS индекса из {len(texts)} документов...")
+        start_time = time.time()
+
+        # Подготовка документов с ограничением длины
+        documents = []
+        max_chars = 1500  # ~375 токенов (оставляем запас для безопасности)
+
+        for doc_id, text in tqdm(texts.items(), desc="Обработка текстов"):
+            if len(text) > max_chars:
+                text = text[:max_chars]
+                logger.debug(f"Документ {doc_id} обрезан до {max_chars} символов")
+
+            doc = Document(
+                page_content=text,
+                metadata={"source": doc_id}
+            )
+            documents.append(doc)
+
+        # Разбиваем на маленькие батчи для эмбеддингов
+        batch_size = 3  # Начинаем с маленького батча
+
+        for attempt in range(3):  # Максимум 3 попытки
+            try:
+                logger.info(f"Попытка {attempt + 1}: создание эмбеддингов батчами по {batch_size}")
+
+                # Используем стандартный метод FAISS
+                self.vector_store = FAISS.from_documents(documents, self.embeddings)
+
+                self.is_initialized = True
+                self.current_hash = doc_hash
+                self.save_to_disk(doc_hash)
+
+                elapsed = time.time() - start_time
+                logger.info(f"✅ FAISS индекс создан за {elapsed:.2f} сек")
+                return False
+
+            except Exception as e:
+                error_msg = str(e)
+                if "Tokens limit exceeded" in error_msg and attempt < 2:
+                    # Уменьшаем размер документов и батча
+                    batch_size = max(1, batch_size // 2)
+                    max_chars = max(500, max_chars - 300)
+
+                    logger.warning(f"Ошибка токенов, уменьшаем размер: max_chars={max_chars}, batch_size={batch_size}")
+
+                    # Обрезаем документы еще сильнее
+                    for doc in documents:
+                        if len(doc.page_content) > max_chars:
+                            doc.page_content = doc.page_content[:max_chars]
+                    continue
+                raise e
+
+        raise RuntimeError("Не удалось создать FAISS индекс после нескольких попыток")
+    
+    def create_from_texts_with_cacheOldVersion20260403(self, texts: Dict[str, str], force_reload: bool = False) -> bool:
+        """
+        Создание FAISS индекса из текстов с использованием кэша
         
         Args:
             texts: Словарь {doc_id: text}
@@ -229,8 +299,24 @@ class VectorStoreManager:
             documents.append(doc)
         
         # Создаем FAISS индекс
-        self.vector_store = FAISS.from_documents(documents, self.embeddings)
-        
+        #self.vector_store = FAISS.from_documents(documents, self.embeddings)
+
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # Пробуем создать эмбеддинги
+                self.vector_store = FAISS.from_documents(documents, self.embeddings)
+                break
+            except Exception as e:
+                if "Tokens limit exceeded" in str(e) and attempt < max_retries - 1:
+                    # Уменьшаем размер документов
+                    for doc in documents:
+                        if len(doc.page_content) > 2000:
+                            doc.page_content = doc.page_content[:2000]
+                            logger.warning(f"Документ обрезан до 2000 символов (попытка {attempt + 2})")
+                    continue
+                raise e
+
         self.is_initialized = True
         self.current_hash = doc_hash
         
@@ -509,9 +595,88 @@ class RAGPipeline:
         self.prompt = None
         self.documents_metadata = {}
         
+        self.llm = None
+        self.token_counter = TokenCounter()
+
+        self.gigachat_client = None  # Для хранения клиента GigaChat
+
         logger.info(f"RAGPipeline инициализирован. chunk_size={chunk_size}, chunk_overlap={chunk_overlap}, llm_type={llm_type}, embedding_type={embedding_type}")
 
     
+    def set_gigachat_client(self, client):
+        """
+        Установка GigaChat клиента для отслеживания баланса
+        """
+        self.gigachat_client = client
+        logger.info("GigaChat клиент установлен для отслеживания баланса")
+
+
+    def get_balance_info(self, client) -> Optional[Dict[str, Any]]:
+        """
+        Получение информации о балансе из GigaChat клиента
+
+        Args:
+            client: GigaChat клиент
+
+        Returns:
+            Словарь с информацией о балансе или None
+        """
+        if client is None:
+            logger.warning("Client is None, cannot get balance")
+            return None
+
+        try:
+            balance_obj = None
+
+            # Пробуем разные методы получения баланса
+            if hasattr(client, 'get_balance'):
+                try:
+                    balance_obj = client.get_balance()
+                    logger.debug("Balance obtained via get_balance()")
+                except Exception as e:
+                    logger.debug(f"get_balance() failed: {e}")
+
+            if balance_obj is None and hasattr(client, 'balance'):
+                try:
+                    balance_obj = client.balance
+                    logger.debug("Balance obtained via balance property")
+                except Exception as e:
+                    logger.debug(f"balance property failed: {e}")
+
+            if balance_obj is None and hasattr(client, 'get_account_balance'):
+                try:
+                    balance_obj = client.get_account_balance()
+                    logger.debug("Balance obtained via get_account_balance()")
+                except Exception as e:
+                    logger.debug(f"get_account_balance() failed: {e}")
+
+            if balance_obj is None:
+                logger.warning("Could not get balance: all methods failed")
+                return None
+
+            # Преобразуем в словарь
+            if hasattr(balance_obj, 'model_dump'):
+                balance_dict = balance_obj.model_dump()
+            elif hasattr(balance_obj, 'dict'):
+                balance_dict = balance_obj.dict()
+            elif hasattr(balance_obj, '__dict__'):
+                balance_dict = vars(balance_obj)
+            elif isinstance(balance_obj, dict):
+                balance_dict = balance_obj
+            else:
+                # Если ничего не подошло, создаем словарь с базовой информацией
+                balance_dict = {'balance': str(balance_obj), 'raw_value': balance_obj}
+
+            # Добавляем временную метку
+            balance_dict['timestamp'] = datetime.now().isoformat()
+
+            logger.info(f"Balance retrieved successfully. Fields: {list(balance_dict.keys())}")
+            return balance_dict
+
+        except Exception as e:
+            logger.error(f"Error getting balance: {e}")
+            return None
+        
     def load_documents_from_dict(self, documents_dict: Dict[str, str], force_reload: bool = False) -> None:
         """
         Загрузка документов из словаря с кэшированием FAISS индекса
@@ -751,8 +916,9 @@ class RAGPipeline:
         ])
         
         # Получаем LLM
-        llm = self.llm_manager.get_llm()
-        
+        #llm = self.llm_manager.get_llm()
+        self.llm = self.llm_manager.get_llm() 
+                
         # Определяем функцию поиска
         def retrieve(state: RAGState):
             """Поиск релевантных документов"""
@@ -772,7 +938,7 @@ class RAGPipeline:
                 context=docs_content
             )
             
-            response = llm.invoke(formatted_prompt)
+            response = self.llm.invoke(formatted_prompt)
             if hasattr(response, 'content'):
                 answer_text = response.content
             else:
@@ -817,7 +983,10 @@ class RAGPipeline:
             if docs:
                 clean_text = docs[0].page_content[:100].replace('\n', ' ').replace('\r', ' ')
                 print(f"🔍 DEBUG: Первый документ: {clean_text}...")
-            
+
+            # Подсчет токенов для запроса
+            prompt_tokens = self.token_counter.count_text_tokens(query)
+
             print("🔍 DEBUG: Запускаем граф...")
             response = self.graph.invoke({"question": query})
             print(f"🔍 DEBUG: Граф выполнен, ответ получен")
@@ -869,6 +1038,18 @@ class RAGPipeline:
                 for i, doc in enumerate(response.get('context', [])[:3], 1):
                     preview = doc.page_content[:200].replace('\n', ' ')
                     logger.debug(f"  📄 Doc {i}: Источник '{doc.metadata.get('source', 'unknown')}' - {preview}...")            
+
+
+            if self.gigachat_client:
+                self.token_counter.add_request_with_balance(
+                    prompt=query,
+                    response=result.answer,
+                    response_metadata=getattr(self.llm, 'response_metadata', None),
+                    client=self.gigachat_client
+                )
+            else:
+                self.token_counter.add_request(query, result.answer)
+
             return result
             
         except Exception as e:
@@ -893,7 +1074,11 @@ class RAGPipeline:
         finally:
             if k:
                 model_config.default_k_retrieve = original_k
-                    
+    
+    def get_token_stats(self) -> Dict:
+        """Получение статистики токенов"""
+        return self.token_counter.get_stats()
+                        
     def get_stats(self) -> Dict[str, Any]:
         """Получение статистики пайплайна"""
         stats = {
@@ -914,6 +1099,352 @@ class RAGPipeline:
         
         return stats
 
+# token_counter.py
+import tiktoken
+from typing import List, Dict, Any
+from collections import defaultdict
+
+class TokenCounter:
+    """Счетчик токенов для RAG системы"""
+    
+    def __init__(self):
+        self.reset()
+        self.balance_history = []  # История баланса
+        self.last_balance = None
+        self.last_balance_time = None
+
+        # Инициализируем tokenizer для разных моделей
+        try:
+            # Для GigaChat/OpenAI
+            self.encoder = tiktoken.get_encoding("cl100k_base")
+        except:
+            self.encoder = None
+    
+    def reset(self):
+        """Сброс счетчиков"""
+        self.prompt_tokens = 0
+        self.completion_tokens = 0
+        self.total_tokens = 0
+        self.num_requests = 0
+        self.details = []
+
+
+    def calculate_balance_delta(self, initial_balance: Optional[Dict], final_balance: Optional[Dict]) -> Dict[str, Any]:
+        """
+        Расчет расхода по дельте баланса
+
+        Args:
+            initial_balance: Начальный баланс (может быть None)
+            final_balance: Конечный баланс (может быть None)
+
+        Returns:
+            Словарь с дельтой
+        """
+        delta = {
+            'error': None,
+            'has_data': False,
+            'timestamp': datetime.now().isoformat()
+        }
+
+        # Проверяем, что оба баланса получены
+        if initial_balance is None:
+            delta['error'] = 'initial_balance is None'
+            delta['has_data'] = False
+            logger.warning("initial_balance is None, cannot calculate delta")
+            return delta
+
+        if final_balance is None:
+            delta['error'] = 'final_balance is None'
+            delta['has_data'] = False
+            logger.warning("final_balance is None, cannot calculate delta")
+            return delta
+
+        # Проверяем, что это словари
+        if not isinstance(initial_balance, dict):
+            delta['error'] = f'initial_balance is not a dict: {type(initial_balance)}'
+            logger.warning(delta['error'])
+            return delta
+
+        if not isinstance(final_balance, dict):
+            delta['error'] = f'final_balance is not a dict: {type(final_balance)}'
+            logger.warning(delta['error'])
+            return delta
+
+        # Пробуем разные возможные поля баланса
+        balance_fields = ['balance', 'available', 'total', 'amount', 'value', 'credits']
+
+        for field in balance_fields:
+            if field in initial_balance and field in final_balance:
+                try:
+                    initial_value = float(initial_balance[field])
+                    final_value = float(final_balance[field])
+                    delta[field] = initial_value - final_value
+                    delta['has_data'] = True
+                except (ValueError, TypeError) as e:
+                    logger.debug(f"Не удалось преобразовать поле {field}: {e}")
+
+        # Поля для токенов
+        token_fields = ['tokens_used', 'tokens', 'total_tokens', 'usage']
+
+        for field in token_fields:
+            if field in final_balance:
+                try:
+                    delta[field] = final_balance.get(field, 0)
+                    delta['has_data'] = True
+                except (ValueError, TypeError):
+                    pass
+                
+        if not delta.get('has_data'):
+            delta['error'] = 'No valid balance fields found'
+            delta['available_fields_initial'] = list(initial_balance.keys())
+            delta['available_fields_final'] = list(final_balance.keys())
+            logger.warning(f"No valid balance fields found. Initial fields: {list(initial_balance.keys())}, Final fields: {list(final_balance.keys())}")
+
+        return delta
+        
+    
+    def add_request_with_balance(self, 
+                                 prompt: str, 
+                                 response: str = None, 
+                                 response_metadata: Dict = None,
+                                 client = None) -> int:
+        """
+        Добавление запроса с учетом баланса
+        
+        Args:
+            prompt: Текст запроса
+            response: Текст ответа
+            response_metadata: Метаданные ответа от API
+            client: GigaChat клиент (для получения баланса)
+        
+        Returns:
+            Количество использованных токенов
+        """
+        # Получаем баланс до запроса
+        balance_before = None
+        if client:
+            balance_before = self.get_balance_info(client)
+        
+        # Добавляем запрос
+        tokens_used = self.add_request(prompt, response, response_metadata)
+        
+        # Получаем баланс после запроса
+        balance_after = None
+        if client:
+            balance_after = self.get_balance_info(client)
+        
+        # Рассчитываем дельту
+        if balance_before and balance_after:
+            delta = self.calculate_balance_delta(balance_before, balance_after)
+            logger.info(f"Расход по балансу: {delta}")
+            
+            # Сохраняем информацию о дельте
+            self.details[-1]['balance_delta'] = delta
+        
+        return tokens_used
+    
+    def get_balance_statistics(self) -> Dict[str, Any]:
+        """
+        Получение статистики по балансу
+        
+        Returns:
+            Словарь со статистикой баланса
+        """
+        if not self.balance_history:
+            return {'has_balance_data': False}
+        
+        first_balance = self.balance_history[0]
+        last_balance = self.balance_history[-1]
+        
+        # Рассчитываем общий расход
+        total_delta = self.calculate_balance_delta(first_balance, last_balance)
+        
+        return {
+            'has_balance_data': True,
+            'first_balance': first_balance,
+            'last_balance': last_balance,
+            'total_delta': total_delta,
+            'num_balance_checks': len(self.balance_history),
+            'balance_history': self.balance_history
+        }
+    
+    def get_stats_for_json(self) -> Dict[str, Any]:
+        """
+        Получение статистики в формате для JSON (с балансом)
+        """
+        stats = {
+            'num_requests': self.num_requests,
+            'total_prompt_tokens': self.prompt_tokens,
+            'total_completion_tokens': self.completion_tokens,
+            'total_tokens': self.total_tokens,
+            'avg_tokens_per_request': self.total_tokens / self.num_requests if self.num_requests > 0 else 0,
+            'estimated_cost_usd': self.estimate_cost()
+        }
+        
+        # Добавляем статистику баланса
+        balance_stats = self.get_balance_statistics()
+        if balance_stats.get('has_balance_data'):
+            stats['balance'] = {
+                'first_balance': balance_stats.get('first_balance'),
+                'last_balance': balance_stats.get('last_balance'),
+                'total_delta': balance_stats.get('total_delta'),
+                'num_checks': balance_stats.get('num_balance_checks')
+            }
+        
+        return stats
+            
+    def get_balance_info(self, client) -> Optional[Dict[str, Any]]:
+        """
+        Получение информации о балансе из GigaChat клиента
+        
+        Args:
+            client: GigaChat клиент
+        
+        Returns:
+            Словарь с информацией о балансе или None
+        """
+        try:
+            balance_obj = None
+            
+            # Пробуем разные методы получения баланса
+            if hasattr(client, 'get_balance'):
+                balance_obj = client.get_balance()
+            elif hasattr(client, 'balance'):
+                balance_obj = client.balance
+            elif hasattr(client, 'get_account_balance'):
+                balance_obj = client.get_account_balance()
+            
+            if balance_obj is None:
+                logger.warning("Не удалось получить баланс: ни один метод не сработал")
+                return None
+            
+            # Преобразуем в словарь
+            if hasattr(balance_obj, 'model_dump'):
+                balance_dict = balance_obj.model_dump()
+            elif hasattr(balance_obj, 'dict'):
+                balance_dict = balance_obj.dict()
+            elif hasattr(balance_obj, '__dict__'):
+                balance_dict = vars(balance_obj)
+            else:
+                balance_dict = {'balance': str(balance_obj)}
+            
+            # Добавляем временную метку
+            balance_dict['timestamp'] = datetime.now().isoformat()
+            
+            # Сохраняем в историю
+            self.balance_history.append(balance_dict)
+            self.last_balance = balance_dict
+            self.last_balance_time = datetime.now()
+            
+            logger.info(f"Баланс получен: {balance_dict}")
+            return balance_dict
+            
+        except Exception as e:
+            logger.error(f"Ошибка получения баланса: {e}")
+            return None
+            
+    def count_text_tokens(self, text: str) -> int:
+        """Подсчет токенов в тексте"""
+        if self.encoder:
+            return len(self.encoder.encode(text))
+        else:
+            # Приблизительный подсчет (1 токен ≈ 4 символа для русского)
+            return len(text) // 4
+    
+    def add_request(self, prompt: str, response: str = None, response_metadata: Dict = None):
+        """
+        Добавление информации о запросе
+        
+        Args:
+            prompt: Текст запроса
+            response: Текст ответа (опционально)
+            response_metadata: Метаданные ответа от API
+        """
+        self.num_requests += 1
+        
+        # Если есть метаданные от API - используем их
+        if response_metadata and 'token_usage' in response_metadata:
+            token_usage = response_metadata['token_usage']
+            prompt_tokens = token_usage.get('prompt_tokens', 0)
+            completion_tokens = token_usage.get('completion_tokens', 0)
+            total_tokens = token_usage.get('total_tokens', 0)
+        else:
+            # Подсчитываем вручную
+            prompt_tokens = self.count_text_tokens(prompt)
+            completion_tokens = self.count_text_tokens(response) if response else 0
+            total_tokens = prompt_tokens + completion_tokens
+        
+        self.prompt_tokens += prompt_tokens
+        self.completion_tokens += completion_tokens
+        self.total_tokens += total_tokens
+        
+        self.details.append({
+            'prompt_tokens': prompt_tokens,
+            'completion_tokens': completion_tokens,
+            'total_tokens': total_tokens,
+            'prompt_preview': prompt[:100]
+        })
+        
+        return total_tokens
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Получение статистики"""
+        return {
+            'num_requests': self.num_requests,
+            'total_prompt_tokens': self.prompt_tokens,
+            'total_completion_tokens': self.completion_tokens,
+            'total_tokens': self.total_tokens,
+            'avg_tokens_per_request': self.total_tokens / self.num_requests if self.num_requests > 0 else 0,
+            'estimated_cost_usd': self.estimate_cost()
+        }
+    
+    def estimate_cost(self, model: str = "gigachat") -> float:
+        """
+        Оценка стоимости (примерные цены)
+        GigaChat: ~0.0001$ за 1000 токенов
+        """
+        if model == "gigachat":
+            return self.total_tokens * 0.0001 / 1000
+        else:
+            return self.total_tokens * 0.002 / 1000  # OpenAI
+    
+    def print_summary(self):
+        """Вывод сводки"""
+        stats = self.get_stats()
+        print(f"""
+        {'='*50}
+        📊 СТАТИСТИКА ТОКЕНОВ ЗА ЭКСПЕРИМЕНТ
+        {'='*50}
+        📝 Количество запросов: {stats['num_requests']}
+        🔢 Всего токенов: {stats['total_tokens']:,}
+        📤 Prompt токены: {stats['total_prompt_tokens']:,}
+        📥 Completion токены: {stats['total_completion_tokens']:,}
+        📊 Среднее токенов на запрос: {stats['avg_tokens_per_request']:.0f}
+        💰 Оценочная стоимость: ${stats['estimated_cost_usd']:.4f}
+        {'='*50}
+        """)
+    
+    def save_to_file(self, filepath: str):
+        """Сохранение статистики в файл"""
+        import json
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump({
+                'stats': self.get_stats(),
+                'details': self.details
+            }, f, indent=2, ensure_ascii=False)
+
+    def get_stats_for_json(self) -> Dict[str, Any]:
+        """
+        Получение статистики в формате для JSON
+        """
+        return {
+            'num_requests': self.num_requests,
+            'total_prompt_tokens': self.prompt_tokens,
+            'total_completion_tokens': self.completion_tokens,
+            'total_tokens': self.total_tokens,
+            'avg_tokens_per_request': self.total_tokens / self.num_requests if self.num_requests > 0 else 0,
+            'estimated_cost_usd': self.estimate_cost()
+        }
 
 def create_pipeline_from_config(retrieval_type: RetrievalType = RetrievalType.DENSE,
                                documents: Dict[str, str] = None,
@@ -1020,14 +1551,18 @@ if __name__ == "__main__":
         #embedding_type="gigachat",  # Используем GigaChat эмбеддинги
         #llm_type="gigachat"          # Используем GigaChat LLM
     )
-    
+    token_counter = pipeline.token_counter
+
     # Загрузка документов
-    pdf_dir = Path("data/domain_2_Debug/books")
+    #pdf_dir = Path("data/domain_2_Debug/books")
+    pdf_dir = Path("data/domain_7_UAV/books")
+
     if pdf_dir.exists():
         pipeline.load_from_pdf_directory_with_metadata(pdf_dir, recursive=True, force_reload=False)
     
     # Обработка запроса
-    query = "Что такое нейросети?"
+    #query = "Что такое самолёт системы утка?"
+    query = "Что такое точка фокуса для самолёта и как её расчитать?"
     result = pipeline.process_query(query, k=5)
     #print(f"result.answer: {result.answer}")
 
@@ -1051,3 +1586,10 @@ if __name__ == "__main__":
         doc_score = doc.get('score', 0)
         doc_preview = doc.get('text', '').replace('\n', ' ')
         print(f"  📄 Doc {i}: {doc_id} (score: {doc_score:.3f}) - {doc_preview}...")
+
+    # Выводим статистику токенов
+    token_counter.print_summary()
+
+
+    # Сохраняем в файл
+    token_counter.save_to_file("token_stats.json")        

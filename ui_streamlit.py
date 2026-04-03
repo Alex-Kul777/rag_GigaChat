@@ -1,6 +1,13 @@
 """
 ui_streamlit.py - Переиспользуемые UI компоненты для Streamlit
 Интегрирован с RAGPipeline и централизованной конфигурацией
+
+Что такое схема утка?
+как рассчитать силы действующие на самолёт схемы утка?
+Что такое точка фокуса и как её рассчиать?
+Какая формула лобового сопротивления крыла?
+НА какие виды делятся беспилотные аппараты в зависимости от веса или массы?
+How much classifications by construction of UAV?
 """
 
 import streamlit as st
@@ -17,7 +24,7 @@ from rag_core import RAGPipeline
 from models import RetrievalType
 
 #pdf_dir = data_config.documents_dirs["debug"]
-pdf_dir = data_config.documents_dirs["ai"]
+pdf_dir = data_config.documents_dirs["UAV"]
 
 # Page config
 st.set_page_config(
@@ -65,13 +72,86 @@ if "pipeline" not in st.session_state:
 if "rag_initialized" not in st.session_state:
     st.session_state.rag_initialized = False
 
+if "selected_pdf_dir" not in st.session_state:
+    # По умолчанию используем UAV, если не выбран другой
+    st.session_state.selected_pdf_dir = data_config.documents_dirs["UAV"]
+
 # Sidebar
 with st.sidebar:
     st.header("⚙️ Настройки")
     
-    # Параметры RAG
-    st.markdown("### ⚙️ Параметры RAG")
+    st.markdown("### 📂 Выбор документов")
+
+    # Получаем список доступных доменов из конфига
+    available_domains = list(data_config.documents_dirs.keys())
     
+    # Добавляем опцию "custom" если нужно
+    domain_options = available_domains + ["custom"]
+    
+    # Создаем словарь для отображения понятных названий
+    domain_labels = {
+        "UAV": "🛸 Беспилотные летательные аппараты (БПЛА)",
+        "debug": "🐛 Debug документы",
+        "ai": "🤖 Искусственный интеллект",
+        "custom": "📁 Своя директория"
+    }
+    
+    # Функция форматирования с проверкой наличия ключа
+    def format_domain_option(option):
+        if option in domain_labels:
+            return domain_labels[option]
+        return f"📂 {option.capitalize()}"
+    
+    # Выбор типа документов с UAV по умолчанию
+    doc_type = st.selectbox(
+        "Источник документов",
+        options=domain_options,
+        format_func=format_domain_option,
+        index=domain_options.index("UAV"),  # 👈 UAV выбран по умолчанию
+        help="Выберите набор документов для работы"
+    )
+
+    # Путь к директории в зависимости от выбора
+    if doc_type == "custom":
+        custom_path = st.text_input(
+            "Путь к директории с PDF",
+            value=str(Path("./data/custom")),
+            help="Укажите полный или относительный путь к папке с PDF файлами"
+        )
+        selected_pdf_dir = Path(custom_path)
+    else:
+        selected_pdf_dir = data_config.documents_dirs[doc_type]
+
+    # Показываем информацию о выбранной директории
+    if selected_pdf_dir.exists():
+        pdf_files = list(selected_pdf_dir.glob("*.pdf"))
+        st.success(f"✅ Найдено {len(pdf_files)} PDF файлов")
+        if pdf_files:
+            with st.expander("📄 Показать файлы"):
+                for f in pdf_files[:5]:
+                    st.text(f.name)
+                if len(pdf_files) > 5:
+                    st.text(f"... и {len(pdf_files)-5} других")
+    else:
+        st.error(f"❌ Директория не найдена: {selected_pdf_dir}")
+
+    # Кнопка применения новой директории
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔄 Применить и перезагрузить", type="primary", use_container_width=True):
+            st.session_state.selected_pdf_dir = selected_pdf_dir
+            st.session_state.rag_initialized = False
+            st.session_state.pipeline = None
+            st.session_state.messages = []
+            st.rerun()
+
+    with col2:
+        if st.button("🗑️ Очистить чат", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
+
+    st.markdown("---")
+
     temperature = st.slider(
         "Temperature",
         min_value=0.0,
@@ -93,13 +173,71 @@ with st.sidebar:
     model_config.temperature = temperature
     model_config.default_k_retrieve = k_retrieve
     
-    # Кнопка переинициализации
-    st.markdown("---")
-    if st.button("🔄 Переинициализировать RAG", type="primary", use_container_width=True):
-        st.session_state.rag_initialized = False
-        st.session_state.pipeline = None
-        st.session_state.messages = []
-        st.rerun()
+    st.markdown("### 🔧 Управление")
+    col_reset, col_clear = st.columns(2)
+    with col_reset:
+        if st.button("🔄 Сбросить систему", type="secondary", use_container_width=True):
+            st.session_state.rag_initialized = False
+            st.session_state.pipeline = None
+            st.session_state.messages = []
+            if "selected_pdf_dir" in st.session_state:
+                del st.session_state.selected_pdf_dir
+            st.rerun()
+
+    with col_clear:
+        if st.button("🗑️ Очистить историю", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
+
+
+    if not st.session_state.rag_initialized:
+        with st.spinner("🔄 Инициализация RAG системы... Это может занять минуту."):
+            try:
+                # Проверка API ключа (оставляем как есть)
+                if not gigachat_config.api_key:
+                    st.error("❌ GigaChat API ключ не найден в .env файле")
+                    st.stop()
+
+                # Создаем RAGPipeline (оставляем как есть)
+                st.session_state.pipeline = RAGPipeline(
+                    chunk_size=data_config.chunk_size,
+                    chunk_overlap=data_config.chunk_overlap,
+                    embedding_model=model_config.embedding_model_name,
+                    embedding_type="gigachat",
+                    llm_type="gigachat"
+                )
+
+                # ИСПОЛЬЗУЕМ ВЫБРАННУЮ ДИРЕКТОРИЮ
+                pdf_dir_to_load = st.session_state.selected_pdf_dir
+
+                if pdf_dir_to_load.exists():
+                    st.info(f"📁 Загрузка документов из: {pdf_dir_to_load}")
+                    st.session_state.pipeline.load_from_pdf_directory_with_metadata(
+                        pdf_dir_to_load, 
+                        recursive=True, 
+                        force_reload=data_config.force_reload
+                    )
+                    st.success(f"✅ Загружены документы из {pdf_dir_to_load}")
+                else:
+                    st.warning(f"⚠️ Директория не найдена: {pdf_dir_to_load}")
+                    st.info("Загружаю пример документов для тестирования...")
+                    st.session_state.pipeline.load_from_sample_corpus()
+                    st.success("✅ Загружены примеры документов")
+
+                st.session_state.rag_initialized = True
+                st.success("✅ RAG система готова к работе!")
+                st.rerun()
+
+            except Exception as e:
+                st.error(f"❌ Ошибка инициализации RAGPipeline: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                st.stop()
+
+
+
+
+
     
     st.markdown("---")
     st.markdown("### 📚 Как пользоваться:")
@@ -110,11 +248,12 @@ with st.sidebar:
     """)
     
     st.markdown("---")
-    st.markdown("### 📂 Источники документов")
+    st.markdown("### 📂 Текущие документы")
 
-    if pdf_dir.exists():
-        files = list(pdf_dir.glob("*.pdf"))
-        st.markdown(f"**Директория:** `{pdf_dir}`")
+    current_dir = st.session_state.get("selected_pdf_dir", data_config.documents_dirs["UAV"])
+    if current_dir.exists():
+        files = list(current_dir.glob("*.pdf"))
+        st.markdown(f"**Директория:** `{current_dir}`")
         st.markdown(f"**Документов:** {len(files)}")
         if files:
             with st.expander("📄 Список документов"):
@@ -123,8 +262,8 @@ with st.sidebar:
                 if len(files) > 5:
                     st.text(f"... и {len(files)-5} других")
     else:
-        st.warning(f"Директория не найдена: {pdf_dir}")
-    
+        st.warning(f"Директория не найдена: {current_dir}")
+
     st.markdown("---")
     st.markdown("### 🛠️ Built with:")
     st.markdown("""

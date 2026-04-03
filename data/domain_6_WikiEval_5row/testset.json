@@ -1,0 +1,37 @@
+{
+  "q000": {
+    "query": "Question: When is the scheduled launch date and time for the PSLV-C56 mission, and where will it be launched from?",
+    "relevant_docs": [
+      "PSLV_C56.pdf"
+    ],
+    "reference_answer": "Answer: The PSLV-C56 mission is scheduled to be launched on Sunday, 30 July 2023 at 06:30 IST / 01:00 UTC. It will be launched from the Satish Dhawan Space Centre, Sriharikota, Andhra Pradesh, India."
+  },
+  "q001": {
+    "query": "Question: What is the objective of the Uzbekistan-Afghanistan-Pakistan Railway Project and how is it expected to enhance trade and logistics efficiency?",
+    "relevant_docs": [
+      "Uzbekistan_Afghanistan_Pakistan_Railway_Project.pdf"
+    ],
+    "reference_answer": "Answer: The objective of the Uzbekistan-Afghanistan-Pakistan Railway Project is to create a direct railway link between Uzbekistan and Pakistan, passing through Afghanistan's territory. This project aims to enhance trade and logistics efficiency by establishing a 573-km rail connection that would connect Tashkent, the capital of Uzbekistan, to Kabul and Peshawar, the capitals of Afghanistan and Pakistan, respectively. The implementation of this project is anticipated to strengthen trade relations between Pakistan and South Asia. The trilateral agreement signed by Pakistan, Afghanistan, and Uzbekistan aims to significantly reduce cargo delivery times between Uzbekistan and Pakistan by approximately five days. The railway route will traverse through Termez, Mazar-i-Sharif, and Logar in Afghanistan, and continue to the Kharlachi border crossing in Pakistan's northwestern Kurram district. This railway is designed to facilitate both passenger and freight services, fostering regional trade and contributing to overall economic growth in the area."
+  },
+  "q002": {
+    "query": "Question: When was PharmaCann founded and what is its headquarters location?",
+    "relevant_docs": [
+      "PharmaCann.pdf"
+    ],
+    "reference_answer": "Answer: PharmaCann was founded in 2014 by Theodore Scott. Its headquarters is located in the state of Illinois."
+  },
+  "q003": {
+    "query": "Question: Who directed the film Oppenheimer and who stars as J. Robert Oppenheimer in the film?",
+    "relevant_docs": [
+      "Oppenheimer__film_.pdf"
+    ],
+    "reference_answer": "Answer: Christopher Nolan directed the film Oppenheimer. Cillian Murphy stars as J. Robert Oppenheimer in the film."
+  },
+  "q004": {
+    "query": "Question: What is theranostics and how does it combine diagnostic and therapeutic approaches in precision medicine?",
+    "relevant_docs": [
+      "Theranostics.pdf"
+    ],
+    "reference_answer": "Answer: Theranostics, also known as theragnostics, is an emerging field in precision medicine that combines diagnostic and therapeutic approaches to provide the potential for personalized treatment and real-time monitoring of the effectiveness of treatments. It utilizes improvements in imaging techniques and targeted therapies to achieve this goal. Medical imaging plays a crucial role in theranostics by enabling non-invasive visualization of disease processes, identification of specific molecular targets, and monitoring treatment response. By coupling medical imaging with the development of novel radiotracers and contrast agents, theranostics offers opportunities for precise diagnosis and targeted therapy. Diagnostic-therapeutic approaches are used in theranostics, where the diagnostic method is developed simultaneously with the therapeutic intervention or serves as the method itself. This integration of diagnostics and therapeutics allows for a more personalized and effective approach to treatment."
+  }
+}
