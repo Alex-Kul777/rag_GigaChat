@@ -38,3 +38,14 @@ Thumbs.db
 *.zip
 *.tar.gz
 *.7z
+
+# Test artifacts
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+.pytest_cache/
+.tox/
+.mypy_cache/
+*.cover
+test_results/

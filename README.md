@@ -16,6 +16,7 @@ This project implements a **Retrieval-Augmented Generation (RAG)** system for an
   - Generation: ROUGE, BLEU, BERTScore
   - Advanced: Faithfulness, Answer Relevancy, Context Relevancy (RAGAS)
 - **Input Validation**: Pre-flight checks for queries, files, and API config (`validator.py`)
+- **Test Suite**: 22 automated tests with pytest, mocks, and coverage reporting
 - **Web Interface**: Streamlit-based chat UI
 - **Reporting**: Excel reports with experiment summaries
 
@@ -29,6 +30,7 @@ This project implements a **Retrieval-Augmented Generation (RAG)** system for an
 ├── rag_core.py            # Core RAG pipeline (FAISS, LangGraph)
 ├── models.py              # Data models (dataclasses, enums)
 ├── validator.py           # Input validation (queries, files, config)
+├── token_counter.py       # Token usage tracking (standalone module)
 ├── evaluator.py           # Evaluation metrics
 ├── experiment.py          # Experiment runner
 ├── excel_reporter.py      # Excel report generation
@@ -286,6 +288,22 @@ logging_config.log_to_console = True
 6. **Evaluation**: Metrics computed for retrieval and generation quality
 
 ## 🧪 Running Tests
+
+Run the full test suite (22 tests):
+
+```bash
+# All tests
+pytest -v
+# or via Makefile
+make test
+
+# With coverage report (target: 60%)
+make test-cov
+
+# By category
+make test-unit    # unit tests only
+make test-smoke   # smoke tests only
+```
 
 ### Test Document Loading
 ```bash

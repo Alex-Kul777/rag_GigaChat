@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 import bs4
 from langchain import hub
+
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -644,14 +645,18 @@ class RAGPipeline:
             force_reload: Принудительная перезагрузка
         """
         logger.info(f"Загрузка {len(documents_dict)} документов из словаря")
-        
-        # Разделяем на чанки
-        chunked_docs = self.corpus_loader.split_documents(
-            documents_dict,
+
+        # Разделяем на чанки через TextSplitter
+        splitter = TextSplitter(
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap
         )
-        
+        chunked_docs: Dict[str, str] = {}
+        for doc_id, text in documents_dict.items():
+            chunks = splitter.split_text(text)
+            for i, chunk in enumerate(chunks):
+                chunked_docs[f"{doc_id}_chunk_{i}"] = chunk
+
         # Создаем FAISS индекс с кэшированием
         from_cache = self.vector_store_manager.create_from_texts_with_cache(
             chunked_docs, 
