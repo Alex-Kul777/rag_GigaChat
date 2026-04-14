@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "rag_GigaChat": {
+      "path": "/home/username/projects/rag_GigaChat",
+      "rules": "CLAUDE.md",
+      "commands": ".claude/commands"
+    }
+  },
+  "defaults": {
+    "model": "claude-3-opus-20240229",
+    "temperature": 0.3,
+    "max_tokens": 4000
+  }
+}
