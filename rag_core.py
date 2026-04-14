@@ -24,7 +24,12 @@ from langchain_community.llms import HuggingFacePipeline
 from langchain_community.chat_models import ChatOpenAI
 
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline as hf_pipeline
-import torch
+
+try:
+    import torch
+    _torch_available = True
+except ImportError:
+    _torch_available = False
 
 try:
     from langchain_gigachat.chat_models import GigaChat
@@ -35,7 +40,10 @@ except ImportError:
     print("Warning: langchain-gigachat not installed. Install with: pip install langchain-gigachat")
     
 
-from config import model_config, data_config, vectorstore_config, experiment_config, logging_config, gigachat_config
+from config import (
+    model_config, data_config, vectorstore_config,
+    experiment_config, logging_config, gigachat_config
+)
 
 from models import RetrievalResult, GenerationResult, RetrievalType
 from data_loader import CorpusLoader, DocumentLoader, TextSplitter
@@ -87,7 +95,10 @@ class VectorStoreManager:
         self.is_initialized = False
         self.current_hash = None
         
-        logger.info(f"VectorStoreManager инициализирован. Тип эмбеддингов: {embedding_type}, Директория: {self.persist_dir}")
+        logger.info(
+            f"VectorStoreManager инициализирован. "
+            f"Тип эмбеддингов: {embedding_type}, Директория: {self.persist_dir}"
+        )
 
     def _init_embeddings(self):
         """Инициализация модели эмбеддингов"""
@@ -144,7 +155,8 @@ class VectorStoreManager:
             return False
         
         try:
-            save_path = self.persist_dir / f"faiss_index_{hash_key or self.current_hash or 'default'}"
+            hash_suffix = hash_key or self.current_hash or 'default'
+            save_path = self.persist_dir / f"faiss_index_{hash_suffix}"
             self.vector_store.save_local(str(save_path))
             logger.info(f"FAISS индекс сохранен: {save_path}")
             return True
@@ -194,7 +206,8 @@ class VectorStoreManager:
         load_path = self.persist_dir / f"faiss_index_{hash_key or 'default'}"
         return load_path.exists()
     
-    def create_from_texts_with_cache(self, texts: Dict[str, str], force_reload: bool = False) -> bool:
+    def create_from_texts_with_cache(
+            self, texts: Dict[str, str], force_reload: bool = False) -> bool:
         """
         Создание FAISS индекса из текстов с использованием кэша
         """
@@ -252,7 +265,10 @@ class VectorStoreManager:
                     batch_size = max(1, batch_size // 2)
                     max_chars = max(500, max_chars - 300)
 
-                    logger.warning(f"Ошибка токенов, уменьшаем размер: max_chars={max_chars}, batch_size={batch_size}")
+                    logger.warning(
+                        f"Ошибка токенов, уменьшаем размер: "
+                        f"max_chars={max_chars}, batch_size={batch_size}"
+                    )
 
                     # Обрезаем документы еще сильнее
                     for doc in documents:
@@ -262,72 +278,7 @@ class VectorStoreManager:
                 raise e
 
         raise RuntimeError("Не удалось создать FAISS индекс после нескольких попыток")
-    
-    def create_from_texts_with_cacheOldVersion20260403(self, texts: Dict[str, str], force_reload: bool = False) -> bool:
-        """
-        Создание FAISS индекса из текстов с использованием кэша
-        
-        Args:
-            texts: Словарь {doc_id: text}
-            force_reload: Принудительная перезагрузка (игнорировать кэш)
-        
-        Returns:
-            Загружено ли из кэша (True) или создано заново (False)
-        """
-        # Генерируем хеш для этого набора документов
-        doc_hash = self._get_hash(texts)
-        
-        # Проверяем существование кэша
-        if not force_reload and self.check_cache_exists(doc_hash):
-            logger.info(f"📦 Загрузка FAISS индекса из кэша (хеш: {doc_hash})")
-            if self.load_from_disk(doc_hash):
-                return True
-            else:
-                logger.warning("Не удалось загрузить из кэша, создаем заново")
-        
-        # Создаем заново
-        logger.info(f"🔄 Создание FAISS индекса из {len(texts)} документов...")
-        start_time = time.time()
-        
-        # Преобразуем в документы LangChain
-        documents = []
-        for doc_id, text in texts.items():
-            doc = Document(
-                page_content=text,
-                metadata={"source": doc_id}
-            )
-            documents.append(doc)
-        
-        # Создаем FAISS индекс
-        #self.vector_store = FAISS.from_documents(documents, self.embeddings)
 
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                # Пробуем создать эмбеддинги
-                self.vector_store = FAISS.from_documents(documents, self.embeddings)
-                break
-            except Exception as e:
-                if "Tokens limit exceeded" in str(e) and attempt < max_retries - 1:
-                    # Уменьшаем размер документов
-                    for doc in documents:
-                        if len(doc.page_content) > 2000:
-                            doc.page_content = doc.page_content[:2000]
-                            logger.warning(f"Документ обрезан до 2000 символов (попытка {attempt + 2})")
-                    continue
-                raise e
-
-        self.is_initialized = True
-        self.current_hash = doc_hash
-        
-        # Сохраняем в кэш
-        self.save_to_disk(doc_hash)
-        
-        elapsed = time.time() - start_time
-        logger.info(f"✅ FAISS индекс создан за {elapsed:.2f} сек")
-        
-        return False
-    
     def create_from_documents(self, documents: List[Document]) -> None:
         """
         Создание FAISS индекса из документов (без кэша)
@@ -429,7 +380,9 @@ class LLMManager:
             LangChain LLM объект
         """
         if not GIGACHAT_AVAILABLE:
-            raise ImportError("langchain-gigachat не установлен. Установите: pip install langchain-gigachat")
+            raise ImportError(
+                "langchain-gigachat не установлен. Установите: pip install langchain-gigachat"
+            )
         
         if not gigachat_config.api_key:
             raise ValueError("GigaChat API ключ не настроен в конфигурации")
@@ -600,7 +553,11 @@ class RAGPipeline:
 
         self.gigachat_client = None  # Для хранения клиента GigaChat
 
-        logger.info(f"RAGPipeline инициализирован. chunk_size={chunk_size}, chunk_overlap={chunk_overlap}, llm_type={llm_type}, embedding_type={embedding_type}")
+        logger.info(
+            f"RAGPipeline инициализирован. chunk_size={chunk_size}, "
+            f"chunk_overlap={chunk_overlap}, llm_type={llm_type}, "
+            f"embedding_type={embedding_type}"
+        )
 
     
     def set_gigachat_client(self, client):
@@ -677,7 +634,8 @@ class RAGPipeline:
             logger.error(f"Error getting balance: {e}")
             return None
         
-    def load_documents_from_dict(self, documents_dict: Dict[str, str], force_reload: bool = False) -> None:
+    def load_documents_from_dict(
+            self, documents_dict: Dict[str, str], force_reload: bool = False) -> None:
         """
         Загрузка документов из словаря с кэшированием FAISS индекса
         
@@ -771,7 +729,10 @@ class RAGPipeline:
             with open(cache_file, 'r') as f:
                 stored_type = f.read().strip()
             if stored_type != self.vector_store_manager.embedding_type:
-                logger.warning(f"Тип эмбеддингов изменился с {stored_type} на {self.vector_store_manager.embedding_type}")
+                logger.warning(
+                    f"Тип эмбеддингов изменился с {stored_type} "
+                    f"на {self.vector_store_manager.embedding_type}"
+                )
                 logger.warning("Очищаем кэш для предотвращения ошибок...")
                 self.clear_vector_cache()
 
@@ -911,7 +872,10 @@ class RAGPipeline:
         from langchain_core.prompts import ChatPromptTemplate
         
         self.prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a helpful assistant. Answer the question based on the provided context. If you don't know the answer, say that you don't know."),
+            ("system", (
+                "You are a helpful assistant. Answer the question based on the provided context. "
+                "If you don't know the answer, say that you don't know."
+            )),
             ("user", "Context:\n{context}\n\nQuestion:\n{question}\n\nAnswer:")
         ])
         
@@ -977,7 +941,9 @@ class RAGPipeline:
             print(f"🔍 DEBUG: Выполняем поиск для запроса: {query[:50]}...")
             
             # Сначала проверим поиск отдельно
-            docs = self.vector_store_manager.similarity_search(query, k=k or model_config.default_k_retrieve)
+            docs = self.vector_store_manager.similarity_search(
+                query, k=k or model_config.default_k_retrieve
+            )
             print(f"🔍 DEBUG: Найдено {len(docs)} документов")
             
             if docs:
@@ -1037,7 +1003,10 @@ class RAGPipeline:
             if logger.isEnabledFor(logging.DEBUG):
                 for i, doc in enumerate(response.get('context', [])[:3], 1):
                     preview = doc.page_content[:200].replace('\n', ' ')
-                    logger.debug(f"  📄 Doc {i}: Источник '{doc.metadata.get('source', 'unknown')}' - {preview}...")            
+                    logger.debug(
+                        f"  📄 Doc {i}: Источник '{doc.metadata.get('source', 'unknown')}'"
+                        f" - {preview}..."
+                    )            
 
 
             if self.gigachat_client:
@@ -1108,6 +1077,7 @@ class TokenCounter:
     """Счетчик токенов для RAG системы"""
     
     def __init__(self):
+        """Инициализация счетчика токенов"""
         self.reset()
         self.balance_history = []  # История баланса
         self.last_balance = None
@@ -1117,7 +1087,7 @@ class TokenCounter:
         try:
             # Для GigaChat/OpenAI
             self.encoder = tiktoken.get_encoding("cl100k_base")
-        except:
+        except Exception:
             self.encoder = None
     
     def reset(self):
@@ -1129,7 +1099,9 @@ class TokenCounter:
         self.details = []
 
 
-    def calculate_balance_delta(self, initial_balance: Optional[Dict], final_balance: Optional[Dict]) -> Dict[str, Any]:
+    def calculate_balance_delta(
+            self, initial_balance: Optional[Dict], final_balance: Optional[Dict]
+    ) -> Dict[str, Any]:
         """
         Расчет расхода по дельте баланса
 
@@ -1198,7 +1170,11 @@ class TokenCounter:
             delta['error'] = 'No valid balance fields found'
             delta['available_fields_initial'] = list(initial_balance.keys())
             delta['available_fields_final'] = list(final_balance.keys())
-            logger.warning(f"No valid balance fields found. Initial fields: {list(initial_balance.keys())}, Final fields: {list(final_balance.keys())}")
+            logger.warning(
+                f"No valid balance fields found. "
+                f"Initial fields: {list(initial_balance.keys())}, "
+                f"Final fields: {list(final_balance.keys())}"
+            )
 
         return delta
         
@@ -1277,7 +1253,9 @@ class TokenCounter:
             'total_prompt_tokens': self.prompt_tokens,
             'total_completion_tokens': self.completion_tokens,
             'total_tokens': self.total_tokens,
-            'avg_tokens_per_request': self.total_tokens / self.num_requests if self.num_requests > 0 else 0,
+            'avg_tokens_per_request': (
+                self.total_tokens / self.num_requests if self.num_requests > 0 else 0
+            ),
             'estimated_cost_usd': self.estimate_cost()
         }
         
@@ -1394,7 +1372,9 @@ class TokenCounter:
             'total_prompt_tokens': self.prompt_tokens,
             'total_completion_tokens': self.completion_tokens,
             'total_tokens': self.total_tokens,
-            'avg_tokens_per_request': self.total_tokens / self.num_requests if self.num_requests > 0 else 0,
+            'avg_tokens_per_request': (
+                self.total_tokens / self.num_requests if self.num_requests > 0 else 0
+            ),
             'estimated_cost_usd': self.estimate_cost()
         }
     
@@ -1442,7 +1422,9 @@ class TokenCounter:
             'total_prompt_tokens': self.prompt_tokens,
             'total_completion_tokens': self.completion_tokens,
             'total_tokens': self.total_tokens,
-            'avg_tokens_per_request': self.total_tokens / self.num_requests if self.num_requests > 0 else 0,
+            'avg_tokens_per_request': (
+                self.total_tokens / self.num_requests if self.num_requests > 0 else 0
+            ),
             'estimated_cost_usd': self.estimate_cost()
         }
 
@@ -1495,7 +1477,8 @@ def create_pipeline_from_config(retrieval_type: RetrievalType = RetrievalType.DE
 """     pdf_dir = Path("data/domain_1_AI/books") """
 """     if pdf_dir.exists(): """
 """         print(f"\n📁 Вариант 2: Загрузка PDF из {pdf_dir}...") """
-"""         pipeline.load_from_pdf_directory_with_metadata(pdf_dir, recursive=True, force_reload=False) """
+"""         pipeline.load_from_pdf_directory_with_metadata(
+                pdf_dir, recursive=True, force_reload=False) """
 """      """
 """     # Обработка запроса """
 """     query = "Что такое нейросети и как они работают?" """
@@ -1543,7 +1526,10 @@ if __name__ == "__main__":
     logger.info(f"Текущий уровень логгера: {current_level}, strTest: {strTest}")
 
     current_level = logging.getLevelName(logger.getEffectiveLevel())
-    logger.info(f"📊 Уровень getEffectiveLevel логгера: {current_level} | logger.info strTest: {strTest}")    
+    logger.info(
+        f"📊 Уровень getEffectiveLevel логгера: {current_level} | "
+        f"logger.info strTest: {strTest}"
+    )
 
     pipeline = RAGPipeline(
         chunk_size=data_config.chunk_size,

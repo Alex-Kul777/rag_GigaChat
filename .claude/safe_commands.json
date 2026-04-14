@@ -1,0 +1,45 @@
+{
+  "safe_commands": [
+    "cat",
+    "head",
+    "tail",
+    "less",
+    "grep",
+    "awk",
+    "sed -n",
+    "find",
+    "ls",
+    "git status",
+    "git log",
+    "git diff",
+    "python3 -c",
+    "echo",
+    "pip install",
+    "pytest"
+  ],
+  "dangerous_commands": [
+    "rm -rf",
+    "sudo",
+    "chmod",
+    "git push",
+    "docker",
+    "kill",
+    "systemctl"
+  ],
+  "project_boundaries": {
+    "allowed_dirs": [
+      "/home/kap/projects/rag_GigaChat",
+      "/home/kap/projects/rag_GigaChat/.claude",
+      "/home/kap/projects/rag_GigaChat/src",
+      "/home/kap/projects/rag_GigaChat/tests",
+      "/home/kap/projects/rag_GigaChat/docs"
+    ],
+    "forbidden_dirs": [
+      "/etc",
+      "/var",
+      "/root",
+      "/home/kap/.ssh",
+      "/home/kap/.aws"
+    ]
+  }
+}

@@ -15,6 +15,7 @@ This project implements a **Retrieval-Augmented Generation (RAG)** system for an
   - Retrieval: MAP, MRR, Precision@k, Recall@k, NDCG@k
   - Generation: ROUGE, BLEU, BERTScore
   - Advanced: Faithfulness, Answer Relevancy, Context Relevancy (RAGAS)
+- **Input Validation**: Pre-flight checks for queries, files, and API config (`validator.py`)
 - **Web Interface**: Streamlit-based chat UI
 - **Reporting**: Excel reports with experiment summaries
 
@@ -27,6 +28,7 @@ This project implements a **Retrieval-Augmented Generation (RAG)** system for an
 ├── data_loader.py         # Document loading with caching
 ├── rag_core.py            # Core RAG pipeline (FAISS, LangGraph)
 ├── models.py              # Data models (dataclasses, enums)
+├── validator.py           # Input validation (queries, files, config)
 ├── evaluator.py           # Evaluation metrics
 ├── experiment.py          # Experiment runner
 ├── excel_reporter.py      # Excel report generation
@@ -233,6 +235,32 @@ python excel_reporter.py
 4. **Out of memory errors**
    - Reduce `chunk_size` and `chunk_overlap`
    - Use CPU mode (`model_config.device = "cpu"`)
+
+## ✅ Input Validation
+
+The `validator.py` module provides pre-flight validation before queries reach the pipeline:
+
+```python
+from validator import validator
+
+# Validate a user query
+result = validator.validate_query("Что такое нейросети?")
+if not result.is_valid:
+    print(result.error_messages)
+
+# Validate a file before loading
+result = validator.validate_file("data/my_doc.pdf")
+
+# Validate GigaChat configuration (no network)
+result = validator.validate_gigachat_config()
+
+# Test live connection to GigaChat API
+result = validator.check_gigachat_connection()
+
+# Batch validate a list of queries
+summary = validator.validate_batch(query_list)
+print(f"Valid: {summary['valid']}/{summary['total']}")
+```
 
 ## 📝 Logging
 

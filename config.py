@@ -5,7 +5,11 @@ from dataclasses import dataclass, field
 import logging
 from pathlib import Path
 from typing import List, Optional, Dict
-import torch
+try:
+    import torch
+    _device = "cuda" if torch.cuda.is_available() else "cpu"
+except ImportError:
+    _device = "cpu"
 
 import os
 from dotenv import load_dotenv
@@ -66,7 +70,7 @@ class ModelConfig:
     
     # Устройство
     #device: str = "cpu"  # Принудительно CPU для экономии памяти
-    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    device: str = _device
     
     # Режим работы
     mode: str = "ui"
