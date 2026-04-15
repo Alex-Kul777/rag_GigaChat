@@ -32,6 +32,7 @@ from data_loader import CorpusLoader, DocumentLoader, TextSplitter
 from token_counter import TokenCounter
 from vector_store import VectorStoreManager       # noqa: F401 (re-export)
 from llm_manager import LLMManager                # noqa: F401 (re-export)
+from retriever import BaseRetriever, DenseRetriever, make_retriever  # noqa: F401
 
 # Настройка логирования
 logging.basicConfig(
@@ -61,9 +62,11 @@ class RAGPipeline:
                  embedding_model: str = None,
                  embedding_type: str = "gigachat",
                  llm_type: str = "gigachat",
+                 retrieval_type: RetrievalType = RetrievalType.DENSE,
                  vector_store_manager: Optional["VectorStoreManager"] = None,
                  llm_manager: Optional["LLMManager"] = None,
-                 token_counter: Optional[TokenCounter] = None):
+                 token_counter: Optional[TokenCounter] = None,
+                 retriever: Optional["BaseRetriever"] = None):
         """
         Инициализация RAG пайплайна
 
@@ -73,9 +76,11 @@ class RAGPipeline:
             embedding_model: Модель эмбеддингов
             embedding_type: Тип эмбеддингов ("huggingface", "gigachat")
             llm_type: Тип LLM ("local", "gigachat", "openai")
+            retrieval_type: Тип поиска (DENSE/SPARSE/HYBRID)
             vector_store_manager: Готовый экземпляр VectorStoreManager (DI)
             llm_manager: Готовый экземпляр LLMManager (DI)
             token_counter: Готовый экземпляр TokenCounter (DI)
+            retriever: Готовая стратегия поиска (DI, переопределяет retrieval_type)
         """
         chunk_size = chunk_size or data_config.chunk_size
         chunk_overlap = chunk_overlap or data_config.chunk_overlap
@@ -102,6 +107,11 @@ class RAGPipeline:
 
         self.llm = None
         self.token_counter = token_counter or TokenCounter()
+
+        # Strategy pattern: инициализируем ретривер
+        self.retriever = retriever or make_retriever(
+            retrieval_type, self.vector_store_manager
+        )
 
         self.gigachat_client = None  # Для хранения клиента GigaChat
 
@@ -439,11 +449,11 @@ class RAGPipeline:
         #llm = self.llm_manager.get_llm()
         self.llm = self.llm_manager.get_llm() 
                 
-        # Определяем функцию поиска
+        # Определяем функцию поиска (Strategy pattern — делегируем self.retriever)
         def retrieve(state: RAGState):
             """Поиск релевантных документов"""
-            docs = self.vector_store_manager.similarity_search(
-                state["question"], 
+            docs = self.retriever.search(
+                state["question"],
                 k=model_config.default_k_retrieve
             )
             return {"context": docs}
