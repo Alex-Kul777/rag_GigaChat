@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-04-15
+
+### Added
+- **`Dockerfile`** + **`docker-compose.yml`** — контейнеризация: образ `python:3.10-slim`,
+  `tesseract-ocr-rus`, healthcheck, volumes для data/experiments/logs
+- **`.github/workflows/tests.yml`** — CI/CD: автозапуск pytest при push/PR в main,
+  coverage отчёт через Codecov (секреты: `GIGACHAT_API_KEY`, `CODECOV_TOKEN`)
+- **`data_loader.py`** — OCR-поддержка сканированных PDF через Docling:
+  - graceful import `DocumentConverter`
+  - функция `load_pdf_with_ocr()` с логированием
+  - fallback в `load_pdf_with_metadata()`: если PyPDFLoader вернул пустой текст → OCR
+- **`ui_streamlit.py`** — прогресс-бар загрузки PDF:
+  - функция `load_pdf_directory_with_progress()` с `st.progress` + `st.empty()`
+  - отображает имя текущего файла и счётчик `N/total`
+  - оба блока инициализации (sidebar + main) переключены на новую функцию
+- **`README.md`** — бейджики: Tests (CI), Python 3.10+, MIT License, Coverage 60%+
+
+### Changed
+- **`rag_core.py`** — в `retrieved_docs` добавлено поле `page` (из `doc.metadata`)
+- **`ui_streamlit.py`** — источники в чате теперь показывают номер страницы:
+  `Источник 1: doc_name, стр. 5 (score: 0.923)`
+
+---
+
 ## [1.2.0] - 2026-04-14
 
 ### Added

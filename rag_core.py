@@ -980,7 +980,8 @@ class RAGPipeline:
                         {
                             'doc_id': doc.metadata.get('source', f"doc_{i}"),
                             'score': 1.0,
-                            'text': doc.page_content
+                            'text': doc.page_content,
+                            'page': doc.metadata.get('page', doc.metadata.get('page_number', None)),
                         }
                         for i, doc in enumerate(context_docs)
                     ],

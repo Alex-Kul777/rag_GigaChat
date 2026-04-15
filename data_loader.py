@@ -28,6 +28,13 @@ except ImportError:
     LANGCHAIN_AVAILABLE = False
     print("Warning: LangChain not installed. Install with: pip install langchain langchain-community")
 
+# OCR поддержка для сканированных PDF (опционально)
+try:
+    from docling.document_converter import DocumentConverter
+    OCR_AVAILABLE = True
+except ImportError:
+    OCR_AVAILABLE = False
+
 import pandas as pd
 import numpy as np
 
@@ -63,6 +70,37 @@ class CorpusStats:
         - Макс. длина: {self.max_doc_length}
         - Уникальных терминов: {self.unique_terms:,}
         """
+
+
+def load_pdf_with_ocr(pdf_path: Path) -> str:
+    """
+    Загрузка PDF через OCR (Docling) для сканированных документов.
+
+    Используется как fallback, когда PyPDFLoader возвращает пустой текст.
+    Требует установки: pip install docling
+
+    Args:
+        pdf_path: Путь к PDF файлу
+
+    Returns:
+        Извлечённый текст или пустая строка при ошибке
+    """
+    if not OCR_AVAILABLE:
+        logger.warning(
+            "Docling не установлен — OCR недоступен. "
+            "Установите: pip install docling"
+        )
+        return ""
+    try:
+        logger.info(f"🔍 OCR: обработка сканированного PDF '{pdf_path.name}'...")
+        converter = DocumentConverter()
+        result = converter.convert(str(pdf_path))
+        text = result.document.export_to_text()
+        logger.info(f"✅ OCR завершён: извлечено {len(text)} символов из '{pdf_path.name}'")
+        return text
+    except Exception as e:
+        logger.error(f"❌ Ошибка OCR для '{pdf_path.name}': {e}")
+        return ""
 
 
 class DocumentCache:
@@ -278,8 +316,24 @@ class DocumentLoader:
             # Загружаем PDF через LangChain
             loader = PyPDFLoader(str(pdf_path))
             documents = loader.load()
-            
+
             logger.info(f"documents = loader.load(): {len(documents)}")
+
+            # Fallback на OCR если текст не извлечён (сканированный PDF)
+            total_text = "".join(doc.page_content for doc in documents)
+            if not total_text.strip() and OCR_AVAILABLE:
+                logger.info(f"⚠️ PyPDFLoader не извлёк текст из '{pdf_path.name}', пробуем OCR...")
+                ocr_text = load_pdf_with_ocr(pdf_path)
+                if ocr_text.strip():
+                    documents = [LangChainDocument(
+                        page_content=ocr_text,
+                        metadata={"source": str(pdf_path), "ocr": True}
+                    )]
+            elif not total_text.strip():
+                logger.warning(
+                    f"⚠️ '{pdf_path.name}' не содержит текста. "
+                    "Установите docling для поддержки OCR: pip install docling"
+                )
             # Добавляем метаданные к каждой странице
             for i, doc in enumerate(documents):
                 doc.metadata.update({

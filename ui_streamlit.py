@@ -23,6 +23,47 @@ from config import model_config, data_config, gigachat_config
 from rag_core import RAGPipeline
 from models import RetrievalType
 
+
+def load_pdf_directory_with_progress(pipeline: RAGPipeline, pdf_dir: Path, force_reload: bool = False) -> bool:
+    """
+    Загрузка PDF директории с прогресс-баром Streamlit.
+
+    Итерируется по PDF файлам по одному, обновляя прогресс после каждого.
+    Возвращает True если документы загружены успешно.
+    """
+    pdf_files = sorted(pdf_dir.rglob("*.pdf"))
+    if not pdf_files:
+        st.warning(f"⚠️ PDF файлы не найдены в: {pdf_dir}")
+        return False
+
+    progress_bar = st.progress(0, text="Подготовка...")
+    status = st.empty()
+
+    collected: dict[str, str] = {}
+
+    for idx, pdf_file in enumerate(pdf_files):
+        pct = idx / len(pdf_files)
+        progress_bar.progress(pct, text=f"📄 {idx+1}/{len(pdf_files)}: {pdf_file.name}")
+        status.caption(f"Загрузка: `{pdf_file.name}`")
+
+        try:
+            docs = pipeline.corpus_loader.document_loader.load_pdf_with_metadata(pdf_file)
+            for doc in docs:
+                page = doc.metadata.get("page_number", idx)
+                key = f"{pdf_file.stem}_p{page}"
+                collected[key] = doc.page_content
+        except Exception as e:
+            status.warning(f"⚠️ Ошибка при загрузке {pdf_file.name}: {e}")
+
+    progress_bar.progress(1.0, text="⚙️ Создание векторного индекса...")
+    status.caption("Индексирование документов...")
+
+    pipeline.load_documents_from_dict(collected, force_reload=force_reload)
+
+    progress_bar.empty()
+    status.empty()
+    return True
+
 #pdf_dir = data_config.documents_dirs["debug"]
 pdf_dir = data_config.documents_dirs["UAV"]
 
@@ -212,9 +253,9 @@ with st.sidebar:
 
                 if pdf_dir_to_load.exists():
                     st.info(f"📁 Загрузка документов из: {pdf_dir_to_load}")
-                    st.session_state.pipeline.load_from_pdf_directory_with_metadata(
-                        pdf_dir_to_load, 
-                        recursive=True, 
+                    load_pdf_directory_with_progress(
+                        st.session_state.pipeline,
+                        pdf_dir_to_load,
                         force_reload=data_config.force_reload
                     )
                     st.success(f"✅ Загружены документы из {pdf_dir_to_load}")
@@ -306,12 +347,11 @@ with col2:
                 )
                 
                 # Загрузка документов
-                #pdf_dir = Path("data/domain_2_Debug/books")
                 if pdf_dir.exists():
                     st.info(f"📁 Загрузка документов из: {pdf_dir}")
-                    st.session_state.pipeline.load_from_pdf_directory_with_metadata(
-                        pdf_dir, 
-                        recursive=True, 
+                    load_pdf_directory_with_progress(
+                        st.session_state.pipeline,
+                        pdf_dir,
                         force_reload=data_config.force_reload
                     )
                     st.success(f"✅ Загружены документы из {pdf_dir}")
@@ -376,7 +416,9 @@ if question := st.chat_input("Спроси о документе..."):
                                 source = doc.get('doc_id', 'unknown')
                                 score = doc.get('score', 0)
                                 text = doc.get('text', '')
-                                st.markdown(f"**Источник {i}:** `{source}` (score: {score:.3f})")
+                                page = doc.get('page')
+                                page_str = f", стр. {page}" if page is not None else ""
+                                st.markdown(f"**Источник {i}:** `{source}`{page_str} (score: {score:.3f})")
                                 st.text(text[:200] + "..." if len(text) > 200 else text)
                                 st.markdown("---")
                     

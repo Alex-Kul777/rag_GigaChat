@@ -1,5 +1,10 @@
 # RAG System - Retrieval-Augmented Generation System
 
+![Tests](https://github.com/Alex-Kul777/rag_GigaChat/actions/workflows/tests.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Coverage](https://img.shields.io/badge/coverage-60%25%2B-yellowgreen)
+
 ## 📋 Overview
 
 This project implements a **Retrieval-Augmented Generation (RAG)** system for answering questions based on PDF documents. The system combines document retrieval with LLM generation to provide accurate, context-aware answers.
@@ -15,9 +20,12 @@ This project implements a **Retrieval-Augmented Generation (RAG)** system for an
   - Retrieval: MAP, MRR, Precision@k, Recall@k, NDCG@k
   - Generation: ROUGE, BLEU, BERTScore
   - Advanced: Faithfulness, Answer Relevancy, Context Relevancy (RAGAS)
+- **OCR Support**: Automatic fallback to Docling OCR for scanned PDFs
 - **Input Validation**: Pre-flight checks for queries, files, and API config (`validator.py`)
 - **Test Suite**: 22 automated tests with pytest, mocks, and coverage reporting
-- **Web Interface**: Streamlit-based chat UI
+- **Docker**: One-command deployment via `docker-compose up`
+- **CI/CD**: GitHub Actions — auto-run tests and coverage on every push
+- **Web Interface**: Streamlit-based chat UI with PDF upload progress bar
 - **Reporting**: Excel reports with experiment summaries
 
 ## 📁 Project Structure
@@ -237,6 +245,22 @@ python excel_reporter.py
 4. **Out of memory errors**
    - Reduce `chunk_size` and `chunk_overlap`
    - Use CPU mode (`model_config.device = "cpu"`)
+
+## 🐳 Docker
+
+Run the entire application with a single command:
+
+```bash
+# Copy and fill in your API key
+cp .env.example .env
+
+# Build and start
+docker-compose up --build
+```
+
+Then open `http://localhost:8501` in your browser.
+
+Data directories (`data/`, `experiments/`, `logs/`) are mounted as volumes — your documents and results persist between container restarts.
 
 ## ✅ Input Validation
 
