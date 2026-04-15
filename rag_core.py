@@ -511,47 +511,53 @@ class RAGPipeline:
     Основной RAG пайплайн с использованием FAISS и LangGraph
     Поддерживает разные модели (HuggingFace, GigaChat, OpenAI)
     """
-    def __init__(self, 
+    def __init__(self,
                  chunk_size: int = None,
                  chunk_overlap: int = None,
                  embedding_model: str = None,
                  embedding_type: str = "gigachat",
-                 llm_type: str = "gigachat"):
+                 llm_type: str = "gigachat",
+                 vector_store_manager: Optional["VectorStoreManager"] = None,
+                 llm_manager: Optional["LLMManager"] = None,
+                 token_counter: Optional[TokenCounter] = None):
         """
         Инициализация RAG пайплайна
-        
+
         Args:
             chunk_size: Размер чанка для разделения документов
             chunk_overlap: Перекрытие между чанками
             embedding_model: Модель эмбеддингов
             embedding_type: Тип эмбеддингов ("huggingface", "gigachat")
             llm_type: Тип LLM ("local", "gigachat", "openai")
-        """    
+            vector_store_manager: Готовый экземпляр VectorStoreManager (DI)
+            llm_manager: Готовый экземпляр LLMManager (DI)
+            token_counter: Готовый экземпляр TokenCounter (DI)
+        """
         chunk_size = chunk_size or data_config.chunk_size
         chunk_overlap = chunk_overlap or data_config.chunk_overlap
-        
-        self.vector_store_manager = VectorStoreManager(
+
+        self.vector_store_manager = vector_store_manager or VectorStoreManager(
             embedding_model=embedding_model or model_config.embedding_model_name,
             embedding_type=embedding_type,
             persist_dir=vectorstore_config.persist_dir
         )
-        self.llm_manager = LLMManager(
+        self.llm_manager = llm_manager or LLMManager(
             model_name=model_config.llm_model_name if llm_type == "local" else None,
             model_type=llm_type
         )
-        
+
         # Используем загрузчик из data_loader
         self.corpus_loader = CorpusLoader(data_dir=data_config.corpus_dir)
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        
+
         self.vector_store_initialized = False
         self.graph = None
         self.prompt = None
         self.documents_metadata = {}
-        
+
         self.llm = None
-        self.token_counter = TokenCounter()
+        self.token_counter = token_counter or TokenCounter()
 
         self.gigachat_client = None  # Для хранения клиента GigaChat
 
