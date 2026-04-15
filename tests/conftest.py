@@ -36,8 +36,8 @@ def mock_embeddings():
     fake_store.similarity_search.return_value = [fake_doc]
     fake_store.similarity_search_with_score.return_value = [(fake_doc, 0.9)]
 
-    with patch("rag_core.GigaChatEmbeddings", return_value=fake_emb), \
-         patch("rag_core.FAISS") as mock_faiss_cls:
+    with patch("vector_store.GigaChatEmbeddings", return_value=fake_emb), \
+         patch("vector_store.FAISS") as mock_faiss_cls:
         mock_faiss_cls.from_documents.return_value = fake_store
         mock_faiss_cls.load_local.return_value = fake_store
         yield fake_emb
@@ -51,7 +51,7 @@ def mock_gigachat():
     mock_response = MagicMock()
     mock_response.content = "Нейросети — это математические модели, вдохновлённые мозгом."
 
-    with patch("rag_core.GigaChat") as mock_cls:
+    with patch("llm_manager.GigaChat") as mock_cls:
         mock_llm = MagicMock()
         mock_llm.invoke.return_value = mock_response
         mock_cls.return_value = mock_llm
