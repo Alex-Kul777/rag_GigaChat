@@ -187,6 +187,7 @@ pydub==0.25.1
 pyfiglet==1.0.4
 Pygments==2.19.2
 PyMuPDF==1.27.2.2
+docling>=2.0.0
 pyparsing==3.3.2
 pypdf==6.9.2
 PyPDF2==3.0.1
