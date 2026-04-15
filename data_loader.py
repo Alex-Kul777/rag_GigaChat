@@ -41,11 +41,30 @@ import numpy as np
 from models import TestSample
 
 # Импортируем конфигурацию
-from config import data_config, model_config, logging_config    
-
+from config import data_config, model_config, logging_config
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
+
+# Singleton DocumentConverter — инициализируется один раз при первом OCR-вызове
+_ocr_converter: Optional["DocumentConverter"] = None
+
+
+def _get_ocr_converter() -> Optional["DocumentConverter"]:
+    """Возвращает единственный экземпляр DocumentConverter (lazy init)."""
+    global _ocr_converter
+    if _ocr_converter is None and OCR_AVAILABLE:
+        logger.info("🔧 Инициализация DocumentConverter (OCR)...")
+        _ocr_converter = DocumentConverter()
+    return _ocr_converter
+
+
+def _pdf_file_hash(pdf_path: Path) -> str:
+    """MD5-хеш по имени файла и размеру — быстрый ключ для кэша OCR."""
+    stat = pdf_path.stat()
+    key = f"{pdf_path.name}:{stat.st_size}:{stat.st_mtime_ns}"
+    return hashlib.md5(key.encode()).hexdigest()[:16]
+
 
 @dataclass
 class CorpusStats:
@@ -77,27 +96,54 @@ def load_pdf_with_ocr(pdf_path: Path) -> str:
     Загрузка PDF через OCR (Docling) для сканированных документов.
 
     Используется как fallback, когда PyPDFLoader возвращает пустой текст.
-    Требует установки: pip install docling
+    Результат кэшируется в data/cache/ocr/<hash>.txt — повторный вызов
+    возвращает кэш без запуска OCR.
 
     Args:
         pdf_path: Путь к PDF файлу
 
     Returns:
-        Извлечённый текст или пустая строка при ошибке
+        Извлечённый текст или пустая строка при ошибке / отключённом OCR
     """
     if not OCR_AVAILABLE:
+        logger.warning("Docling не установлен — OCR недоступен. pip install docling")
+        return ""
+
+    if not data_config.ocr_enabled:
+        logger.debug("OCR отключён в конфигурации (data_config.ocr_enabled=False)")
+        return ""
+
+    # Проверка лимита размера файла
+    size_mb = pdf_path.stat().st_size / 1024 / 1024
+    if size_mb > data_config.ocr_max_file_size_mb:
         logger.warning(
-            "Docling не установлен — OCR недоступен. "
-            "Установите: pip install docling"
+            f"⚠️ '{pdf_path.name}' ({size_mb:.1f} MB) превышает лимит OCR "
+            f"({data_config.ocr_max_file_size_mb} MB) — пропущен"
         )
         return ""
+
+    # Проверка кэша
+    cache_dir = data_config.cache_dir / "ocr"
+    cache_path = cache_dir / f"{_pdf_file_hash(pdf_path)}.txt"
+    if cache_path.exists():
+        logger.info(f"📦 OCR из кэша: '{pdf_path.name}'")
+        return cache_path.read_text(encoding="utf-8")
+
     try:
-        logger.info(f"🔍 OCR: обработка сканированного PDF '{pdf_path.name}'...")
-        converter = DocumentConverter()
+        logger.info(f"🔍 OCR: обработка '{pdf_path.name}' ({size_mb:.1f} MB)...")
+        converter = _get_ocr_converter()
         result = converter.convert(str(pdf_path))
         text = result.document.export_to_text()
-        logger.info(f"✅ OCR завершён: извлечено {len(text)} символов из '{pdf_path.name}'")
+
+        # Сохраняем в кэш
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_path.write_text(text, encoding="utf-8")
+        logger.info(
+            f"✅ OCR завершён: {len(text)} символов из '{pdf_path.name}', "
+            f"кэш сохранён → {cache_path.name}"
+        )
         return text
+
     except Exception as e:
         logger.error(f"❌ Ошибка OCR для '{pdf_path.name}': {e}")
         return ""
