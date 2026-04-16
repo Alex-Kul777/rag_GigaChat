@@ -116,6 +116,11 @@ class DataConfig:
     cache_enabled: bool = True
     #force_reload: bool = True
     force_reload: bool = False
+
+    # OCR настройки (для сканированных PDF через Docling)
+    ocr_enabled: bool = True
+    ocr_max_file_size_mb: int = 50      # PDF крупнее этого лимита OCR не обрабатывает
+    ocr_min_chars_per_page: int = 50    # порог: если символов меньше — страница считается сканом
     
     # Форматы файлов
     supported_extensions: List[str] = field(default_factory=lambda: ['.pdf', '.txt', '.json', '.csv'])
