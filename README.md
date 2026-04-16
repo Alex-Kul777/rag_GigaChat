@@ -20,7 +20,14 @@ This project implements a **Retrieval-Augmented Generation (RAG)** system for an
   - Retrieval: MAP, MRR, Precision@k, Recall@k, NDCG@k
   - Generation: ROUGE, BLEU, BERTScore
   - Advanced: Faithfulness, Answer Relevancy, Context Relevancy (RAGAS)
-- **OCR Support**: Automatic fallback to Docling OCR for scanned PDFs
+- **OCR Support**: Automatic fallback to Docling OCR for scanned PDFs with caching and size limits
+  - Configurable file size limits and character thresholds
+  - MD5-based caching to avoid re-processing
+- **Modular Architecture**: Clean separation of concerns with Strategy and Dependency Injection patterns
+  - `vector_store.py`: Vector store abstraction with FAISS backend
+  - `llm_manager.py`: LLM provider abstraction (GigaChat, HuggingFace, OpenAI)
+  - `retriever.py`: Pluggable retrieval strategies (Dense, Sparse, Hybrid)
+  - `token_counter.py`: Standalone token tracking with balance management
 - **Input Validation**: Pre-flight checks for queries, files, and API config (`validator.py`)
 - **Test Suite**: 22 automated tests with pytest, mocks, and coverage reporting
 - **Docker**: One-command deployment via `docker-compose up`
@@ -32,19 +39,22 @@ This project implements a **Retrieval-Augmented Generation (RAG)** system for an
 
 ```
 .
-├── app.py                 # Main entry point (UI, query, experiment modes)
-├── config.py              # Centralized configuration
-├── data_loader.py         # Document loading with caching
-├── rag_core.py            # Core RAG pipeline (FAISS, LangGraph)
-├── models.py              # Data models (dataclasses, enums)
-├── validator.py           # Input validation (queries, files, config)
-├── token_counter.py       # Token usage tracking (standalone module)
-├── evaluator.py           # Evaluation metrics
-├── experiment.py          # Experiment runner
-├── excel_reporter.py      # Excel report generation
-├── ui_streamlit.py        # Streamlit web interface
+├── app.py                      # Main entry point (UI, query, experiment modes)
+├── config.py                   # Centralized configuration
+├── data_loader.py              # Document loading with caching & OCR fallback
+├── rag_core.py                 # Core RAG pipeline with LangGraph orchestration
+├── vector_store.py             # Vector store manager (FAISS, embeddings)
+├── llm_manager.py              # LLM provider abstraction (GigaChat, HuggingFace)
+├── retriever.py                # Retrieval strategies (dense, sparse, hybrid)
+├── token_counter.py            # Token usage tracking & balance management
+├── models.py                   # Data models (dataclasses, enums)
+├── validator.py                # Input validation (queries, files, config)
+├── evaluator.py                # Evaluation metrics (RAGAS, custom)
+├── experiment.py               # Experiment runner with metrics
+├── excel_reporter.py           # Excel report generation
+├── ui_streamlit.py             # Streamlit web interface with PDF upload
 ├── create_wikieval_dataset.py  # Dataset creation utility
-└── requirements.txt       # Python dependencies
+└── requirements.txt            # Python dependencies
 ```
 
 ## 🛠️ Installation
