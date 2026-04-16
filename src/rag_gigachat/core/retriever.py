@@ -11,7 +11,7 @@ from typing import List, Protocol, runtime_checkable
 
 from langchain_core.documents import Document
 
-from models import RetrievalType
+from rag_gigachat.models import RetrievalType
 
 logger = logging.getLogger(__name__)
 

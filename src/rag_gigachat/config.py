@@ -5,6 +5,9 @@ from dataclasses import dataclass, field
 import logging
 from pathlib import Path
 from typing import List, Optional, Dict
+
+# Определяем корень проекта (3 уровня выше: src/rag_gigachat/config.py -> root)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 try:
     import torch
     _device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -84,22 +87,22 @@ class ModelConfig:
 @dataclass
 class DataConfig:
     """Конфигурация данных"""
-    
-    # Директории
-    data_dir: Path = Path("data")
-    corpus_dir: Path = Path("data/corpus")
-    cache_dir: Path = Path("data/cache")
-    vectorstore_dir: Path = Path("data/vectorstore")
-    experiments_dir: Path = Path("experiments")
-    logs_dir: Path = Path("logs")
-    metadata_dir: Path = Path("data/metadata")
-    
-      
+
+    # Директории (абсолютные пути от корня проекта)
+    data_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "data")
+    corpus_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "data/corpus")
+    cache_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "data/cache")
+    vectorstore_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "data/vectorstore")
+    experiments_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "experiments")
+    logs_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "logs")
+    metadata_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "data/metadata")
+
+
     # 🆕 Или можно добавить несколько путей для разных доменов
     documents_dirs: Dict[str, Path] = field(default_factory=lambda: {
-        "debug": Path("data/domain_2_Debug/books"),
-        "ai": Path("data/domain_1_AI/books"),
-        "UAV": Path("data/domain_7_UAV/books"),
+        "debug": PROJECT_ROOT / "data/domain_2_Debug/books",
+        "ai": PROJECT_ROOT / "data/domain_1_AI/books",
+        "UAV": PROJECT_ROOT / "data/domain_7_UAV/books",
     })
 
     # Параметры загрузки PDF

@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
-from config import model_config, data_config, gigachat_config
+from rag_gigachat.config import model_config, data_config, gigachat_config
 
 try:
     from langchain_gigachat.chat_models import GigaChat

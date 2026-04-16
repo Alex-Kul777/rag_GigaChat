@@ -38,10 +38,10 @@ except ImportError:
 import pandas as pd
 import numpy as np
 
-from models import TestSample
+from rag_gigachat.models import TestSample
 
 # Импортируем конфигурацию
-from config import data_config, model_config, logging_config
+from rag_gigachat.config import data_config, model_config, logging_config
 
 # Настройка логирования
 logger = logging.getLogger(__name__)

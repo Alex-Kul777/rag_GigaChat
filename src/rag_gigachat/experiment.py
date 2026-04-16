@@ -16,17 +16,17 @@ from collections import defaultdict
 from langchain_gigachat.embeddings import GigaChatEmbeddings
 from langchain_gigachat import GigaChat
 
-from models import (
-    TestSample, ExperimentConfig, ExperimentResult, 
+from rag_gigachat.models import (
+    TestSample, ExperimentConfig, ExperimentResult,
     ExperimentStatus, RetrievalType, RetrievalMetrics
 )
-from rag_core import RAGPipeline
-from data_loader import TestDataLoader
-from evaluator import RAGEvaluator
+from rag_gigachat.core.rag_pipeline import RAGPipeline
+from rag_gigachat.data.data_loader import TestDataLoader
+from rag_gigachat.reporting.evaluator import RAGEvaluator
 
 # Импортируем конфигурации
-from config import (
-    model_config, data_config, vectorstore_config, 
+from rag_gigachat.config import (
+    model_config, data_config, vectorstore_config,
     experiment_config, logging_config, gigachat_config
 )
 

@@ -21,12 +21,12 @@ import os
 # Добавляем текущую директорию в путь
 sys.path.insert(0, str(Path(__file__).parent))
 
-#from models import RetrievalType
-#from rag_core import RAGPipeline
-#from data_loader import TestDataLoader
-#from experiment import ExperimentRunner
-#from config import config
-from config import model_config, data_config, vectorstore_config, experiment_config, logging_config, gigachat_config
+#from rag_gigachat.models import RetrievalType
+#from rag_gigachat.core.rag_pipeline import RAGPipeline
+#from rag_gigachat.data.data_loader import TestDataLoader
+#from rag_gigachat.experiment import ExperimentRunner
+#from rag_gigachat.config import config
+from rag_gigachat.config import model_config, data_config, vectorstore_config, experiment_config, logging_config, gigachat_config
 
 
 def run_streamlit_ui():
@@ -35,12 +35,12 @@ def run_streamlit_ui():
     
     # Получаем путь к текущей директории
     current_dir = Path(__file__).parent
-    ui_file = current_dir / "ui_streamlit.py"
-    
+    ui_file = current_dir / "src" / "rag_gigachat" / "ui" / "streamlit_app.py"
+
     # Проверяем существование файла
     if not ui_file.exists():
         print(f"❌ Ошибка: Файл {ui_file} не найден!")
-        print("Убедитесь, что ui_components.py существует в той же директории")
+        print("Убедитесь, что streamlit_app.py существует в src/rag_gigachat/ui/")
         return False
     
     # Формируем команду для запуска Streamlit

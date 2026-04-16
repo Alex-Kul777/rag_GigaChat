@@ -20,7 +20,7 @@ try:
 except ImportError:
     _torch_available = False
 
-from config import model_config, gigachat_config
+from rag_gigachat.config import model_config, gigachat_config
 
 logger = logging.getLogger(__name__)
 

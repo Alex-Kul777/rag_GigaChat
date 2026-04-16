@@ -39,7 +39,7 @@ except ImportError:
     RAGAS_AVAILABLE = False
     print("Warning: ragas not installed. Install with: pip install ragas")
 
-from config import data_config, model_config, logging_config
+from rag_gigachat.config import data_config, model_config, logging_config
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +98,7 @@ class AdvancedMetrics:
 class WikiEvalEvaluator:
     def __init__(self, pipeline, giga_api_key: str):
         # Отложенный импорт
-        from rag_core import RAGPipeline
+        from rag_gigachat.core.rag_pipeline import RAGPipeline
         
         # Проверка типа (опционально)
         if not isinstance(pipeline, RAGPipeline):

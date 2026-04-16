@@ -4,7 +4,7 @@ tests/test_rag_core.py - Тесты для RAG пайплайна
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from rag_core import RAGPipeline, VectorStoreManager, LLMManager
+from rag_gigachat.core.rag_pipeline import RAGPipeline, VectorStoreManager, LLMManager
 
 
 class TestRAGPipeline:

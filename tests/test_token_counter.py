@@ -3,7 +3,7 @@ tests/test_token_counter.py - Тесты для счетчика токенов
 """
 
 import pytest
-from token_counter import TokenCounter
+from rag_gigachat.token_counter import TokenCounter
 
 
 class TestTokenCounter:

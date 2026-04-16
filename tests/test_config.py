@@ -4,7 +4,7 @@ tests/test_config.py - Тесты для конфигурации
 
 import pytest
 from pathlib import Path
-from config import model_config, data_config, gigachat_config, vectorstore_config
+from rag_gigachat.config import model_config, data_config, gigachat_config, vectorstore_config
 
 
 class TestConfig:

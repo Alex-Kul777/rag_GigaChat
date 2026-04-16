@@ -19,9 +19,9 @@ from pathlib import Path
 warnings.filterwarnings("ignore", category=UserWarning)
 
 # Импортируем из наших модулей
-from config import model_config, data_config, gigachat_config
-from rag_core import RAGPipeline
-from models import RetrievalType
+from rag_gigachat.config import model_config, data_config, gigachat_config
+from rag_gigachat.core.rag_pipeline import RAGPipeline
+from rag_gigachat.models import RetrievalType
 
 
 def load_pdf_directory_with_progress(pipeline: RAGPipeline, pdf_dir: Path, force_reload: bool = False) -> bool:

@@ -11,9 +11,9 @@ from unittest.mock import MagicMock, patch, mock_open
 import pytest
 
 PROJECT_ROOT = Path(__file__).parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
+# sys.path.insert больше не нужен - пакет в sys.path автоматически
 
-import data_loader
+import rag_gigachat.data.data_loader as data_loader
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +72,7 @@ class TestLoadPdfWithOcr:
              patch.object(data_loader.data_config, "ocr_enabled", True), \
              patch.object(data_loader.data_config, "ocr_max_file_size_mb", 50), \
              patch.object(data_loader.data_config, "cache_dir", tmp_path), \
-             patch("data_loader._get_ocr_converter", return_value=mock_converter):
+             patch("rag_gigachat.data.data_loader._get_ocr_converter", return_value=mock_converter):
             result = data_loader.load_pdf_with_ocr(pdf)
 
         assert result == "кэшированный текст"
@@ -93,7 +93,7 @@ class TestLoadPdfWithOcr:
              patch.object(data_loader.data_config, "ocr_enabled", True), \
              patch.object(data_loader.data_config, "ocr_max_file_size_mb", 50), \
              patch.object(data_loader.data_config, "cache_dir", tmp_path), \
-             patch("data_loader._get_ocr_converter", return_value=mock_converter):
+             patch("rag_gigachat.data.data_loader._get_ocr_converter", return_value=mock_converter):
             result = data_loader.load_pdf_with_ocr(pdf)
 
         assert result == "распознанный текст"
@@ -112,7 +112,7 @@ class TestLoadPdfWithOcr:
              patch.object(data_loader.data_config, "ocr_enabled", True), \
              patch.object(data_loader.data_config, "ocr_max_file_size_mb", 50), \
              patch.object(data_loader.data_config, "cache_dir", tmp_path), \
-             patch("data_loader._get_ocr_converter", return_value=mock_converter):
+             patch("rag_gigachat.data.data_loader._get_ocr_converter", return_value=mock_converter):
             result = data_loader.load_pdf_with_ocr(pdf)
 
         assert result == ""
@@ -126,9 +126,9 @@ class TestLoadPdfWithMetadataOcrFallback:
 
     def _make_loader(self):
         """Создаёт DocumentLoader с патченными зависимостями."""
-        from data_loader import DocumentLoader
-        with patch("data_loader.PyPDFLoader"), \
-             patch("data_loader.OCR_AVAILABLE", True):
+        from rag_gigachat.data.data_loader import DocumentLoader
+        with patch("rag_gigachat.data.data_loader.PyPDFLoader"), \
+             patch("rag_gigachat.data.data_loader.OCR_AVAILABLE", True):
             loader = DocumentLoader.__new__(DocumentLoader)
             loader.cache = MagicMock()
             loader.cache.get.return_value = None
@@ -136,7 +136,7 @@ class TestLoadPdfWithMetadataOcrFallback:
 
     def _make_document_loader(self):
         """Создаёт экземпляр DocumentLoader с заглушками."""
-        from data_loader import DocumentLoader
+        from rag_gigachat.data.data_loader import DocumentLoader
         loader = DocumentLoader.__new__(DocumentLoader)
         loader.cache = MagicMock()
         loader.cache.get.return_value = None
@@ -156,10 +156,10 @@ class TestLoadPdfWithMetadataOcrFallback:
         fake_doc.page_content = "Нормальный текст страницы"
         fake_doc.metadata = {}
 
-        with patch("data_loader.PyPDFLoader") as mock_loader_cls, \
-             patch("data_loader.load_pdf_with_ocr") as mock_ocr, \
-             patch("data_loader.OCR_AVAILABLE", True), \
-             patch("data_loader.logging_config") as mock_log_cfg:
+        with patch("rag_gigachat.data.data_loader.PyPDFLoader") as mock_loader_cls, \
+             patch("rag_gigachat.data.data_loader.load_pdf_with_ocr") as mock_ocr, \
+             patch("rag_gigachat.data.data_loader.OCR_AVAILABLE", True), \
+             patch("rag_gigachat.data.data_loader.logging_config") as mock_log_cfg:
             mock_log_cfg.log_level = "INFO"   # отключаем DEBUG-сохранение файлов
             mock_loader_cls.return_value.load.return_value = [fake_doc]
             loader = self._make_document_loader()
@@ -177,10 +177,10 @@ class TestLoadPdfWithMetadataOcrFallback:
         fake_doc.page_content = "   "  # пустой
         fake_doc.metadata = {}
 
-        with patch("data_loader.PyPDFLoader") as mock_loader_cls, \
-             patch("data_loader.load_pdf_with_ocr", return_value="OCR текст") as mock_ocr, \
-             patch("data_loader.OCR_AVAILABLE", True), \
-             patch("data_loader.logging_config") as mock_log_cfg:
+        with patch("rag_gigachat.data.data_loader.PyPDFLoader") as mock_loader_cls, \
+             patch("rag_gigachat.data.data_loader.load_pdf_with_ocr", return_value="OCR текст") as mock_ocr, \
+             patch("rag_gigachat.data.data_loader.OCR_AVAILABLE", True), \
+             patch("rag_gigachat.data.data_loader.logging_config") as mock_log_cfg:
             mock_log_cfg.log_level = "INFO"
             mock_loader_cls.return_value.load.return_value = [fake_doc]
             loader = self._make_document_loader()

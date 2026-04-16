@@ -3,23 +3,23 @@
 ## 🎯 Project Overview
 RAG system with GigaChat LLM, FAISS vector search, and Streamlit UI for Russian document processing.
 
-## 🏗️ Architecture
-- **UI Layer**: Streamlit (`ui_streamlit.py`)
-- **RAG Core**: LangChain + LangGraph (`rag_core.py`)
-- **Embeddings**: GigaChat embeddings
-- **Vector Store**: FAISS
-- **Search**: Dense + BM25 hybrid
-- **Evaluation**: RAGAS metrics + custom metrics
+## 🏗️ Architecture (src/ package structure)
+- **Core**: `src/rag_gigachat/core/` - RAG pipeline, vector store, LLM manager
+- **Data**: `src/rag_gigachat/data/` - Document loading with OCR support
+- **UI**: `src/rag_gigachat/ui/` - Streamlit components
+- **Reporting**: `src/rag_gigachat/reporting/` - Evaluation and Excel reports
+- **Config**: `src/rag_gigachat/config.py` - Centralized configuration
+- **Models**: `src/rag_gigachat/models.py` - Data models
 
 ## 📁 Key Files
-- `app.py` - Unified entry point
-- `rag_core.py` - Main RAG pipeline
-- `ui_streamlit.py` - Streamlit UI components
-- `config.py` - Centralized configuration
-- `experiment.py` - Experiment runner
-- `evaluator.py` - Quality metrics
-- `token_counter.py` - Token usage tracking
-- `excel_reporter.py` - Excel report generation
+- `app.py` - Unified entry point (root)
+- `src/rag_gigachat/core/rag_pipeline.py` - Main RAG pipeline
+- `src/rag_gigachat/ui/streamlit_app.py` - Streamlit UI
+- `src/rag_gigachat/config.py` - Centralized configuration
+- `src/rag_gigachat/experiment.py` - Experiment runner
+- `src/rag_gigachat/reporting/evaluator.py` - Quality metrics
+- `src/rag_gigachat/token_counter.py` - Token usage tracking
+- `src/rag_gigachat/reporting/excel_reporter.py` - Excel report generation
 
 ## 🔧 Development Rules
 
@@ -54,7 +54,10 @@ RAG system with GigaChat LLM, FAISS vector search, and Streamlit UI for Russian 
 1. Pull latest changes: `git pull origin main`
 2. Create feature branch: `git checkout -b feature/name`
 3. Make changes with proper logging
-4. Test locally: `streamlit run ui_streamlit.py`
+4. Test locally:
+   - UI: `python app.py --mode ui` или `streamlit run src/rag_gigachat/ui/streamlit_app.py`
+   - CLI: `python app.py --mode query`
+   - Tests: `pytest tests/ -v`
 5. Commit with clear message
 6. Push and create PR
 

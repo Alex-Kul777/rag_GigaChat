@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 PROJECT_ROOT = Path(__file__).parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
+# sys.path.insert больше не нужен - пакет в sys.path автоматически
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -36,8 +36,8 @@ def mock_embeddings():
     fake_store.similarity_search.return_value = [fake_doc]
     fake_store.similarity_search_with_score.return_value = [(fake_doc, 0.9)]
 
-    with patch("vector_store.GigaChatEmbeddings", return_value=fake_emb), \
-         patch("vector_store.FAISS") as mock_faiss_cls:
+    with patch("rag_gigachat.core.vector_store.GigaChatEmbeddings", return_value=fake_emb), \
+         patch("rag_gigachat.core.vector_store.FAISS") as mock_faiss_cls:
         mock_faiss_cls.from_documents.return_value = fake_store
         mock_faiss_cls.load_local.return_value = fake_store
         yield fake_emb
@@ -51,7 +51,7 @@ def mock_gigachat():
     mock_response = MagicMock()
     mock_response.content = "Нейросети — это математические модели, вдохновлённые мозгом."
 
-    with patch("llm_manager.GigaChat") as mock_cls:
+    with patch("rag_gigachat.core.llm_manager.GigaChat") as mock_cls:
         mock_llm = MagicMock()
         mock_llm.invoke.return_value = mock_response
         mock_cls.return_value = mock_llm

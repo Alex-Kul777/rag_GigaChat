@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Добавляем корень проекта в путь
 PROJECT_ROOT = Path(__file__).parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
+# sys.path.insert больше не нужен - пакет в sys.path автоматически
 
 def create_directory(path):
     """Создание директории если не существует"""
@@ -213,7 +213,7 @@ tests/test_token_counter.py - Тесты для счетчика токенов
 """
 
 import pytest
-from token_counter import TokenCounter
+from rag_gigachat.token_counter import TokenCounter
 
 
 class TestTokenCounter:
@@ -281,7 +281,7 @@ tests/test_config.py - Тесты для конфигурации
 
 import pytest
 from pathlib import Path
-from config import model_config, data_config, gigachat_config, vectorstore_config
+from rag_gigachat.config import model_config, data_config, gigachat_config, vectorstore_config
 
 
 class TestConfig:
@@ -327,7 +327,7 @@ tests/test_rag_core.py - Тесты для RAG пайплайна
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from rag_core import RAGPipeline, VectorStoreManager, LLMManager
+from rag_gigachat.core.rag_pipeline import RAGPipeline, VectorStoreManager, LLMManager
 
 
 class TestRAGPipeline:
@@ -409,22 +409,22 @@ class TestSmoke:
     def test_import_all_modules(self):
         """Проверка импорта всех основных модулей"""
         from rag_core import RAGPipeline
-        from token_counter import TokenCounter
-        from config import model_config, data_config
+        from rag_gigachat.token_counter import TokenCounter
+        from rag_gigachat.config import model_config, data_config
         from evaluator import WikiEvalEvaluator
         from excel_reporter import ExcelReporter
         assert True
     
     def test_config_loaded(self):
         """Проверка загрузки конфигурации"""
-        from config import model_config, data_config, gigachat_config
+        from rag_gigachat.config import model_config, data_config, gigachat_config
         assert model_config is not None
         assert data_config is not None
         assert gigachat_config is not None
     
     def test_token_counter_import(self):
         """Проверка импорта счетчика токенов"""
-        from token_counter import TokenCounter
+        from rag_gigachat.token_counter import TokenCounter
         counter = TokenCounter()
         assert counter is not None
     

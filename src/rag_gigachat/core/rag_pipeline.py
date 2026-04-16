@@ -22,17 +22,17 @@ try:
 except ImportError:
     GIGACHAT_AVAILABLE = False
 
-from config import (
+from rag_gigachat.config import (
     model_config, data_config, vectorstore_config,
     experiment_config, logging_config, gigachat_config
 )
 
-from models import RetrievalResult, GenerationResult, RetrievalType
-from data_loader import CorpusLoader, DocumentLoader, TextSplitter
-from token_counter import TokenCounter
-from vector_store import VectorStoreManager       # noqa: F401 (re-export)
-from llm_manager import LLMManager                # noqa: F401 (re-export)
-from retriever import BaseRetriever, DenseRetriever, make_retriever  # noqa: F401
+from rag_gigachat.models import RetrievalResult, GenerationResult, RetrievalType
+from rag_gigachat.data.data_loader import CorpusLoader, DocumentLoader, TextSplitter
+from rag_gigachat.token_counter import TokenCounter
+from rag_gigachat.core.vector_store import VectorStoreManager       # noqa: F401 (re-export)
+from rag_gigachat.core.llm_manager import LLMManager                # noqa: F401 (re-export)
+from rag_gigachat.core.retriever import BaseRetriever, DenseRetriever, make_retriever  # noqa: F401
 
 # Настройка логирования
 logging.basicConfig(

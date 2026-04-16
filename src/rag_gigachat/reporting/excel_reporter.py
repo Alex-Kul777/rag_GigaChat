@@ -20,8 +20,8 @@ from openpyxl.cell.cell import MergedCell
 
 
 # Импортируем конфигурацию
-from config import logging_config    
-from config import model_config
+from rag_gigachat.config import logging_config
+from rag_gigachat.config import model_config
 
 # Настройка логирования
 logger = logging.getLogger(__name__)

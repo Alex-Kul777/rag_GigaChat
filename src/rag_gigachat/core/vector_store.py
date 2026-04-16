@@ -17,7 +17,7 @@ try:
 except ImportError:
     GIGACHAT_AVAILABLE = False
 
-from config import model_config, vectorstore_config, gigachat_config
+from rag_gigachat.config import model_config, vectorstore_config, gigachat_config
 
 logger = logging.getLogger(__name__)
 
