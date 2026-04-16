@@ -91,7 +91,7 @@ RAG system with GigaChat LLM, FAISS vector search, and Streamlit UI for Russian 
 
 # Claude Permissions Configuration
 
-> Техническое применение правил — файл `.claude/settings.local.json`.
+> Техническое применение правил — файл `.claude/settings.local.json` (в ~/.claude/).
 > Этот раздел описывает политику; менять оба файла синхронно.
 
 ## Project Boundary
@@ -99,11 +99,12 @@ RAG system with GigaChat LLM, FAISS vector search, and Streamlit UI for Russian 
 - Всё внутри root — авто-одобрение для чтения и правки не-критичных файлов
 - За пределами root — всегда спрашивать
 
-## Critical Files — Always Ask
-- `config.py`, `.env` — конфигурация и секреты
-- `CLAUDE.md` — правила
-- `requirements.txt` — зависимости
-- `.git/config`, `.gitignore`
+## Critical Files — Always Ask Before Editing
+- `CLAUDE.md` — правила проекта
+- `src/rag_gigachat/config.py`, `config.py` — конфигурация и пути
+- `.env` — секреты и API ключи
+- `requirements.txt` — зависимости проекта
+- `.git/config`, `.gitignore` — git конфигурация
 
 ## Command Policy
 
@@ -112,9 +113,45 @@ RAG system with GigaChat LLM, FAISS vector search, and Streamlit UI for Russian 
 | 🟢 Авто | `ls`, `cat`, `grep`, `awk`, `wc`, `find`, `head`, `tail` | Выполнять |
 | 🟢 Авто | `python3`, `.venv/bin/python`, `.venv/bin/pip`, `.venv/bin/pytest` | Выполнять |
 | 🟢 Авто | `git status/log/diff/show/branch/add/commit` | Выполнять |
-| 🟢 Авто | `pip install` (в venv), `gh run/pr/issue` | Выполнять |
+| 🟢 Авто | `pytest tests/`, `PYTHONPATH=src python -m pytest` | Выполнять |
 | 🟡 Спросить | `git push`, `rm`, `mv`, `cp`, `chmod`, `sed -i` | Подтвердить |
 | 🔴 Запрещено | `rm -rf /`, `sudo`, `curl \| bash`, `eval $(curl...)` | Не выполнять |
 
+## Settings Configuration
+Разрешения сохранены в `~/.claude/settings.local.json`:
+- **auto_approve**: read, bash_commands (safe patterns)
+- **ask_first**: git push, rm/mv/cp, critical files
+- **forbidden**: dangerous system commands
+- **venv**: auto-use `.venv/` для Python/pip
+- **testing**: pytest configuration и coverage threshold
+
 ## File Deletions
 Удаление любых файлов — **всегда спрашивать**, даже если явно попросили.
+
+## Virtual Environment (venv)
+- **Path**: `.venv/` в корне проекта
+- **Auto-use**: Все `python`, `pip`, `pytest` команды автоматически используют venv
+- **No activation needed**: CLI автоматически использует `.venv/bin/python` и `.venv/bin/pip`
+
+### Auto-Approve Commands in venv:
+```bash
+.venv/bin/python -m pytest tests/           # Запуск тестов
+.venv/bin/python app.py --mode ui          # Запуск приложения
+.venv/bin/pip install <package>            # Установка зависимостей
+PYTHONPATH=src .venv/bin/python -m pytest  # Тесты с путями
+```
+
+## Testing Configuration
+- **Framework**: pytest (конфиг в `pytest.ini`)
+- **Test paths**: `tests/` с подпапками `unit/` и `integration/`
+- **Coverage threshold**: 54% (обязательно)
+- **Markers**: `@pytest.mark.unit`, `@pytest.mark.integration`, `@pytest.mark.slow`
+- **Run tests**: `pytest tests/ -v --cov=rag_gigachat`
+
+### Auto-Approve Test Commands:
+```bash
+pytest tests/ -v                            # Все тесты verbose
+pytest tests/unit/ -v                       # Только unit тесты
+.venv/bin/pytest tests/ --cov=rag_gigachat # С покрытием
+PYTHONPATH=src .venv/bin/pytest tests/     # С явным путём
+```
