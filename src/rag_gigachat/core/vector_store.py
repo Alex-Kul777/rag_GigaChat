@@ -158,7 +158,18 @@ class VectorStoreManager:
     def create_from_texts_with_cache(
             self, texts: Dict[str, str], force_reload: bool = False) -> bool:
         """Создание FAISS индекса из текстов с использованием кэша"""
-        doc_hash = self._get_hash(texts)
+        # Валидация входных данных
+        if not texts:
+            logger.warning("⚠️ Получен пустой словарь текстов")
+            raise ValueError("Нельзя создать FAISS индекс без текстов")
+
+        # Фильтруем пустые тексты
+        non_empty_texts = {doc_id: text for doc_id, text in texts.items() if text and text.strip()}
+        if not non_empty_texts:
+            logger.warning("⚠️ Все тексты пусты или содержат только пробелы")
+            raise ValueError("После фильтрации нет валидных текстов для эмбеддинга")
+
+        doc_hash = self._get_hash(non_empty_texts)
 
         if not force_reload and self.check_cache_exists(doc_hash):
             logger.info(f"📦 Загрузка FAISS индекса из кэша (хеш: {doc_hash})")
@@ -167,31 +178,47 @@ class VectorStoreManager:
             else:
                 logger.warning("Не удалось загрузить из кэша, создаем заново")
 
-        logger.info(f"🔄 Создание FAISS индекса из {len(texts)} документов...")
+        logger.info(f"🔄 Создание FAISS индекса из {len(non_empty_texts)} документов...")
         start_time = time.time()
 
         documents = []
         max_chars = 1500  # ~375 токенов
 
-        for doc_id, text in tqdm(texts.items(), desc="Обработка текстов"):
+        for doc_id, text in tqdm(non_empty_texts.items(), desc="Обработка текстов"):
             if len(text) > max_chars:
                 text = text[:max_chars]
                 logger.debug(f"Документ {doc_id} обрезан до {max_chars} символов")
             documents.append(Document(page_content=text, metadata={"source": doc_id}))
 
+        # Финальная проверка перед созданием FAISS индекса
+        if not documents:
+            logger.error("❌ Список документов пуст перед созданием FAISS индекса")
+            raise RuntimeError("Не удалось подготовить документы для эмбеддинга")
+
         batch_size = 3
 
         for attempt in range(3):
             try:
-                logger.info(f"Попытка {attempt + 1}: создание эмбеддингов батчами по {batch_size}")
+                logger.info(f"Попытка {attempt + 1}: создание эмбеддингов из {len(documents)} документов")
                 self.vector_store = FAISS.from_documents(documents, self.embeddings)
                 self.is_initialized = True
                 self.current_hash = doc_hash
                 self.save_to_disk(doc_hash)
                 elapsed = time.time() - start_time
                 logger.info(f"✅ FAISS индекс создан за {elapsed:.2f} сек")
-                return False
+                return True
 
+            except IndexError as e:
+                logger.error(f"❌ IndexError при создании FAISS: {e}")
+                logger.error(f"Количество документов: {len(documents)}, Попытка: {attempt + 1}")
+                if attempt < 2:
+                    logger.warning("Пробуем с меньшим размером текстов...")
+                    max_chars = max(500, max_chars - 300)
+                    for doc in documents:
+                        if len(doc.page_content) > max_chars:
+                            doc.page_content = doc.page_content[:max_chars]
+                    continue
+                raise
             except Exception as e:
                 error_msg = str(e)
                 if "Tokens limit exceeded" in error_msg and attempt < 2:
@@ -216,12 +243,19 @@ class VectorStoreManager:
         Args:
             documents: Список документов LangChain
         """
-        logger.info(f"Создание FAISS индекса из {len(documents)} документов...")
+        if not documents:
+            raise ValueError("Список документов не может быть пустым")
+
+        non_empty_docs = [d for d in documents if d.page_content and d.page_content.strip()]
+        if not non_empty_docs:
+            raise ValueError("После фильтрации нет валидных документов для эмбеддинга")
+
+        logger.info(f"Создание FAISS индекса из {len(non_empty_docs)} документов...")
         start_time = time.time()
-        self.vector_store = FAISS.from_documents(documents, self.embeddings)
+        self.vector_store = FAISS.from_documents(non_empty_docs, self.embeddings)
         self.is_initialized = True
         elapsed = time.time() - start_time
-        logger.info(f"FAISS индекс создан за {elapsed:.2f} сек")
+        logger.info(f"✅ FAISS индекс создан за {elapsed:.2f} сек")
 
     def create_from_texts(self, texts: Dict[str, str]) -> None:
         """
@@ -230,9 +264,16 @@ class VectorStoreManager:
         Args:
             texts: Словарь {doc_id: text}
         """
+        if not texts:
+            raise ValueError("Словарь текстов не может быть пустым")
+
+        non_empty_texts = {doc_id: text for doc_id, text in texts.items() if text and text.strip()}
+        if not non_empty_texts:
+            raise ValueError("После фильтрации нет валидных текстов")
+
         documents = [
             Document(page_content=text, metadata={"source": doc_id})
-            for doc_id, text in texts.items()
+            for doc_id, text in non_empty_texts.items()
         ]
         self.create_from_documents(documents)
 

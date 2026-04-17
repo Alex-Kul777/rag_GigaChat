@@ -24,7 +24,7 @@ This project implements a **Retrieval-Augmented Generation (RAG)** system for an
   - Configurable file size limits and character thresholds
   - MD5-based caching to avoid re-processing
 - **Modular Architecture**: Clean separation of concerns with Strategy and Dependency Injection patterns
-  - `vector_store.py`: Vector store abstraction with FAISS backend
+  - `vector_store.py`: Vector store abstraction with FAISS backend and input validation
   - `llm_manager.py`: LLM provider abstraction (GigaChat, HuggingFace, OpenAI)
   - `retriever.py`: Pluggable retrieval strategies (Dense, Sparse, Hybrid)
   - `token_counter.py`: Standalone token tracking with balance management

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.1] - 2026-04-17
+
+### Fixed
+- **`src/rag_gigachat/core/vector_store.py`** — валидация FAISS индекса:
+  - Проверка на пустые словари текстов перед созданием индекса
+  - Фильтрация пустых или содержащих только пробелы текстов
+  - Обработка IndexError с retry при уменьшении размера текстов
+  - Исправлен bug: метод `create_from_texts_with_cache()` теперь возвращает `True` при успехе
+  - Добавлена валидация в методы `create_from_documents()` и `create_from_texts()`
+
 ## [1.5.0] - 2026-04-17
 
 ### Added
