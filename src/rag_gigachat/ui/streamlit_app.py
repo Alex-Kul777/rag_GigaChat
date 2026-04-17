@@ -19,9 +19,8 @@ from rag_gigachat.config import model_config, data_config, gigachat_config
 from rag_gigachat.core.rag_pipeline import RAGPipeline
 
 
-@st.cache_resource
 def get_rag_pipeline(embedding_model: str, chunk_size: int, chunk_overlap: int) -> RAGPipeline:
-    """Кешировать инициализацию RAGPipeline (дорогая операция)"""
+    """Получить или создать RAGPipeline (хранится в session_state)"""
     # ✅ Валидация параметров
     if not embedding_model or not isinstance(embedding_model, str):
         raise ValueError(f"❌ embedding_model должна быть непустой строкой, получено: {embedding_model}")
@@ -35,12 +34,17 @@ def get_rag_pipeline(embedding_model: str, chunk_size: int, chunk_overlap: int) 
     if chunk_overlap >= chunk_size:
         raise ValueError(f"❌ chunk_overlap ({chunk_overlap}) должен быть < chunk_size ({chunk_size})")
 
-    return RAGPipeline(
-        embedding_model=embedding_model,
-        llm_type="gigachat",
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap
-    )
+    # Проверить, есть ли pipeline в session_state
+    pipeline_key = f"pipeline_{embedding_model}_{chunk_size}_{chunk_overlap}"
+    if pipeline_key not in st.session_state:
+        st.session_state[pipeline_key] = RAGPipeline(
+            embedding_model=embedding_model,
+            llm_type="gigachat",
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap
+        )
+
+    return st.session_state[pipeline_key]
 
 
 def load_documents_to_pipeline(pipeline: RAGPipeline, domain_path: Path):
@@ -341,9 +345,6 @@ def main():
         try:
             domain_path = data_config.documents_dirs.get(st.session_state.get("selected_domain", list(data_config.documents_dirs.keys())[0]))
             if domain_path:
-                # Очистить кэш перед загрузкой новых документов
-                st.cache_resource.clear()
-
                 pipeline = get_rag_pipeline(
                     embedding_model=st.session_state.embedding_model,
                     chunk_size=st.session_state.chunk_size,
