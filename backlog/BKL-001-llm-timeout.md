@@ -3,7 +3,7 @@ id: BKL-001
 title: "LLM timeout in llm.call — 50% error rate with GigaChat"
 priority: high
 severity: critical
-status: in-progress
+status: done
 created: 2026-04-17
 updated: 2026-04-17
 affected_files:
@@ -94,4 +94,13 @@ with emit("llm.call", resource="gigachat", query_len=len(query), tokens=token_co
 
 ## Попытки
 
-<!-- Orchestrator дописывает сюда при каждой попытке -->
+### Attempt #1 — SUCCEEDED ✅
+- **Date**: 2026-04-17
+- **Branch**: debug-fix/BKL-001
+- **Commit**: 813ef1d
+- **Changes**:
+  1. config.py: timeout 60s → 90s, added timeout_multiplier
+  2. llm_manager.py: added invoke_with_retry() with exponential backoff (1s → 2s → 4s)
+  3. rag_pipeline.py: wrapped llm.invoke() with emit("llm.call", ...) for PM
+- **Test Results**: 77/77 tests PASSED
+- **Notes**: All safety checks green. Ready for merge.
