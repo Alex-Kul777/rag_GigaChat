@@ -370,8 +370,43 @@ def main():
     # Инициализация состояния
     init_session_state()
 
+    # Авто-загрузка документов если индекс пуст (ПЕРЕД DEBUG чтобы видеть процесс)
+    if not st.session_state.get("_docs_auto_loaded", False):
+        st.write("🔍 АВТОЗАГРУЗКА: Проверка индекса...")
+        try:
+            pipeline = get_rag_pipeline(
+                embedding_model=st.session_state.embedding_model,
+                chunk_size=st.session_state.chunk_size,
+                chunk_overlap=st.session_state.chunk_overlap
+            )
+            st.write(f"АВТОЗАГРУЗКА: Pipeline.vector_store_initialized: {pipeline.vector_store_initialized}")
+            st.write(f"АВТОЗАГРУЗКА: Manager.is_initialized: {pipeline.vector_store_manager.is_initialized}")
+
+            if not pipeline.vector_store_manager.is_initialized:
+                st.info("📚 АВТОЗАГРУЗКА: Загрузка документов...")
+                # Загружаем из первой доступной domain директории
+                first_domain = list(data_config.documents_dirs.values())[0]
+                st.write(f"АВТОЗАГРУЗКА: Загрузка из {first_domain}")
+
+                pipeline.load_from_pdf_directory(
+                    directory=first_domain,
+                    recursive=True,
+                    force_reload=True
+                )
+                st.write(f"АВТОЗАГРУЗКА: После load_from_pdf_directory: {pipeline.vector_store_manager.is_initialized}")
+                st.session_state._docs_auto_loaded = True
+                st.success("✅ АВТОЗАГРУЗКА: Документы загружены!")
+            else:
+                st.write("✅ АВТОЗАГРУЗКА: Индекс уже инициализирован")
+                st.session_state._docs_auto_loaded = True
+        except Exception as e:
+            import traceback
+            st.error(f"❌ АВТОЗАГРУЗКА ОШИБКА: {e}")
+            st.write(traceback.format_exc())
+            st.session_state._docs_auto_loaded = True
+
     # Показать финальный статус индекса
-    with st.expander("🔧 DEBUG: Статус индекса", expanded=False):
+    with st.expander("🔧 DEBUG: Финальный статус", expanded=False):
         try:
             pipeline = get_rag_pipeline(
                 embedding_model=st.session_state.embedding_model,
@@ -415,40 +450,6 @@ def main():
             st.session_state.force_reload_index = False
 
     # Авто-загрузка документов если индекс пуст
-    if not st.session_state.get("_docs_auto_loaded", False):
-        try:
-            st.write("🔍 Проверка индекса...")
-            pipeline = get_rag_pipeline(
-                embedding_model=st.session_state.embedding_model,
-                chunk_size=st.session_state.chunk_size,
-                chunk_overlap=st.session_state.chunk_overlap
-            )
-            st.write(f"Pipeline.vector_store_initialized: {pipeline.vector_store_initialized}")
-            st.write(f"Manager.is_initialized: {pipeline.vector_store_manager.is_initialized}")
-
-            if not pipeline.vector_store_manager.is_initialized:
-                st.info("📚 Загрузка документов для демонстрации...")
-                # Загружаем из первой доступной domain директории
-                first_domain = list(data_config.documents_dirs.values())[0]
-                st.write(f"Загрузка из: {first_domain}")
-
-                pipeline.load_from_pdf_directory(
-                    directory=first_domain,
-                    recursive=True,
-                    force_reload=True
-                )
-                st.write(f"После load_from_pdf_directory: manager.is_initialized = {pipeline.vector_store_manager.is_initialized}")
-                st.session_state._docs_auto_loaded = True
-                st.success("✅ Документы загружены! Теперь вы можете задавать вопросы.")
-            else:
-                st.write("✅ Индекс уже инициализирован")
-                st.session_state._docs_auto_loaded = True
-        except Exception as e:
-            import traceback
-            st.error(f"❌ Ошибка при загрузке документов: {e}")
-            st.write(traceback.format_exc())
-            st.session_state._docs_auto_loaded = True
-
     # Кастомные стили
     st.markdown("""
     <style>
