@@ -9,7 +9,16 @@
 
 This project implements a **Retrieval-Augmented Generation (RAG)** system for answering questions based on PDF documents. The system combines document retrieval with LLM generation to provide accurate, context-aware answers.
 
-## ✨ What's New in v1.7.0
+## ✨ What's New in v1.8.0
+
+- **UI Testing & Validation** (44 tests): Comprehensive test coverage for Streamlit components:
+  - 19 tests for `streamlit_app.py` (session state, query handling, stats)
+  - 25 tests for `components.py` (ConfigModal, FileListPanel, DocumentViewer, HighlightedAnswer)
+- **Input Validation**: Strict parameter validation for `chunk_size`, `embedding_model`, `selected_file`, and page numbers
+- **Race Condition Fix**: Fixed consistency issue in `handle_user_query()` where user messages were added before pipeline response
+- **Better Error Handling**: Improved error messages and separate handling for validation errors
+
+### Previous (v1.7.0)
 
 - **Docker GPU Support**: Multi-stage Dockerfile with optional CUDA for accelerated embeddings
 - **Automatic GPU Setup**: New `setup.sh` script for NVIDIA driver validation (3-level check)

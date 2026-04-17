@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.0] - 2026-04-17
+
+### Added
+- **44 тестов для UI слоя** — Полное тестовое покрытие Streamlit компонентов:
+  - 19 тестов для `streamlit_app.py` (init_session_state, handle_user_query, render_document_viewer, render_stats)
+  - 25 тестов для `components.py` (ConfigModal, FileListPanel, DocumentViewer, HighlightedAnswer, AnswerInteraction)
+  - Тесты граничных случаев (Unicode, длинные тексты, невалидные данные)
+  - Все 44 теста проходят ✅
+
+### Improved
+- **Валидация параметров UI** — Добавлена строгая валидация входных данных:
+  - Валидация `chunk_size` (должен быть > 0)
+  - Валидация `embedding_model` (не может быть пустым)
+  - Валидация `selected_file` и номера страницы в DocumentViewer
+  - Безопасная проверка структуры сообщений в render_stats()
+- **Обработка ошибок** — Исправлена race condition в `handle_user_query()`:
+  - Сообщения добавляются ТОЛЬКО после успешного получения ответа
+  - Состояние остаётся консистентным при ошибках
+- **Сообщения об ошибках** — Улучшены сообщения для пользователя:
+  - Отдельная обработка ValueError для ошибок валидации
+  - Понятные описания ошибок параметров
+
+### Fixed
+- **race condition** — Исправлена race condition в обработке запросов пользователя
+- **валидация** — Добавлена валидация chunk_overlap >= chunk_size
+
 ## [1.7.0] - 2026-04-17
 
 ### Added
