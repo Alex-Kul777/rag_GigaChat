@@ -26,11 +26,14 @@ from rag_gigachat.models import RetrievalType
 
 def load_pdf_directory_with_progress(pipeline: RAGPipeline, pdf_dir: Path, force_reload: bool = False) -> bool:
     """
-    Загрузка PDF директории с прогресс-баром Streamlit.
+    Загрузка PDF директории с прогресс-баром Streamlit и диагностикой.
 
     Итерируется по PDF файлам по одному, обновляя прогресс после каждого.
     Возвращает True если документы загружены успешно.
     """
+    from rag_gigachat.data.data_loader import diagnose_pdf
+    import logging
+
     pdf_files = sorted(pdf_dir.rglob("*.pdf"))
     if not pdf_files:
         st.warning(f"⚠️ PDF файлы не найдены в: {pdf_dir}")
@@ -38,8 +41,10 @@ def load_pdf_directory_with_progress(pipeline: RAGPipeline, pdf_dir: Path, force
 
     progress_bar = st.progress(0, text="Подготовка...")
     status = st.empty()
+    errors_col = st.empty()
 
     collected: dict[str, str] = {}
+    failed_files = []
 
     for idx, pdf_file in enumerate(pdf_files):
         pct = idx / len(pdf_files)
@@ -47,18 +52,71 @@ def load_pdf_directory_with_progress(pipeline: RAGPipeline, pdf_dir: Path, force
         status.caption(f"Загрузка: `{pdf_file.name}`")
 
         try:
+            # Загружаем документы
             docs = pipeline.corpus_loader.document_loader.load_pdf_with_metadata(pdf_file)
+
+            # Валидация: проверяем что документы содержат текст
+            if not docs:
+                diagnosis = diagnose_pdf(pdf_file)
+                msg = f"❌ PDF '{pdf_file.name}' не содержит текста"
+                if diagnosis['issues']:
+                    msg += f": {'; '.join(diagnosis['issues'])}"
+                status.warning(msg)
+                failed_files.append((pdf_file.name, "Нет текста"))
+                continue
+
+            # Проверяем что хотя бы один документ содержит текст
+            has_content = False
             for doc in docs:
-                page = doc.metadata.get("page_number", idx)
-                key = f"{pdf_file.stem}_p{page}"
-                collected[key] = doc.page_content
+                text = doc.page_content.strip()
+                if text:
+                    has_content = True
+                    page = doc.metadata.get("page_number", idx)
+                    key = f"{pdf_file.stem}_p{page}"
+                    collected[key] = text
+                    break
+
+            if not has_content:
+                diagnosis = diagnose_pdf(pdf_file)
+                msg = f"❌ '{pdf_file.name}' загружен, но содержит только пробелы"
+                if diagnosis['issues']:
+                    msg += f": {'; '.join(diagnosis['issues'])}"
+                status.warning(msg)
+                failed_files.append((pdf_file.name, "Пусто"))
+
         except Exception as e:
-            status.warning(f"⚠️ Ошибка при загрузке {pdf_file.name}: {e}")
+            status.warning(f"⚠️ Ошибка при загрузке '{pdf_file.name}': {str(e)[:100]}")
+            failed_files.append((pdf_file.name, str(e)[:50]))
 
+    # Финальная проверка перед индексацией
+    if not collected:
+        errors_col.error(
+            f"❌ Не удалось загрузить текст из PDF файлов. "
+            f"Возможные причины:\n"
+            f"- PDF содержат только сканированные изображения (включите OCR)\n"
+            f"- PDF защифрованы паролем\n"
+            f"- Повреждённые PDF файлы"
+        )
+        if failed_files:
+            for filename, reason in failed_files:
+                st.caption(f"  • {filename}: {reason}")
+        return False
+
+    # Успешно загружено
     progress_bar.progress(1.0, text="⚙️ Создание векторного индекса...")
-    status.caption("Индексирование документов...")
+    status.caption(f"Индексирование {len(collected)} документов...")
 
-    pipeline.load_documents_from_dict(collected, force_reload=force_reload)
+    try:
+        pipeline.load_documents_from_dict(collected, force_reload=force_reload)
+        st.success(f"✅ Успешно загружено {len(collected)} документов из {len(pdf_files)} PDF файлов")
+        if failed_files:
+            st.info(f"⚠️ {len(failed_files)} файлов было пропущено (без текста)")
+    except ValueError as e:
+        errors_col.error(f"❌ Ошибка при создании индекса: {str(e)}")
+        return False
+    except Exception as e:
+        errors_col.error(f"❌ Неожиданная ошибка: {str(e)}")
+        return False
 
     progress_bar.empty()
     status.empty()

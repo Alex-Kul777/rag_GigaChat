@@ -9,6 +9,12 @@
 
 This project implements a **Retrieval-Augmented Generation (RAG)** system for answering questions based on PDF documents. The system combines document retrieval with LLM generation to provide accurate, context-aware answers.
 
+## ✨ What's New in v1.6.0
+
+- **PDF Diagnostics**: New `diagnose_pdf()` function for analyzing PDF format, encryption, and text extraction
+- **Improved PDF Processing**: Enhanced error handling and logging in document loading pipeline
+- **Streamlit UI Updates**: Optimized logging and diagnostic data integration
+
 ## 🚀 Features
 
 - **Document Processing**: Load PDF documents with metadata extraction and caching

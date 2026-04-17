@@ -59,6 +59,48 @@ def _get_ocr_converter() -> Optional["DocumentConverter"]:
     return _ocr_converter
 
 
+def diagnose_pdf(pdf_path: Path) -> Dict[str, Any]:
+    """
+    Диагностика PDF файла: определяет формат, защиту, содержит ли текст.
+
+    Returns:
+        Словарь с информацией: {'format', 'is_encrypted', 'has_text', 'num_pages', 'first_page_text', 'issues'}
+    """
+    diagnosis = {
+        'format': 'unknown',
+        'is_encrypted': False,
+        'has_text': False,
+        'num_pages': 0,
+        'first_page_text': '',
+        'issues': []
+    }
+
+    try:
+        import PyPDF2
+        with open(pdf_path, 'rb') as f:
+            reader = PyPDF2.PdfReader(f)
+            diagnosis['num_pages'] = len(reader.pages)
+            diagnosis['is_encrypted'] = reader.is_encrypted
+
+            if reader.is_encrypted:
+                diagnosis['issues'].append("PDF защифрован паролем")
+
+            if reader.pages:
+                first_page = reader.pages[0]
+                text = first_page.extract_text()
+                diagnosis['first_page_text'] = text[:500] if text else ""
+                diagnosis['has_text'] = bool(text and text.strip())
+
+                if not diagnosis['has_text']:
+                    diagnosis['issues'].append("Первая страница не содержит извлекаемого текста (вероятно сканированный PDF)")
+
+            diagnosis['format'] = 'PDF'
+    except Exception as e:
+        diagnosis['issues'].append(f"Ошибка при чтении: {str(e)}")
+
+    return diagnosis
+
+
 def _pdf_file_hash(pdf_path: Path) -> str:
     """MD5-хеш по имени файла и размеру — быстрый ключ для кэша OCR."""
     stat = pdf_path.stat()
@@ -345,41 +387,49 @@ class DocumentLoader:
     
     def load_pdf_with_metadata(self, pdf_path: Path) -> List[LangChainDocument]:
         """
-        Загрузка PDF файла с извлечением метаданных
-        
+        Загрузка PDF файла с извлечением метаданных и диагностикой.
+
         Args:
             pdf_path: Путь к PDF файлу
-        
+
         Returns:
             Список документов LangChain с метаданными
         """
-        logger.info(f"DEBUG MODE: {logging_config.log_level.upper() == 'DEBUG'}")
         try:
+            # 1. Диагностика PDF
+            diagnosis = diagnose_pdf(pdf_path)
+            logger.info(f"🔍 PDF диагностика '{pdf_path.name}': {diagnosis['num_pages']} страниц, текст={diagnosis['has_text']}")
+
+            if diagnosis['issues']:
+                for issue in diagnosis['issues']:
+                    logger.warning(f"   ⚠️ {issue}")
+
             # Извлекаем метаданные документа
-            logger.info(f"Извлекаем метаданные документа: {pdf_path}")
             doc_metadata = self.extract_pdf_metadata(pdf_path)
-            
-            # Загружаем PDF через LangChain
+
+            # 2. Попробуем PyPDFLoader
             loader = PyPDFLoader(str(pdf_path))
             documents = loader.load()
-
-            logger.info(f"documents = loader.load(): {len(documents)}")
-
-            # Fallback на OCR если текст не извлечён (сканированный PDF)
             total_text = "".join(doc.page_content for doc in documents)
-            if not total_text.strip() and OCR_AVAILABLE:
-                logger.info(f"⚠️ PyPDFLoader не извлёк текст из '{pdf_path.name}', пробуем OCR...")
-                ocr_text = load_pdf_with_ocr(pdf_path)
-                if ocr_text.strip():
-                    documents = [LangChainDocument(
-                        page_content=ocr_text,
-                        metadata={"source": str(pdf_path), "ocr": True}
-                    )]
-            elif not total_text.strip():
-                logger.warning(
-                    f"⚠️ '{pdf_path.name}' не содержит текста. "
-                    "Установите docling для поддержки OCR: pip install docling"
-                )
+
+            # 3. Если текст не извлечён → OCR
+            if not total_text.strip():
+                if OCR_AVAILABLE and data_config.ocr_enabled:
+                    logger.info(f"📄 PyPDFLoader не извлёк текст, запускаем OCR для '{pdf_path.name}'...")
+                    ocr_text = load_pdf_with_ocr(pdf_path)
+                    if ocr_text.strip():
+                        logger.info(f"✅ OCR извлёк {len(ocr_text)} символов")
+                        documents = [LangChainDocument(
+                            page_content=ocr_text,
+                            metadata={"source": str(pdf_path), "ocr": True, "ocr_method": "docling"}
+                        )]
+                    else:
+                        logger.error(f"❌ OCR не смог извлечь текст из '{pdf_path.name}'")
+                else:
+                    logger.error(
+                        f"❌ '{pdf_path.name}' не содержит извлекаемого текста и OCR отключён. "
+                        f"Включите OCR: pip install docling и установите ocr_enabled=True в config.py"
+                    )
             # Добавляем метаданные к каждой странице
             for i, doc in enumerate(documents):
                 doc.metadata.update({
