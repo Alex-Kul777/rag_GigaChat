@@ -295,13 +295,23 @@ class RAGPipeline:
         ]
 
         print(f"🔍 Преобразовано в {len(documents)} Document объектов")
-        print(f"🔍 Вызываем create_from_documents...")
+        if documents:
+            print(f"🔍 Первый документ: {documents[0].page_content[:100]}")
+        else:
+            print(f"🔍 WARNING: documents список пуст!")
 
-        # Создаем FAISS индекс из документов
-        self.vector_store_manager.create_from_documents(documents)
+        print(f"🔍 Вызываем create_from_documents...")
+        try:
+            # Создаем FAISS индекс из документов
+            self.vector_store_manager.create_from_documents(documents)
+            print(f"🔍 create_from_documents успешна")
+        except Exception as e:
+            print(f"🔍 ERROR в create_from_documents: {e}")
+            raise
 
         print(f"🔍 После create_from_documents")
         print(f"🔍 Manager.is_initialized={self.vector_store_manager.is_initialized}")
+        print(f"🔍 Manager.vector_store={self.vector_store_manager.vector_store is not None}")
 
         self.vector_store_initialized = True
         print(f"🔍 Установлен vector_store_initialized=True")
