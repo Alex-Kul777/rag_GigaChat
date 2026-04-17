@@ -7,6 +7,7 @@ import streamlit as st
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -23,17 +24,22 @@ class ConfigModal:
         if st.button("⚙️ Расширенные настройки", key="config_button"):
             st.session_state.show_config_modal = True
 
-        # Использование st.dialog для модального окна (Streamlit >= 1.30)
+        # Модальное окно (Streamlit >= 1.30) или fallback на expander
         if st.session_state.get("show_config_modal", False):
+            # Проверить версию streamlit и доступность st.dialog
             try:
-                # Проверить, доступен ли st.dialog и поддерживает ли он context manager
-                if hasattr(st, 'dialog') and callable(st.dialog):
-                    with st.dialog("Расширенные настройки", width="large"):
+                import streamlit
+                if hasattr(streamlit, 'dialog'):
+                    @st.dialog("Расширенные настройки", width="large")
+                    def show_dialog():
                         ConfigModal._render_content()
+                    show_dialog()
                 else:
-                    raise AttributeError("st.dialog not available")
-            except (TypeError, AttributeError):
-                # Fallback для старых версий Streamlit или если st.dialog не работает
+                    # Fallback для Streamlit < 1.30
+                    with st.expander("⚙️ Расширенные настройки", expanded=True):
+                        ConfigModal._render_content()
+            except Exception:
+                # Fallback если что-то пошло не так
                 with st.expander("⚙️ Расширенные настройки", expanded=True):
                     ConfigModal._render_content()
 
@@ -275,7 +281,7 @@ class FileListPanel:
                             key=f"file_{file_path.stem}",
                             use_container_width=True
                         ):
-                            st.session_state.selected_file = str(file_path)
+                            st.session_state.selected_file = file_path.stem  # Только имя без расширения
                             st.session_state.show_document_viewer = True
                             st.rerun()
 
@@ -402,7 +408,8 @@ class DocumentViewer:
 
             with col_info2:
                 st.metric("Путь", file_path.parent.name)
-                st.metric("Создан", file_path.stat().st_ctime)
+                created_date = datetime.fromtimestamp(file_path.stat().st_ctime).strftime("%d.%m.%Y")
+                st.metric("Создан", created_date)
 
     @staticmethod
     def _render_pdf(file_path: Path, page: int = 1):
@@ -579,8 +586,8 @@ class HighlightedAnswer:
             filename = parts[0] if parts else doc_id
             page = int(parts[1]) if len(parts) > 1 else 1
 
-            # Сноска с ссылкой на документ
-            sources_html += f"\n{i}. [{filename}.pdf, стр. {page}](file={filename}|page={page}) (релевантность: {score:.2f})"
+            # Сноска с источником (без ссылки, т.к. открытие в DocumentViewer требует session_state)
+            sources_html += f"\n{i}. **{filename}.pdf**, стр. **{page}** (релевантность: {score:.2f})"
 
         return answer + sources_html
 

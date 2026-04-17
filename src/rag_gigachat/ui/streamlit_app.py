@@ -19,6 +19,30 @@ from rag_gigachat.config import model_config, data_config, gigachat_config
 from rag_gigachat.core.rag_pipeline import RAGPipeline
 
 
+@st.cache_resource
+def get_rag_pipeline(embedding_model: str, chunk_size: int, chunk_overlap: int) -> RAGPipeline:
+    """Кешировать инициализацию RAGPipeline (дорогая операция)"""
+    # ✅ Валидация параметров
+    if not embedding_model or not isinstance(embedding_model, str):
+        raise ValueError(f"❌ embedding_model должна быть непустой строкой, получено: {embedding_model}")
+
+    if chunk_size <= 0:
+        raise ValueError(f"❌ chunk_size должен быть > 0, получено: {chunk_size}")
+
+    if chunk_overlap < 0:
+        raise ValueError(f"❌ chunk_overlap не может быть отрицательным, получено: {chunk_overlap}")
+
+    if chunk_overlap >= chunk_size:
+        raise ValueError(f"❌ chunk_overlap ({chunk_overlap}) должен быть < chunk_size ({chunk_size})")
+
+    return RAGPipeline(
+        embedding_model=embedding_model,
+        llm_type="gigachat",
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap
+    )
+
+
 def init_session_state():
     """Инициализировать session_state при первом запуске"""
     defaults = {
@@ -65,6 +89,15 @@ def render_main_interface():
     </div>
     """, unsafe_allow_html=True)
 
+    # Инструкции при первом запуске
+    if not st.session_state.messages:
+        with st.info("💡 **Как начать:**"):
+            st.markdown("""
+            1. **Выберите документы** → Справа в боковой панели нажмите на файлы
+            2. **Задайте вопрос** → Введите вопрос о содержимом документов
+            3. **Настройки** (опционально) → ⚙️ Расширенные настройки для параметров поиска
+            """)
+
     # Основное содержимое
     with st.container():
         # Область чата
@@ -89,8 +122,10 @@ def render_main_interface():
                 "Ваш вопрос",
                 placeholder="Спросите о чём-нибудь из документов...",
                 height=80,
-                key="user_input"
+                key="user_input",
+                max_chars=2000
             )
+            st.caption(f"📝 {len(user_input)}/2000")
 
         with col_send:
             st.write("")  # Выравнивание по высоте
@@ -99,6 +134,9 @@ def render_main_interface():
                 if user_input.strip():
                     # Обработать запрос
                     handle_user_query(user_input)
+                    # Очистить текст после отправки
+                    st.session_state.user_input = ""
+                    st.rerun()
 
 
 def handle_user_query(query: str):
@@ -109,27 +147,27 @@ def handle_user_query(query: str):
         query: Текст запроса
     """
 
-    # Добавить сообщение пользователя
-    st.session_state.messages.append({
-        "role": "user",
-        "content": query
-    })
-
     # Интеграция с RAGPipeline
     try:
-        # Инициализировать pipeline с правильными параметрами
-        pipeline = RAGPipeline(
-            embedding_model=st.session_state.embedding_model,
-            llm_type="gigachat",
-            chunk_size=st.session_state.chunk_size,
-            chunk_overlap=st.session_state.chunk_overlap
-        )
+        with st.spinner("🔄 Обработка запроса..."):
+            # Получить кешированный pipeline
+            pipeline = get_rag_pipeline(
+                embedding_model=st.session_state.embedding_model,
+                chunk_size=st.session_state.chunk_size,
+                chunk_overlap=st.session_state.chunk_overlap
+            )
 
-        # Получить ответ с источниками
-        result = pipeline.process_query(
-            query,
-            k=st.session_state.k_retrieve
-        )
+            # Получить ответ с источниками
+            result = pipeline.process_query(
+                query,
+                k=st.session_state.k_retrieve
+            )
+
+        # ✅ Добавить сообщения ТОЛЬКО после успешного получения ответа
+        st.session_state.messages.append({
+            "role": "user",
+            "content": query
+        })
 
         # Добавить ответ в историю
         st.session_state.messages.append({
@@ -151,6 +189,9 @@ def handle_user_query(query: str):
         st.markdown("---")
         AnswerInteraction.show_actions(result.answer, answer_id=f"answer_{len(st.session_state.messages)}")
 
+    except ValueError as e:
+        # ✅ Ошибки валидации - показать пользователю
+        st.error(f"⚠️ Ошибка параметров: {str(e)}")
     except Exception as e:
         st.error(f"❌ Ошибка при обработке запроса: {e}")
 
@@ -180,36 +221,40 @@ def render_document_viewer():
     """Показать просмотр документа в модальном окне"""
 
     if st.session_state.get("show_document_viewer") and st.session_state.get("selected_file"):
-        # Найти полный путь к файлу
-        file_name = st.session_state.selected_file
+        file_name = st.session_state.selected_file  # Имя без расширения
+
+        # ✅ Валидация selected_file
+        if not isinstance(file_name, str) or not file_name.strip():
+            st.error("❌ Ошибка: название файла некорректно")
+            return
+
         page = st.session_state.get("selected_page", 1)
+
+        # ✅ Валидация номера страницы
+        if not isinstance(page, int) or page < 1:
+            st.error(f"❌ Ошибка: номер страницы должен быть ≥ 1, получено: {page}")
+            return
 
         # Поиск файла во всех доменах
         file_path = None
         for domain_path in data_config.documents_dirs.values():
             candidate = domain_path / f"{file_name}.pdf"
             if candidate.exists():
-                file_path = str(candidate)
+                file_path = candidate
                 break
 
-            # Или прямой путь
-            candidate = Path(file_name)
-            if candidate.exists():
-                file_path = str(candidate)
-                break
+        if file_path and file_path.exists():
+            st.subheader("📄 Просмотр документа")
+            DocumentViewer.show(str(file_path), page)
 
-        if file_path:
-            # Показать просмотрщик документов
-            if st.session_state.get("show_document_viewer"):
-                st.subheader("📄 Просмотр документа")
-                DocumentViewer.show(file_path, page)
-
-                # Кнопка закрытия
-                col1, col2, col3 = st.columns([1, 1, 1])
-                with col2:
-                    if st.button("✕ Закрыть", use_container_width=True):
-                        st.session_state.show_document_viewer = False
-                        st.rerun()
+            # Кнопка закрытия
+            col1, col2, col3 = st.columns([1, 1, 1])
+            with col2:
+                if st.button("✕ Закрыть", use_container_width=True):
+                    st.session_state.show_document_viewer = False
+                    st.rerun()
+        else:
+            st.error(f"❌ Файл '{file_name}.pdf' не найден в документах")
 
 
 def render_stats():
@@ -221,15 +266,27 @@ def render_stats():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.metric("Вопросов", len([m for m in st.session_state.messages if m["role"] == "user"]))
+        # ✅ Безопасный подсчёт с валидацией структуры
+        user_count = len([
+            m for m in st.session_state.messages
+            if isinstance(m, dict) and m.get("role") == "user"
+        ])
+        st.metric("Вопросов", user_count)
 
     with col2:
-        st.metric("Ответов", len([m for m in st.session_state.messages if m["role"] == "assistant"]))
+        # ✅ Безопасный подсчёт с валидацией структуры
+        assistant_count = len([
+            m for m in st.session_state.messages
+            if isinstance(m, dict) and m.get("role") == "assistant"
+        ])
+        st.metric("Ответов", assistant_count)
 
     with col3:
-        st.metric("Документов загружено", len(FileListPanel._get_pdf_files(
-            data_config.documents_dirs.get("UAV", Path(".")), ""
-        )))
+        # Количество PDF во всех доменах
+        total_docs = 0
+        for domain_path in data_config.documents_dirs.values():
+            total_docs += len(FileListPanel._get_pdf_files(domain_path, ""))
+        st.metric("Документов загружено", total_docs)
 
     with col4:
         tokens_per_query = st.session_state.max_tokens
