@@ -53,7 +53,7 @@ class ModelConfig:
     embedding_model_name: str = "GigaChat-2-Max"
     
     # Параметры генерации
-    max_new_tokens: int = 2000
+    max_new_tokens: int = 500  # Снижено с 2000; типичный русский ответ требует 200-300 токенов
 
     #temperature: float = 0.7
     temperature: float = 0.7

@@ -4,6 +4,7 @@ token_counter.py - Счетчик токенов для RAG системы
 
 import json
 import logging
+import hashlib
 from typing import Dict, Any, Optional
 from datetime import datetime
 
@@ -25,6 +26,7 @@ class TokenCounter:
         self.balance_history = []
         self.last_balance = None
         self.last_balance_time = None
+        self._cache = {}
 
         try:
             self.encoder = tiktoken.get_encoding("cl100k_base") if _tiktoken_available else None
@@ -40,13 +42,18 @@ class TokenCounter:
         self.details = []
 
     def count_text_tokens(self, text: str) -> int:
-        """Подсчет токенов в тексте"""
+        """Подсчет токенов в тексте (с кешированием)"""
         if not text:
             return 0
+        key = hashlib.md5(text.encode()).hexdigest()
+        if key in self._cache:
+            return self._cache[key]
         if self.encoder:
-            return len(self.encoder.encode(text))
-        # Приблизительный подсчет: 1 токен ≈ 4 символа
-        return len(text) // 4
+            count = len(self.encoder.encode(text))
+        else:
+            count = len(text) // 4
+        self._cache[key] = count
+        return count
 
     def add_request(self, prompt: str, response: str = None, response_metadata: Dict = None) -> int:
         """

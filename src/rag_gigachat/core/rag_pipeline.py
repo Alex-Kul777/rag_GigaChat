@@ -8,6 +8,7 @@ Re-экспорт сохранён для обратной совместимо�
 """
 import logging
 import time
+import concurrent.futures
 from typing import List, Dict, Optional, Any, TypedDict
 from pathlib import Path
 
@@ -477,13 +478,21 @@ class RAGPipeline:
             """Генерация ответа на основе контекста"""
             docs_content = "\n\n".join(doc.page_content for doc in state["context"])
 
+            if len(docs_content) > model_config.max_context_length:
+                docs_content = docs_content[:model_config.max_context_length] + "..."
+
             formatted_prompt = self.prompt.format_messages(
                 question=state["question"],
                 context=docs_content
             )
 
             with emit("llm.call", resource="gigachat", query_len=len(state["question"]), context_len=len(docs_content)):
-                response = self.llm_manager.invoke_with_retry(formatted_prompt)
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(self.llm_manager.invoke_with_retry, formatted_prompt)
+                    try:
+                        response = future.result(timeout=2.0)
+                    except concurrent.futures.TimeoutError:
+                        raise TimeoutError("LLM call exceeded 2.0s timeout")
             if hasattr(response, 'content'):
                 answer_text = response.content
             else:
