@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.0] - 2026-04-17
+
+### Added
+- **Цикл полуавтоматической отладки** — Встроенная система для выявления и устранения дефектов:
+  - **Event Logging** (`src/rag_gigachat/utils/event_log.py`) — инструментация RAG пайплайна в формате process mining
+    - ProcessEvent dataclass, CaseContext, emit() контекстный менеджер
+    - CANONICAL_ACTIVITIES словарь с 20 инструментированными шагами
+    - CSV export, совместимый с pm4py
+  - **Process Mining** (`scripts/debug/mine_process.py`) — анализ трасс и выявление аномалий
+    - Variants (уникальные последовательности activities) с частотой
+    - Bottlenecks (p50/p95/p99) по активностям
+    - Errors с контекстом и трассировкой
+    - Anomalies (редкие варианты, bimodal distribution, high error rates)
+  - **Backlog workflow** (`backlog/BKL-*.md`) — структурированное управление задачами
+    - YAML frontmatter со статусом, приоритетом, safety checks
+    - Привязка к логам и process mining сигналам
+    - Автогенерируемый INDEX.md с сортировкой
+  - **Debug Runner** (`scripts/debug/run_debug.py`) — запуск Streamlit с логированием
+  - **Debug Context** (`src/rag_gigachat/utils/debug_context.py`) — StepTracker и @trace декоратор
+- **DebugConfig** — новая секция в config.py для управления отладкой
+  - RAG_DEBUG (bool) и RAG_LOG_LEVEL (str) переменные окружения
+
+### Improved
+- **README_RU.md** — добавлен раздел "Цикл полуавтоматической отладки" с Quick Start
+- **.env.example** — новые переменные RAG_DEBUG и RAG_LOG_LEVEL
+- **Testing** — новые тесты для event_log.py (6 тестов) и backlog schema (2 теста)
+
 ## [1.8.0] - 2026-04-17
 
 ### Added

@@ -31,8 +31,9 @@ class GigaChatConfig:
     scope: str = "GIGACHAT_API_B2B"
     verify_ssl_certs: bool = False
     base_url: Optional[str] = None
-    timeout: int = 60
+    timeout: int = 90  # Increased from 60s for longer queries; GigaChat-2-Max can be slow
     max_retries: int = 3
+    timeout_multiplier: float = 1.5  # For slower models like GigaChat-2-Max
 
 # Добавьте глобальный экземпляр
 gigachat_config = GigaChatConfig()
@@ -173,7 +174,7 @@ class ExperimentConfig:
 @dataclass
 class LoggingConfig:
     """Конфигурация логирования"""
-    
+
     #log_level: str = "INFO"
     log_level: str = "DEBUG"
     log_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -183,12 +184,21 @@ class LoggingConfig:
     log_file_name: str = "logs/rag_app.log"
 
 
+@dataclass
+class DebugConfig:
+    """Конфигурация отладки и process mining"""
+
+    debug_enabled: bool = os.getenv("RAG_DEBUG", "false").lower() == "true"
+    log_level: str = os.getenv("RAG_LOG_LEVEL", "INFO")
+
+
 # Глобальные экземпляры конфигураций
 model_config = ModelConfig()
 data_config = DataConfig()
 vectorstore_config = VectorStoreConfig()
 experiment_config = ExperimentConfig()
 logging_config = LoggingConfig()
+debug_config = DebugConfig()
 
 # Список модулей, для которых нужно показывать логи
 OUR_MODULES = [

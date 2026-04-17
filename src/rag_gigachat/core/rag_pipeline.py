@@ -33,6 +33,7 @@ from rag_gigachat.token_counter import TokenCounter
 from rag_gigachat.core.vector_store import VectorStoreManager       # noqa: F401 (re-export)
 from rag_gigachat.core.llm_manager import LLMManager                # noqa: F401 (re-export)
 from rag_gigachat.core.retriever import BaseRetriever, DenseRetriever, make_retriever  # noqa: F401
+from rag_gigachat.utils.event_log import emit
 
 # Conditional import for process mining (BKL-002)
 try:
@@ -481,7 +482,8 @@ class RAGPipeline:
                 context=docs_content
             )
 
-            response = self.llm.invoke(formatted_prompt)
+            with emit("llm.call", resource="gigachat", query_len=len(state["question"]), context_len=len(docs_content)):
+                response = self.llm_manager.invoke_with_retry(formatted_prompt)
             if hasattr(response, 'content'):
                 answer_text = response.content
             else:

@@ -127,16 +127,20 @@ def render_main_interface():
             )
             st.caption(f"📝 {len(user_input)}/2000")
 
+        def clear_input():
+            """Callback для очистки поля ввода"""
+            handle_user_query(st.session_state.user_input)
+            st.session_state.user_input = ""
+
         with col_send:
             st.write("")  # Выравнивание по высоте
             st.write("")
-            if st.button("🚀 Отправить", use_container_width=True):
-                if user_input.strip():
-                    # Обработать запрос
-                    handle_user_query(user_input)
-                    # Очистить текст после отправки
-                    st.session_state.user_input = ""
-                    st.rerun()
+            st.button(
+                "🚀 Отправить",
+                use_container_width=True,
+                on_click=clear_input,
+                disabled=not user_input.strip()
+            )
 
 
 def handle_user_query(query: str):
