@@ -25,8 +25,17 @@ class ConfigModal:
 
         # Использование st.dialog для модального окна (Streamlit >= 1.30)
         if st.session_state.get("show_config_modal", False):
-            with st.dialog("Расширенные настройки", width="large"):
-                ConfigModal._render_content()
+            try:
+                # Проверить, доступен ли st.dialog и поддерживает ли он context manager
+                if hasattr(st, 'dialog') and callable(st.dialog):
+                    with st.dialog("Расширенные настройки", width="large"):
+                        ConfigModal._render_content()
+                else:
+                    raise AttributeError("st.dialog not available")
+            except (TypeError, AttributeError):
+                # Fallback для старых версий Streamlit или если st.dialog не работает
+                with st.expander("⚙️ Расширенные настройки", expanded=True):
+                    ConfigModal._render_content()
 
     @staticmethod
     def _render_content():
