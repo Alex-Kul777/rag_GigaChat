@@ -69,37 +69,112 @@ This project implements a **Retrieval-Augmented Generation (RAG)** system for an
 └── requirements.txt            # Python dependencies
 ```
 
+## ⚡ Quick Start (2 minutes)
+
+### Option 1: Docker (Recommended for beginners)
+```bash
+git clone https://github.com/Alex-Kul777/rag_GigaChat.git
+cd rag_GigaChat
+cp .env.example .env
+# Edit .env with your GigaChat API key
+docker-compose up --build
+# Open http://localhost:8501
+```
+
+### Option 2: Local Setup (Python 3.11+)
+```bash
+git clone https://github.com/Alex-Kul777/rag_GigaChat.git
+cd rag_GigaChat
+./setup.sh  # Or: bash setup.sh on Windows
+# Follow prompts to configure
+streamlit run src/rag_gigachat/ui/streamlit_app.py
+```
+
+---
+
 ## 🛠️ Installation
 
 ### Prerequisites
 
-- Python 3.9+
-- [GigaChat API key](https://developers.sber.ru/) (optional, for GigaChat models)
+- **Docker & docker-compose** (recommended), OR
+- **Python 3.11+** for local development
+- [GigaChat API key](https://lk.sbercloud.ru/fusion/auth/login) from Sber Cloud
 
-### Setup
+### Setup Option 1: Automated (Recommended)
 
-1. Clone the repository:
 ```bash
+# Clone and run setup script
 git clone https://github.com/Alex-Kul777/rag_GigaChat.git
 cd rag_GigaChat
+chmod +x setup.sh
+./setup.sh
 ```
 
-2. Create virtual environment:
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-.venv\Scripts\activate     # Windows
-```
+The script will:
+- ✅ Check for NVIDIA GPU support
+- ✅ Create Python virtual environment
+- ✅ Install dependencies
+- ✅ Configure `.env` file
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+### Setup Option 2: Manual (Docker)
 
-4. Configure environment variables:
 ```bash
+# 1. Clone repository
+git clone https://github.com/Alex-Kul777/rag_GigaChat.git
+cd rag_GigaChat
+
+# 2. Configure environment
 cp .env.example .env
-# Edit .env with your GigaChat API key
+nano .env  # Edit with your GIGACHAT_API_KEY
+
+# 3. Build and run
+docker-compose up --build
+
+# 4. Open http://localhost:8501
+```
+
+### Setup Option 3: Manual (Local Python)
+
+```bash
+# 1. Clone repository
+git clone https://github.com/Alex-Kul777/rag_GigaChat.git
+cd rag_GigaChat
+
+# 2. Create virtual environment
+python3.11 -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# or: .venv\Scripts\activate  # Windows
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Configure environment
+cp .env.example .env
+# Edit .env with your GIGACHAT_API_KEY
+
+# 5. Run UI
+streamlit run src/rag_gigachat/ui/streamlit_app.py
+```
+
+### GPU Support (Optional)
+
+Check if GPU is available:
+```bash
+# On host machine
+nvidia-smi
+
+# Or in Docker
+docker-compose exec rag-gigachat nvidia-smi
+
+# Or in Python
+python -c "import torch; print(torch.cuda.is_available())"
+```
+
+Enable GPU in Docker:
+```bash
+GPU_COUNT=1 docker-compose up --build
+# or
+GPU_ENABLED=true docker-compose up --build
 ```
 
 ### Configuration
@@ -250,23 +325,85 @@ python excel_reporter.py
 
 ## 🐛 Troubleshooting
 
-### Common Issues
+### Setup Issues
 
-1. **"GigaChat API key not found"**
-   - Ensure `.env` file exists with `GIGACHAT_API_KEY=your_key`
-   - Check that `python-dotenv` is installed
+#### ❌ "Cannot find GigaChat API key"
+```
+✅ Solution:
+1. Get API key: https://lk.sbercloud.ru/fusion/auth/login
+2. Edit .env file: GIGACHAT_API_KEY=your-key-here
+3. Restart application
+```
 
-2. **"FAISS index not initialized"**
-   - Load documents first using `load_from_pdf_directory_with_metadata()`
-   - Check that the PDF directory exists and contains files
+#### ❌ "Docker not found / Permission denied"
+```
+✅ Solution:
+- Install Docker: https://docs.docker.com/get-docker/
+- On Linux, add user to docker group:
+  sudo usermod -aG docker $USER
+  newgrp docker
+```
 
-3. **"Module not found"**
-   - Install missing dependencies: `pip install -r requirements.txt`
-   - Ensure virtual environment is activated
+#### ❌ "Port 8501 already in use"
+```
+✅ Solution:
+# Use different port:
+docker-compose up -p 8502:8501
+# or
+streamlit run src/rag_gigachat/ui/streamlit_app.py --server.port 8502
+```
 
-4. **Out of memory errors**
-   - Reduce `chunk_size` and `chunk_overlap`
-   - Use CPU mode (`model_config.device = "cpu"`)
+### GPU Issues
+
+#### ❌ "No NVIDIA GPU found / CUDA error"
+```
+✅ Solution:
+1. Check GPU on host: nvidia-smi
+2. Install NVIDIA drivers if needed
+3. Run in CPU mode: GPU_COUNT=0 docker-compose up
+```
+
+#### ❌ "CUDA out of memory"
+```
+✅ Solution:
+1. Reduce chunk_size in config.py (512 → 256)
+2. Reduce batch_size (32 → 8)
+3. Or use CPU mode (slower but works)
+```
+
+### Runtime Issues
+
+#### ❌ "FAISS index not initialized"
+```
+✅ Solution:
+1. Upload PDF documents in UI
+2. Or load from directory: python app.py --mode query
+3. Check data/vectorstore/ exists
+```
+
+#### ❌ "Module not found / Import error"
+```
+✅ Solution:
+# Reinstall dependencies:
+pip install -r requirements.txt
+
+# Or in venv:
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+#### ❌ "Out of memory error"
+```
+✅ Solution:
+1. Reduce chunk_size: config.py → chunk_size = 256
+2. Reduce batch_size in rag_pipeline.py
+3. Clear cache: rm -rf data/cache/
+4. Use CPU mode for embeddings
+```
+
+### More Help
+
+For detailed troubleshooting, see [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 
 ## 🐳 Docker
 

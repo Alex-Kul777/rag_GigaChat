@@ -2,16 +2,39 @@ version: '3.8'
 
 services:
   rag-gigachat:
-    build: .
+    build:
+      context: .
+      args:
+        GPU_ENABLED: ${GPU_ENABLED:-false}  # Enable GPU with: GPU_ENABLED=true docker-compose up
+    image: rag-gigachat:latest
+    container_name: rag-gigachat-app
     ports:
       - "8501:8501"
     env_file:
       - .env
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
     volumes:
       - ./data:/app/data
       - ./experiments:/app/experiments
       - ./logs:/app/logs
     restart: unless-stopped
+
+    # GPU support (optional, auto-detects)
+    # Using both deploy.resources (new) and runtime (fallback) for compatibility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: ${GPU_COUNT:-0}  # 0 = CPU mode, all = use all GPUs
+              capabilities: [gpu]
+
+    # Fallback for older Docker versions
+    runtime: nvidia
+
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8501/_stcore/health"]
       interval: 30s
