@@ -341,6 +341,9 @@ def main():
         try:
             domain_path = data_config.documents_dirs.get(st.session_state.get("selected_domain", list(data_config.documents_dirs.keys())[0]))
             if domain_path:
+                # Очистить кэш перед загрузкой новых документов
+                st.cache_resource.clear()
+
                 pipeline = get_rag_pipeline(
                     embedding_model=st.session_state.embedding_model,
                     chunk_size=st.session_state.chunk_size,
