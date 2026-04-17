@@ -246,15 +246,15 @@ class RAGPipeline:
         else:
             logger.info(f"✅ Создано {len(chunked_docs)} чанков")
     
-    def load_from_pdf_directory(self, 
-                                directory: Path, 
+    def load_from_pdf_directory(self,
+                                directory: Path,
                                 recursive: bool = True,
                                 chunk_size: int = None,
                                 chunk_overlap: int = None,
                                 force_reload: bool = False) -> None:
         """
         Загрузка PDF документов из директории с кэшированием FAISS индекса
-        
+
         Args:
             directory: Директория с PDF файлами
             recursive: Рекурсивный обход
@@ -263,31 +263,41 @@ class RAGPipeline:
             force_reload: Принудительная перезагрузка
         """
         logger.info(f"Загрузка PDF из директории: {directory}")
-        
+
         _chunk_size = chunk_size if chunk_size is not None else self.chunk_size
         _chunk_overlap = chunk_overlap if chunk_overlap is not None else self.chunk_overlap
-        
-        # Загружаем документы через data_loader
-        documents = self.corpus_loader.load_from_pdf_directory(
+
+        # Загружаем документы через corpus_loader с метаданными
+        doc_dict = self.corpus_loader.load_from_pdf_directory_with_metadata(
             directory,
             recursive=recursive,
             chunk_size=_chunk_size,
             chunk_overlap=_chunk_overlap,
             force_reload=force_reload
         )
-        
-        if not documents:
+
+        if not doc_dict:
             logger.warning("Не найдено документов для загрузки")
             return
-        
+
+        # Преобразуем dict в список документов для create_from_texts_with_cache
+        from langchain_core.documents import Document
+        documents = [
+            Document(
+                page_content=item.get('text', ''),
+                metadata=item.get('metadata', {})
+            )
+            for item in doc_dict.values()
+        ]
+
         # Создаем FAISS индекс с кэшированием
         from_cache = self.vector_store_manager.create_from_texts_with_cache(
-            documents, 
+            documents,
             force_reload=force_reload
         )
-        
+
         self.vector_store_initialized = True
-        
+
         if from_cache:
             logger.info(f"📦 Загружено {len(documents)} документов/чанков из кэша FAISS")
         else:
