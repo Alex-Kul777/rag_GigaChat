@@ -51,15 +51,34 @@ def load_documents_to_pipeline(pipeline: RAGPipeline, domain_path: Path):
     """Загрузить документы из директории в FAISS индекс"""
     try:
         with st.spinner("📚 Загрузка документов в индекс..."):
+            print(f"🔍 DEBUG: Начало загрузки из {domain_path}")
+            print(f"🔍 DEBUG: Директория существует: {domain_path.exists()}")
+
+            # Проверить наличие PDF файлов
+            pdf_files = list(domain_path.rglob("*.pdf"))
+            print(f"🔍 DEBUG: Найдено PDF файлов: {len(pdf_files)}")
+
+            if not pdf_files:
+                st.warning(f"⚠️ PDF файлы не найдены в {domain_path}")
+                return False
+
             pipeline.load_from_pdf_directory(
                 directory=domain_path,
                 recursive=True,
                 force_reload=True
             )
+
+            print(f"🔍 DEBUG: vector_store_initialized = {pipeline.vector_store_initialized}")
+            print(f"🔍 DEBUG: index_exists = {pipeline.vector_store_manager.index_exists()}")
+
         st.success("✅ Документы успешно загружены в индекс!")
         return True
     except Exception as e:
-        st.error(f"❌ Ошибка загрузки документов: {e}")
+        import traceback
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        print(f"❌ DEBUG: Ошибка: {error_msg}")
+        traceback.print_exc()
+        st.error(f"❌ Ошибка загрузки документов: {error_msg}")
         return False
 
 
@@ -186,8 +205,19 @@ def handle_user_query(query: str):
         )
 
         # Проверить, загружены ли документы
-        if not pipeline.vector_store_initialized or not pipeline.vector_store_manager.index_exists():
-            st.error("❌ FAISS индекс не инициализирован.\n\n**Решение:**\n1. Откройте боковую панель (📁 Документы)\n2. Нажмите кнопку '🔄 Обновить индекс'\n3. Попробуйте задать вопрос снова")
+        initialized = pipeline.vector_store_initialized
+        index_exists = pipeline.vector_store_manager.index_exists()
+        print(f"🔍 DEBUG query: vector_store_initialized={initialized}, index_exists={index_exists}")
+
+        if not initialized or not index_exists:
+            st.error(
+                "❌ FAISS индекс не инициализирован.\n\n"
+                "**Решение:**\n"
+                "1. Откройте боковую панель (📁 Документы)\n"
+                "2. Нажмите кнопку '🔄 Обновить индекс'\n"
+                "3. Дождитесь сообщения '✅ Документы успешно загружены'\n"
+                "4. Задайте вопрос снова"
+            )
             return
         with st.spinner("🔄 Обработка запроса..."):
             # Получить ответ с источниками
