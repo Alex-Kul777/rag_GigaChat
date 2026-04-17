@@ -194,7 +194,57 @@ make test-unit    # только unit тесты
 make test-smoke   # только smoke тесты
 ```
 
+## 🔍 Цикл полуавтоматической отладки
+
+Проект включает встроенный цикл отладки с **Process Mining** для выявления и быстрого устранения дефектов.
+
+### Быстрый старт
+
+```bash
+# 1. Запуск Streamlit с усиленным логированием
+python scripts/debug/run_debug.py
+
+# 2. (В другом терминале) Анализ логов и выявление проблем
+python scripts/debug/mine_process.py
+
+# 3. В чате Claude — анализ и создание задач
+#analyze-logs
+
+# 4. Применение автоматического фикса
+#apply-fix BKL-001
+
+# 5. Ревью и слияние (вручную)
+git log --oneline -5
+git push origin main
+```
+
+### Компоненты
+
+- **Debug Runner** (`scripts/debug/run_debug.py`) — запуск Streamlit с логированием
+- **Process Miner** (`scripts/debug/mine_process.py`) — анализ трасс, bottlenecks, ошибок, аномалий
+- **Backlog** (`backlog/BKL-*.md`) — единый источник задач с привязкой к логам
+- **Event Log** (`src/rag_gigachat/utils/event_log.py`) — инструментация в формате, совместимом с pm4py
+
+### Более подробно
+
+Полное описание цикла отладки находится в:
+📘 **[`prompts/generateImprovementsProcessMining.md`](prompts/generateImprovementsProcessMining.md)**
+
+Ключевые разделы:
+- §2 Архитектура цикла
+- §3 Границы автоматики (что делает Claude, что остаётся за пользователем)
+- §5 Схемы данных (Backlog entry, Event log, Process Mining signals)
+- §6 Команды для пользователя (#analyze-logs, #status, #apply-fix, #reject)
+
 ## 🔧 Опции конфигурации
+
+### Конфигурация отладки
+
+```python
+# Параметры debug и process mining
+debug_config.debug_enabled = True                    # Включить режим отладки
+debug_config.log_level = "DEBUG"                     # Уровень логирования (DEBUG, INFO, etc)
+```
 
 ### Конфигурация модели
 
