@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-04-17
+
+### Added
+- **`src/rag_gigachat/ui/components.py`** — Набор переиспользуемых Streamlit компонентов (800+ строк):
+  - `ConfigModal` — модальное окно с расширенными настройками (4 группы параметров)
+  - `FileListPanel` — панель управления документами в сайдбаре (поиск, фильтрация, статистика)
+  - `DocumentViewer` — интерактивный просмотр PDF (PDF.js, выбор страниц, метаинформация)
+  - `HighlightedAnswer` — вывод ответа с подсветкой источников и ссылками
+  - `AnswerInteraction` — интерактивные кнопки (копирование, оценка, сохранение)
+- **`src/rag_gigachat/ui/app_example.py`** — Полный пример интеграции всех компонентов (400 строк)
+- **Документация компонентов** — 6 подробных руководств:
+  - `docs/README_COMPONENTS.md` — главная справка и быстрый старт
+  - `docs/COMPONENTS.md` — подробная документация каждого компонента
+  - `docs/COMPONENTS_QUICK_START.md` — быстрый старт с 5 примерами
+  - `docs/COMPONENTS_EXAMPLES.md` — готовые копипаст примеры (100+ примеров кода)
+  - `docs/COMPONENTS_ARCHITECTURE.md` — архитектура, диаграммы, поток данных
+
+### Changed
+- **`README.md`** — добавлена информация о новых UI компонентах
+- **`README_RU.md`** — добавлена информация о новых UI компонентах
+
 ## [1.4.0] - 2026-04-16
 
 ### Added

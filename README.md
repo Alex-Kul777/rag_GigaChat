@@ -33,6 +33,12 @@ This project implements a **Retrieval-Augmented Generation (RAG)** system for an
 - **Docker**: One-command deployment via `docker-compose up`
 - **CI/CD**: GitHub Actions — auto-run tests and coverage on every push
 - **Web Interface**: Streamlit-based chat UI with PDF upload progress bar
+- **UI Components**: Reusable Streamlit components for RAG chat interface
+  - ConfigModal for advanced settings
+  - FileListPanel for document management
+  - DocumentViewer for PDF display
+  - HighlightedAnswer for source highlighting
+  - AnswerInteraction for user feedback
 - **Reporting**: Excel reports with experiment summaries
 
 ## 📁 Project Structure
