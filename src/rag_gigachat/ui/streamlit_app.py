@@ -3,9 +3,12 @@ Streamlit UI для RAG GigaChat системы.
 Основное приложение с полной интеграцией компонентов и RAGPipeline.
 """
 
+import logging
 import streamlit as st
 from pathlib import Path
 from typing import Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 # Импортируем компоненты
 from rag_gigachat.ui.components import (
@@ -51,12 +54,12 @@ def load_documents_to_pipeline(pipeline: RAGPipeline, domain_path: Path):
     """Загрузить документы из директории в FAISS индекс"""
     try:
         with st.spinner("📚 Загрузка документов в индекс..."):
-            print(f"🔍 DEBUG: Начало загрузки из {domain_path}")
-            print(f"🔍 DEBUG: Директория существует: {domain_path.exists()}")
+            logger.info(f"Starting document loading from {domain_path}")
+            logger.info(f"Directory exists: {domain_path.exists()}")
 
             # Проверить наличие PDF файлов
             pdf_files = list(domain_path.rglob("*.pdf"))
-            print(f"🔍 DEBUG: Найдено PDF файлов: {len(pdf_files)}")
+            logger.info(f"Found {len(pdf_files)} PDF files")
 
             if not pdf_files:
                 st.warning(f"⚠️ PDF файлы не найдены в {domain_path}")
@@ -68,16 +71,14 @@ def load_documents_to_pipeline(pipeline: RAGPipeline, domain_path: Path):
                 force_reload=True
             )
 
-            print(f"🔍 DEBUG: vector_store_initialized = {pipeline.vector_store_initialized}")
-            print(f"🔍 DEBUG: vector_store_manager.is_initialized = {pipeline.vector_store_manager.is_initialized}")
+            logger.info(f"After load_from_pdf_directory: vector_store_initialized={pipeline.vector_store_initialized}, manager.is_initialized={pipeline.vector_store_manager.is_initialized}")
 
         st.success("✅ Документы успешно загружены в индекс!")
         return True
     except Exception as e:
         import traceback
         error_msg = f"{type(e).__name__}: {str(e)}"
-        print(f"❌ DEBUG: Ошибка: {error_msg}")
-        traceback.print_exc()
+        logger.error(f"Error loading documents: {error_msg}", exc_info=True)
         st.error(f"❌ Ошибка загрузки документов: {error_msg}")
         return False
 
@@ -207,7 +208,7 @@ def handle_user_query(query: str):
         # Проверить, загружены ли документы
         initialized = pipeline.vector_store_initialized
         mgr_initialized = pipeline.vector_store_manager.is_initialized
-        print(f"🔍 DEBUG query: vector_store_initialized={initialized}, manager.is_initialized={mgr_initialized}")
+        logger.debug(f"Query check: vector_store_initialized={initialized}, manager.is_initialized={mgr_initialized}")
 
         if not initialized or not mgr_initialized:
             st.error(

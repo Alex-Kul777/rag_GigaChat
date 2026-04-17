@@ -262,14 +262,13 @@ class RAGPipeline:
             chunk_overlap: Перекрытие чанков
             force_reload: Принудительная перезагрузка
         """
-        logger.info(f"Загрузка PDF из директории: {directory}")
-        print(f"🔍 load_from_pdf_directory START: directory={directory}")
+        logger.info(f"load_from_pdf_directory START: directory={directory}")
 
         _chunk_size = chunk_size if chunk_size is not None else self.chunk_size
         _chunk_overlap = chunk_overlap if chunk_overlap is not None else self.chunk_overlap
 
         # Загружаем документы через corpus_loader с метаданными
-        print(f"🔍 Вызываем load_from_pdf_directory_with_metadata...")
+        logger.info(f"Calling load_from_pdf_directory_with_metadata...")
         doc_dict = self.corpus_loader.load_from_pdf_directory_with_metadata(
             directory,
             recursive=recursive,
@@ -278,10 +277,10 @@ class RAGPipeline:
             force_reload=force_reload
         )
 
-        print(f"🔍 Получено doc_dict с {len(doc_dict) if doc_dict else 0} элементами")
+        doc_count = len(doc_dict) if doc_dict else 0
+        logger.info(f"load_from_pdf_directory_with_metadata returned {doc_count} items")
         if not doc_dict:
-            logger.warning("Не найдено документов для загрузки")
-            print(f"🔍 EMPTY doc_dict - ВЫХОД")
+            logger.warning("No documents found for loading")
             return
 
         # Преобразуем dict в список документов
@@ -294,34 +293,32 @@ class RAGPipeline:
             for item in doc_dict.values()
         ]
 
-        print(f"🔍 Преобразовано в {len(documents)} Document объектов")
+        logger.info(f"Transformed into {len(documents)} Document objects")
         if documents:
-            print(f"🔍 Первый документ: {documents[0].page_content[:100]}")
+            logger.debug(f"First document preview: {documents[0].page_content[:100]}")
         else:
-            print(f"🔍 WARNING: documents список пуст!")
+            logger.warning("WARNING: documents list is empty!")
 
-        print(f"🔍 Вызываем create_from_documents...")
+        logger.info(f"Calling create_from_documents with {len(documents)} documents...")
         try:
             # Создаем FAISS индекс из документов
             self.vector_store_manager.create_from_documents(documents)
-            print(f"🔍 create_from_documents успешна")
+            logger.info(f"create_from_documents completed successfully")
         except Exception as e:
-            print(f"🔍 ERROR в create_from_documents: {e}")
+            logger.error(f"ERROR in create_from_documents: {e}", exc_info=True)
             raise
 
-        print(f"🔍 После create_from_documents")
-        print(f"🔍 Manager.is_initialized={self.vector_store_manager.is_initialized}")
-        print(f"🔍 Manager.vector_store={self.vector_store_manager.vector_store is not None}")
+        logger.info(f"After create_from_documents: is_initialized={self.vector_store_manager.is_initialized}, has_vector_store={self.vector_store_manager.vector_store is not None}")
 
         self.vector_store_initialized = True
-        print(f"🔍 Установлен vector_store_initialized=True")
+        logger.info(f"Set vector_store_initialized=True")
 
         if from_cache:
-            logger.info(f"📦 Загружено {len(documents)} документов/чанков из кэша FAISS")
+            logger.info(f"Loaded {len(documents)} documents/chunks from FAISS cache")
         else:
-            logger.info(f"✅ Создано {len(documents)} документов/чанков")
+            logger.info(f"Created {len(documents)} documents/chunks")
 
-        print(f"🔍 load_from_pdf_directory COMPLETE")
+        logger.info(f"load_from_pdf_directory COMPLETE")
     
     def load_from_pdf_directory_with_metadata(self, 
                                              directory: Path, 
