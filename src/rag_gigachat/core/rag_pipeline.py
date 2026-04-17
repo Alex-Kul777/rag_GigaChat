@@ -263,11 +263,13 @@ class RAGPipeline:
             force_reload: Принудительная перезагрузка
         """
         logger.info(f"Загрузка PDF из директории: {directory}")
+        print(f"🔍 load_from_pdf_directory START: directory={directory}")
 
         _chunk_size = chunk_size if chunk_size is not None else self.chunk_size
         _chunk_overlap = chunk_overlap if chunk_overlap is not None else self.chunk_overlap
 
         # Загружаем документы через corpus_loader с метаданными
+        print(f"🔍 Вызываем load_from_pdf_directory_with_metadata...")
         doc_dict = self.corpus_loader.load_from_pdf_directory_with_metadata(
             directory,
             recursive=recursive,
@@ -276,8 +278,10 @@ class RAGPipeline:
             force_reload=force_reload
         )
 
+        print(f"🔍 Получено doc_dict с {len(doc_dict) if doc_dict else 0} элементами")
         if not doc_dict:
             logger.warning("Не найдено документов для загрузки")
+            print(f"🔍 EMPTY doc_dict - ВЫХОД")
             return
 
         # Преобразуем dict в список документов для create_from_texts_with_cache
@@ -290,18 +294,27 @@ class RAGPipeline:
             for item in doc_dict.values()
         ]
 
+        print(f"🔍 Преобразовано в {len(documents)} Document объектов")
+        print(f"🔍 Вызываем create_from_texts_with_cache...")
+
         # Создаем FAISS индекс с кэшированием
         from_cache = self.vector_store_manager.create_from_texts_with_cache(
             documents,
             force_reload=force_reload
         )
 
+        print(f"🔍 После create_from_texts_with_cache: from_cache={from_cache}")
+        print(f"🔍 Manager.is_initialized={self.vector_store_manager.is_initialized}")
+
         self.vector_store_initialized = True
+        print(f"🔍 Установлен vector_store_initialized=True")
 
         if from_cache:
             logger.info(f"📦 Загружено {len(documents)} документов/чанков из кэша FAISS")
         else:
             logger.info(f"✅ Создано {len(documents)} документов/чанков")
+
+        print(f"🔍 load_from_pdf_directory COMPLETE")
     
     def load_from_pdf_directory_with_metadata(self, 
                                              directory: Path, 
