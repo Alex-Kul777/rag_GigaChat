@@ -31,8 +31,9 @@ class GigaChatConfig:
     scope: str = "GIGACHAT_API_B2B"
     verify_ssl_certs: bool = False
     base_url: Optional[str] = None
-    timeout: int = 60
+    timeout: int = 90  # Increased from 60s for longer queries; GigaChat-2-Max can be slow
     max_retries: int = 3
+    timeout_multiplier: float = 1.5  # For slower models like GigaChat-2-Max
 
 # Добавьте глобальный экземпляр
 gigachat_config = GigaChatConfig()

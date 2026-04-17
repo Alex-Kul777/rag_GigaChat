@@ -2,6 +2,8 @@
 llm_manager.py - Менеджер языковых моделей
 """
 import logging
+import time
+import random
 from typing import Optional
 
 from langchain_community.chat_models import ChatOpenAI
@@ -172,3 +174,40 @@ class LLMManager:
             else:
                 self.load_local_model()
         return self.llm
+
+    def invoke_with_retry(self, prompt, max_retries: int = 3):
+        """
+        Invoke LLM with exponential backoff retry logic.
+        Handles timeouts and transient errors gracefully.
+
+        Args:
+            prompt: Input prompt to the LLM
+            max_retries: Maximum number of retry attempts (default: 3)
+
+        Returns:
+            LLM response
+
+        Raises:
+            Exception: If all retries fail
+        """
+        llm = self.get_llm()
+        last_error = None
+
+        for attempt in range(max_retries):
+            try:
+                logger.debug(f"LLM invoke attempt {attempt + 1}/{max_retries}")
+                return llm.invoke(prompt)
+            except (TimeoutError, Exception) as e:
+                last_error = e
+                if attempt < max_retries - 1:
+                    wait_time = (2 ** attempt) * 1.0 + random.uniform(0, 1)
+                    logger.warning(
+                        f"LLM call failed (attempt {attempt + 1}): {type(e).__name__}. "
+                        f"Retrying in {wait_time:.2f}s..."
+                    )
+                    time.sleep(wait_time)
+                else:
+                    logger.error(f"LLM call failed after {max_retries} attempts")
+                    raise
+
+        raise last_error
