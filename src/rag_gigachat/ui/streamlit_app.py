@@ -69,7 +69,7 @@ def load_documents_to_pipeline(pipeline: RAGPipeline, domain_path: Path):
             )
 
             print(f"🔍 DEBUG: vector_store_initialized = {pipeline.vector_store_initialized}")
-            print(f"🔍 DEBUG: index_exists = {pipeline.vector_store_manager.index_exists()}")
+            print(f"🔍 DEBUG: vector_store_manager.is_initialized = {pipeline.vector_store_manager.is_initialized}")
 
         st.success("✅ Документы успешно загружены в индекс!")
         return True
@@ -206,10 +206,10 @@ def handle_user_query(query: str):
 
         # Проверить, загружены ли документы
         initialized = pipeline.vector_store_initialized
-        index_exists = pipeline.vector_store_manager.index_exists()
-        print(f"🔍 DEBUG query: vector_store_initialized={initialized}, index_exists={index_exists}")
+        mgr_initialized = pipeline.vector_store_manager.is_initialized
+        print(f"🔍 DEBUG query: vector_store_initialized={initialized}, manager.is_initialized={mgr_initialized}")
 
-        if not initialized or not index_exists:
+        if not initialized or not mgr_initialized:
             st.error(
                 "❌ FAISS индекс не инициализирован.\n\n"
                 "**Решение:**\n"
