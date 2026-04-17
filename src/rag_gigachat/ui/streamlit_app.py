@@ -372,19 +372,48 @@ def main():
 
     # Обработка загрузки документов
     if st.session_state.get("force_reload_index", False):
+        st.info("⏳ Загрузка документов начата...")
         try:
             domain_path = data_config.documents_dirs.get(st.session_state.get("selected_domain", list(data_config.documents_dirs.keys())[0]))
-            if domain_path:
+            st.write(f"📂 Директория: {domain_path}")
+
+            if domain_path and domain_path.exists():
                 pipeline = get_rag_pipeline(
                     embedding_model=st.session_state.embedding_model,
                     chunk_size=st.session_state.chunk_size,
                     chunk_overlap=st.session_state.chunk_overlap
                 )
+                st.write(f"🔧 Pipeline создана")
+
                 if load_documents_to_pipeline(pipeline, domain_path):
                     st.session_state.force_reload_index = False
+                    st.write(f"✅ Флаг force_reload_index = {st.session_state.force_reload_index}")
+                else:
+                    st.write(f"❌ Загрузка вернула False")
+            else:
+                st.error(f"❌ Директория не существует: {domain_path}")
+                st.session_state.force_reload_index = False
         except Exception as e:
+            import traceback
             st.error(f"❌ Ошибка при загрузке документов: {e}")
+            st.write(traceback.format_exc())
             st.session_state.force_reload_index = False
+
+    # Авто-загрузка sample corpus если индекс пуст
+    if not st.session_state.get("_sample_corpus_loaded", False):
+        try:
+            pipeline = get_rag_pipeline(
+                embedding_model=st.session_state.embedding_model,
+                chunk_size=st.session_state.chunk_size,
+                chunk_overlap=st.session_state.chunk_overlap
+            )
+            if not pipeline.vector_store_manager.is_initialized:
+                st.info("📚 Загрузка примеров документов для демонстрации...")
+                pipeline.load_from_sample_corpus(force_reload=True)
+                st.session_state._sample_corpus_loaded = True
+                st.success("✅ Примеры документов загружены! Теперь вы можете задавать вопросы.")
+        except Exception as e:
+            pass  # Молча игнорируем ошибки при автозагрузке
 
     # Кастомные стили
     st.markdown("""
