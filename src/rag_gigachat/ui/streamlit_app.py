@@ -115,41 +115,41 @@ def handle_user_query(query: str):
         "content": query
     })
 
-    # Здесь должна быть интеграция с RAGPipeline
+    # Интеграция с RAGPipeline
     try:
-        # Инициализировать pipeline с параметрами из session_state
+        # Инициализировать pipeline с правильными параметрами
         pipeline = RAGPipeline(
-            llm_model_name=st.session_state.llm_model,
-            embedding_model_name=st.session_state.embedding_model,
-            **{"default_k_retrieve": st.session_state.k_retrieve}
+            embedding_model=st.session_state.embedding_model,
+            llm_type="gigachat",
+            chunk_size=st.session_state.chunk_size,
+            chunk_overlap=st.session_state.chunk_overlap
         )
 
         # Получить ответ с источниками
-        answer, retrieved_docs = pipeline.query(
+        result = pipeline.process_query(
             query,
-            top_k=st.session_state.k_retrieve,
-            retrieval_type=st.session_state.retrieval_type
+            k=st.session_state.k_retrieve
         )
 
         # Добавить ответ в историю
         st.session_state.messages.append({
             "role": "assistant",
-            "content": answer,
-            "documents": retrieved_docs
+            "content": result.answer,
+            "documents": result.retrieval_results.retrieved_docs if result.retrieval_results else []
         })
 
         # Показать ответ с источниками
         st.markdown("---")
         HighlightedAnswer.show(
-            answer=answer,
-            retrieved_docs=retrieved_docs,
+            answer=result.answer,
+            retrieved_docs=result.retrieval_results.retrieved_docs if result.retrieval_results else [],
             documents_dirs=data_config.documents_dirs,
             show_sources=True
         )
 
         # Интерактивные кнопки
         st.markdown("---")
-        AnswerInteraction.show_actions(answer, answer_id=f"answer_{len(st.session_state.messages)}")
+        AnswerInteraction.show_actions(result.answer, answer_id=f"answer_{len(st.session_state.messages)}")
 
     except Exception as e:
         st.error(f"❌ Ошибка при обработке запроса: {e}")
