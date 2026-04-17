@@ -284,7 +284,7 @@ class RAGPipeline:
             print(f"🔍 EMPTY doc_dict - ВЫХОД")
             return
 
-        # Преобразуем dict в список документов для create_from_texts_with_cache
+        # Преобразуем dict в список документов
         from langchain_core.documents import Document
         documents = [
             Document(
@@ -295,15 +295,12 @@ class RAGPipeline:
         ]
 
         print(f"🔍 Преобразовано в {len(documents)} Document объектов")
-        print(f"🔍 Вызываем create_from_texts_with_cache...")
+        print(f"🔍 Вызываем create_from_documents...")
 
-        # Создаем FAISS индекс с кэшированием
-        from_cache = self.vector_store_manager.create_from_texts_with_cache(
-            documents,
-            force_reload=force_reload
-        )
+        # Создаем FAISS индекс из документов
+        self.vector_store_manager.create_from_documents(documents)
 
-        print(f"🔍 После create_from_texts_with_cache: from_cache={from_cache}")
+        print(f"🔍 После create_from_documents")
         print(f"🔍 Manager.is_initialized={self.vector_store_manager.is_initialized}")
 
         self.vector_store_initialized = True

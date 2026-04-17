@@ -387,13 +387,23 @@ def main():
                 # Загружаем из первой доступной domain директории
                 first_domain = list(data_config.documents_dirs.values())[0]
                 st.write(f"АВТОЗАГРУЗКА: Загрузка из {first_domain}")
+                st.write(f"АВТОЗАГРУЗКА: Dir exists: {first_domain.exists()}")
 
-                pipeline.load_from_pdf_directory(
-                    directory=first_domain,
-                    recursive=True,
-                    force_reload=True
-                )
-                st.write(f"АВТОЗАГРУЗКА: После load_from_pdf_directory: {pipeline.vector_store_manager.is_initialized}")
+                try:
+                    pipeline.load_from_pdf_directory(
+                        directory=first_domain,
+                        recursive=True,
+                        force_reload=True
+                    )
+                    st.write(f"АВТОЗАГРУЗКА: load_from_pdf_directory завершена")
+                except Exception as e:
+                    st.error(f"АВТОЗАГРУЗКА: Exception in load_from_pdf_directory: {e}")
+                    import traceback
+                    st.write(traceback.format_exc())
+
+                st.write(f"АВТОЗАГРУЗКА: vector_store_initialized={pipeline.vector_store_initialized}")
+                st.write(f"АВТОЗАГРУЗКА: Manager.is_initialized={pipeline.vector_store_manager.is_initialized}")
+                st.write(f"АВТОЗАГРУЗКА: Manager.vector_store={pipeline.vector_store_manager.vector_store is not None}")
                 st.session_state._docs_auto_loaded = True
                 st.success("✅ АВТОЗАГРУЗКА: Документы загружены!")
             else:
