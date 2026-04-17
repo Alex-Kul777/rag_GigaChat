@@ -182,7 +182,7 @@ def handle_user_query(query: str):
         )
 
         # Проверить, загружены ли документы
-        if pipeline.vector_store is None or not pipeline.vector_store.index_exists():
+        if not pipeline.vector_store_initialized or not pipeline.vector_store_manager.index_exists():
             st.error("❌ FAISS индекс не инициализирован.\n\n**Решение:**\n1. Откройте боковую панель (📁 Документы)\n2. Нажмите кнопку '🔄 Обновить индекс'\n3. Попробуйте задать вопрос снова")
             return
         with st.spinner("🔄 Обработка запроса..."):
