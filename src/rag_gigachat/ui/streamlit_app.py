@@ -43,6 +43,22 @@ def get_rag_pipeline(embedding_model: str, chunk_size: int, chunk_overlap: int) 
     )
 
 
+def load_documents_to_pipeline(pipeline: RAGPipeline, domain_path: Path):
+    """Загрузить документы из директории в FAISS индекс"""
+    try:
+        with st.spinner("📚 Загрузка документов в индекс..."):
+            pipeline.load_from_pdf_directory(
+                directory=domain_path,
+                recursive=True,
+                force_reload=True
+            )
+        st.success("✅ Документы успешно загружены в индекс!")
+        return True
+    except Exception as e:
+        st.error(f"❌ Ошибка загрузки документов: {e}")
+        return False
+
+
 def init_session_state():
     """Инициализировать session_state при первом запуске"""
     defaults = {
@@ -158,14 +174,18 @@ def handle_user_query(query: str):
 
     # Интеграция с RAGPipeline
     try:
-        with st.spinner("🔄 Обработка запроса..."):
-            # Получить кешированный pipeline
-            pipeline = get_rag_pipeline(
-                embedding_model=st.session_state.embedding_model,
-                chunk_size=st.session_state.chunk_size,
-                chunk_overlap=st.session_state.chunk_overlap
-            )
+        # Получить pipeline
+        pipeline = get_rag_pipeline(
+            embedding_model=st.session_state.embedding_model,
+            chunk_size=st.session_state.chunk_size,
+            chunk_overlap=st.session_state.chunk_overlap
+        )
 
+        # Проверить, загружены ли документы
+        if pipeline.vector_store is None or not pipeline.vector_store.index_exists():
+            st.error("❌ FAISS индекс не инициализирован.\n\n**Решение:**\n1. Откройте боковую панель (📁 Документы)\n2. Нажмите кнопку '🔄 Обновить индекс'\n3. Попробуйте задать вопрос снова")
+            return
+        with st.spinner("🔄 Обработка запроса..."):
             # Получить ответ с источниками
             result = pipeline.process_query(
                 query,
@@ -315,6 +335,22 @@ def main():
 
     # Инициализация состояния
     init_session_state()
+
+    # Обработка загрузки документов
+    if st.session_state.get("force_reload_index", False):
+        try:
+            domain_path = data_config.documents_dirs.get(st.session_state.get("selected_domain", list(data_config.documents_dirs.keys())[0]))
+            if domain_path:
+                pipeline = get_rag_pipeline(
+                    embedding_model=st.session_state.embedding_model,
+                    chunk_size=st.session_state.chunk_size,
+                    chunk_overlap=st.session_state.chunk_overlap
+                )
+                if load_documents_to_pipeline(pipeline, domain_path):
+                    st.session_state.force_reload_index = False
+        except Exception as e:
+            st.error(f"❌ Ошибка при загрузке документов: {e}")
+            st.session_state.force_reload_index = False
 
     # Кастомные стили
     st.markdown("""
