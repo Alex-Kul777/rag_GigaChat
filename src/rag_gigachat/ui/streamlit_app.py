@@ -402,18 +402,29 @@ def main():
     # Авто-загрузка sample corpus если индекс пуст
     if not st.session_state.get("_sample_corpus_loaded", False):
         try:
+            st.write("🔍 Проверка индекса...")
             pipeline = get_rag_pipeline(
                 embedding_model=st.session_state.embedding_model,
                 chunk_size=st.session_state.chunk_size,
                 chunk_overlap=st.session_state.chunk_overlap
             )
+            st.write(f"Pipeline.vector_store_initialized: {pipeline.vector_store_initialized}")
+            st.write(f"Manager.is_initialized: {pipeline.vector_store_manager.is_initialized}")
+
             if not pipeline.vector_store_manager.is_initialized:
                 st.info("📚 Загрузка примеров документов для демонстрации...")
                 pipeline.load_from_sample_corpus(force_reload=True)
+                st.write(f"После load_from_sample_corpus: manager.is_initialized = {pipeline.vector_store_manager.is_initialized}")
                 st.session_state._sample_corpus_loaded = True
                 st.success("✅ Примеры документов загружены! Теперь вы можете задавать вопросы.")
+            else:
+                st.write("✅ Индекс уже инициализирован")
+                st.session_state._sample_corpus_loaded = True
         except Exception as e:
-            pass  # Молча игнорируем ошибки при автозагрузке
+            import traceback
+            st.error(f"❌ Ошибка при загрузке примеров: {e}")
+            st.write(traceback.format_exc())
+            st.session_state._sample_corpus_loaded = True
 
     # Кастомные стили
     st.markdown("""
