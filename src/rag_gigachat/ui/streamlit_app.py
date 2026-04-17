@@ -370,6 +370,21 @@ def main():
     # Инициализация состояния
     init_session_state()
 
+    # Показать финальный статус индекса
+    with st.expander("🔧 DEBUG: Статус индекса", expanded=False):
+        try:
+            pipeline = get_rag_pipeline(
+                embedding_model=st.session_state.embedding_model,
+                chunk_size=st.session_state.chunk_size,
+                chunk_overlap=st.session_state.chunk_overlap
+            )
+            st.write(f"✅ Pipeline создана")
+            st.write(f"Pipeline.vector_store_initialized: {pipeline.vector_store_initialized}")
+            st.write(f"Manager.is_initialized: {pipeline.vector_store_manager.is_initialized}")
+            st.write(f"_docs_auto_loaded flag: {st.session_state.get('_docs_auto_loaded', 'Not set')}")
+        except Exception as e:
+            st.error(f"Ошибка при проверке: {e}")
+
     # Обработка загрузки документов
     if st.session_state.get("force_reload_index", False):
         st.info("⏳ Загрузка документов начата...")
