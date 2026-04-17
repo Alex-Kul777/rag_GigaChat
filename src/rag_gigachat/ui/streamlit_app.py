@@ -109,9 +109,11 @@ def render_main_interface():
         with messages_container:
             for msg in st.session_state.get("messages", []):
                 if msg["role"] == "user":
-                    st.chat_message("user").write(msg["content"])
+                    with st.chat_message("user"):
+                        st.write(msg["content"])
                 else:
-                    st.chat_message("assistant").write(msg["content"])
+                    with st.chat_message("assistant"):
+                        st.write(msg["content"])
 
         # Поле ввода для вопроса
         st.markdown("---")
@@ -150,6 +152,9 @@ def handle_user_query(query: str):
     Args:
         query: Текст запроса
     """
+    if not query or not query.strip():
+        st.error("❌ Пожалуйста, введите вопрос")
+        return
 
     # Интеграция с RAGPipeline
     try:
