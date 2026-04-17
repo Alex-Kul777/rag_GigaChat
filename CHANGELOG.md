@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2026-04-17
+
+### Added
+- **Docker GPU support** — Multi-stage Dockerfile с опциональной CUDA для ускорения embeddings
+- **setup.sh** — Автоматическая проверка NVIDIA драйверов (3-уровневая валидация)
+- **.env.example** — Шаблон конфигурации для новичков и быстрого старта
+
+### Improved
+- **README.md** — Quick Start раздел для новичков (2 минуты на запуск)
+- **docker-compose.yml** — device_requests для auto-detection GPU + fallback на CPU
+- **Installation docs** — Три варианта установки (Docker/Local/Auto)
+- **docs/TROUBLESHOOTING.md** — Расширённое руководство по решению проблем GPU/драйверов
+
 ## [1.6.0] - 2026-04-17
 
 ### Added

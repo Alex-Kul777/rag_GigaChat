@@ -9,11 +9,12 @@
 
 This project implements a **Retrieval-Augmented Generation (RAG)** system for answering questions based on PDF documents. The system combines document retrieval with LLM generation to provide accurate, context-aware answers.
 
-## ✨ What's New in v1.6.0
+## ✨ What's New in v1.7.0
 
-- **PDF Diagnostics**: New `diagnose_pdf()` function for analyzing PDF format, encryption, and text extraction
-- **Improved PDF Processing**: Enhanced error handling and logging in document loading pipeline
-- **Streamlit UI Updates**: Optimized logging and diagnostic data integration
+- **Docker GPU Support**: Multi-stage Dockerfile with optional CUDA for accelerated embeddings
+- **Automatic GPU Setup**: New `setup.sh` script for NVIDIA driver validation (3-level check)
+- **Quick Configuration**: `.env.example` template for fast project initialization
+- **Expanded Documentation**: New Troubleshooting guide and improved installation instructions
 
 ## 🚀 Features
 
