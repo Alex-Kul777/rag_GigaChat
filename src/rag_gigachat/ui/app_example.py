@@ -65,10 +65,8 @@ def render_main_interface():
     </div>
     """, unsafe_allow_html=True)
 
-    # Основное содержимое в две колоны (в зависимости от выбора режима)
-    col_main, col_right = st.columns([1, 0], gap="large")
-
-    with col_main:
+    # Основное содержимое
+    with st.container():
         # Область чата
         st.subheader("💬 Диалог")
 
