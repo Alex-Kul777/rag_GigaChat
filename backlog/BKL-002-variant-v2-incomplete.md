@@ -3,7 +3,7 @@ id: BKL-002
 title: "Variant V2 missing response.render — incomplete activity sequence"
 priority: medium
 severity: major
-status: in-progress
+status: done
 created: 2026-04-17
 updated: 2026-04-17
 affected_files:
@@ -84,4 +84,14 @@ except Exception as e:
 
 ## Попытки
 
-<!-- Orchestrator дописывает сюда при каждой попытке -->
+### Attempt #1 — SUCCEEDED ✅
+- **Date**: 2026-04-17
+- **Branch**: debug-fix/BKL-002
+- **Commit**: 13606d8
+- **Changes**:
+  1. rag_pipeline.py: Added render() function to state graph
+  2. Graph sequence: [retrieve, generate] → [retrieve, generate, render]
+  3. render() function wraps answer in emit("response.render", ...) for PM
+  4. Conditional import of emit() to support with/without event_log.py
+- **Test Results**: 77/77 tests PASSED
+- **Notes**: Ensures all query paths emit response.render before session.end. Variant V2 eliminated.
