@@ -21,6 +21,7 @@ try:
     _torch_available = True
 except ImportError:
     _torch_available = False
+    torch = None  # Placeholder если torch недоступен
 
 from rag_gigachat.config import model_config, gigachat_config
 from rag_gigachat.core.model_downloader import check_and_download_model
@@ -93,6 +94,12 @@ class LLMManager:
         Returns:
             LangChain LLM объект
         """
+        if not _torch_available:
+            raise RuntimeError(
+                "PyTorch не установлен. Установите: pip install torch torchvision torchaudio"
+            )
+
+        import torch  # Явный импорт в функцию
         from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline as hf_pipeline
 
         logger.info(f"Загрузка локальной модели: {self.model_name}")
@@ -107,6 +114,9 @@ class LLMManager:
 
         try:
             # Используем float32 для стабильности (float16 может вызывать CUDA ошибки на малых GPU)
+            if not _torch_available or torch is None:
+                raise RuntimeError("PyTorch недоступен")
+
             torch_dtype = torch.float32
             print(f"🔍 DEBUG: Используем dtype: {torch_dtype}, device: {model_config.device}")
 
