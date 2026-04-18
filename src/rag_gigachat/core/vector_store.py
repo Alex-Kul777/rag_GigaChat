@@ -79,22 +79,27 @@ class VectorStoreManager:
 
     def _init_embeddings(self):
         """Инициализация модели эмбеддингов"""
-        if self.embedding_type == "gigachat":
+        use_gigachat = (
+            self.embedding_type == "gigachat"
+            and gigachat_config.api_key
+            and gigachat_config.enabled
+        )
+
+        if use_gigachat:
             if not GIGACHAT_AVAILABLE:
                 raise ImportError("langchain-gigachat не установлен")
-            if not gigachat_config.api_key:
-                raise ValueError("GigaChat API ключ не настроен")
             return GigaChatEmbeddings(
                 credentials=gigachat_config.api_key,
                 scope=gigachat_config.scope,
                 verify_ssl_certs=gigachat_config.verify_ssl_certs
             )
-        else:
-            return HuggingFaceEmbeddings(
-                model_name=self.embedding_model,
-                model_kwargs={'device': model_config.device},
-                encode_kwargs={'normalize_embeddings': True}
-            )
+
+        logger.info(f"Используем локальные эмбеддинги: {self.embedding_model}")
+        return HuggingFaceEmbeddings(
+            model_name=self.embedding_model,
+            model_kwargs={'device': model_config.device},
+            encode_kwargs={'normalize_embeddings': True}
+        )
 
     def _get_hash(self, documents: Dict[str, str]) -> str:
         """

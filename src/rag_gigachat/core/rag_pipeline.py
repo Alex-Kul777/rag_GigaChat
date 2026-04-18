@@ -76,7 +76,7 @@ class RAGPipeline:
                  chunk_size: int = None,
                  chunk_overlap: int = None,
                  embedding_model: str = None,
-                 embedding_type: str = "gigachat",
+                 embedding_type: str = "huggingface",
                  llm_type: str = "gigachat",
                  retrieval_type: RetrievalType = RetrievalType.DENSE,
                  vector_store_manager: Optional["VectorStoreManager"] = None,

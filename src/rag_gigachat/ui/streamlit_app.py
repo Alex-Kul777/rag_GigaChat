@@ -47,6 +47,7 @@ def get_rag_pipeline(embedding_model: str, chunk_size: int, chunk_overlap: int) 
     if pipeline_key not in st.session_state:
         st.session_state[pipeline_key] = RAGPipeline(
             embedding_model=embedding_model,
+            embedding_type="huggingface",
             llm_type="gigachat",
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap
