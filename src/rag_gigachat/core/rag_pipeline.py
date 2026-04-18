@@ -367,18 +367,21 @@ class RAGPipeline:
         # Сохраняем метаданные отдельно
         self.documents_metadata = {}
         texts_for_vectorstore = {}
-        
+        metadata_for_vectorstore = {}
+
         for doc_id, data in documents.items():
             if isinstance(data, dict) and 'metadata' in data:
                 self.documents_metadata[doc_id] = data['metadata']
                 texts_for_vectorstore[doc_id] = data['text']
+                metadata_for_vectorstore[doc_id] = data['metadata']
             else:
                 texts_for_vectorstore[doc_id] = data
-        
-        # Создаем FAISS индекс с кэшированием
+
+        # Создаем FAISS индекс с кэшированием (передаём полные метаданные)
         from_cache = self.vector_store_manager.create_from_texts_with_cache(
-            texts_for_vectorstore, 
-            force_reload=force_reload
+            texts_for_vectorstore,
+            force_reload=force_reload,
+            metadata_dict=metadata_for_vectorstore
         )
         
         self.vector_store_initialized = True
@@ -542,45 +545,66 @@ class RAGPipeline:
         
         logger.info("LangGraph граф построен")
     
-    def process_query(self, query: str, k: int = None) -> GenerationResult:
-        """Обработка запроса через RAG пайплайн"""
-        print("🔍 DEBUG: Начало process_query")
-        
+    def process_query(self, query: str, k: int = None, progress_callback=None) -> GenerationResult:
+        """Обработка запроса через RAG пайплайн
+
+        Args:
+            query: Запрос пользователя
+            k: Количество документов для поиска
+            progress_callback: Функция обратного вызова для отслеживания прогресса
+                             Принимает (stage: str, message: str, progress: float)
+        """
+        def _progress(stage: str, message: str, progress: float = None):
+            """Вспомогательная функция для отправки обновлений прогресса"""
+            if progress_callback:
+                progress_callback(stage, message, progress)
+            print(f"🔍 [{stage}] {message}")
+
+        _progress("init", "Начало обработки запроса")
+
         if not self.vector_store_initialized:
             raise ValueError("FAISS индекс не инициализирован. Сначала загрузите документы.")
-        
-        print(f"🔍 DEBUG: vector_store_initialized = {self.vector_store_initialized}")
-        
+
+        _progress("init", "Индекс инициализирован", 0.1)
+
         if self.graph is None:
-            print("🔍 DEBUG: Строим граф...")
+            _progress("graph", "Построение графа обработки...")
             self._build_graph()
-        
+            _progress("graph", "граф готов", 0.2)
+
         original_k = model_config.default_k_retrieve
         if k:
             model_config.default_k_retrieve = k
-        
+
         start_time = time.time()
-        
+
         try:
-            print(f"🔍 DEBUG: Выполняем поиск для запроса: {query[:50]}...")
-            
-            # Сначала проверим поиск отдельно
-            docs = self.vector_store_manager.similarity_search(
+            _progress("retrieval", "Поиск релевантных документов...", 0.3)
+
+            # Получаем документы с реальными scores от FAISS
+            docs_with_scores = self.vector_store_manager.similarity_search_with_scores(
                 query, k=k or model_config.default_k_retrieve
             )
-            print(f"🔍 DEBUG: Найдено {len(docs)} документов")
-            
+            logger.debug(f"🎯 Получены {len(docs_with_scores)} документов с scores")
+
+            # Преобразуем в список документов и список scores
+            docs = [doc for doc, _ in docs_with_scores]
+            real_scores = [score for _, score in docs_with_scores]
+
+            _progress("retrieval", f"Найдено {len(docs)} документов", 0.5)
+
             if docs:
                 clean_text = docs[0].page_content[:100].replace('\n', ' ').replace('\r', ' ')
-                print(f"🔍 DEBUG: Первый документ: {clean_text}...")
+                top_score = real_scores[0] if real_scores else 0
+                _progress("retrieval", f"Топ: '{clean_text}...' (score={top_score:.4f})", 0.6)
 
             # Подсчет токенов для запроса
             prompt_tokens = self.token_counter.count_text_tokens(query)
+            _progress("generation", "Генерация ответа с помощью LLM...", 0.65)
 
-            print("🔍 DEBUG: Запускаем граф...")
             # Увеличиваем timeout для медленных моделей
             response = self.graph.invoke({"question": query}, config={"recursion_limit": 50})
-            print(f"🔍 DEBUG: Граф выполнен, ответ получен")
+            _progress("generation", "Ответ получен", 0.95)
             logger.debug (f"🔍 logger.debug: Граф выполнен, ответ получен")
             
             context_docs = response.get("context", [])
@@ -588,6 +612,18 @@ class RAGPipeline:
             
             generation_time = time.time() - start_time
             
+            # Формируем retrieved_docs с реальными scores
+            retrieved_docs_list = [
+                {
+                    'doc_id': doc.metadata.get('source', f"doc_{i}"),
+                    'score': real_scores[i] if i < len(real_scores) else 0.0,
+                    'text': doc.page_content,
+                    'page': doc.metadata.get('page', doc.metadata.get('page_number', None)),
+                    'source_file': doc.metadata.get('source_file', doc.metadata.get('source', f"doc_{i}")),
+                }
+                for i, doc in enumerate(context_docs)
+            ]
+
             result = GenerationResult(
                 query_id="temp_id",
                 query_text=query,
@@ -596,16 +632,8 @@ class RAGPipeline:
                 retrieval_results=RetrievalResult(
                     query_id="temp_id",
                     query_text=query,
-                    retrieved_docs=[
-                        {
-                            'doc_id': doc.metadata.get('source', f"doc_{i}"),
-                            'score': 1.0,
-                            'text': doc.page_content,
-                            'page': doc.metadata.get('page', doc.metadata.get('page_number', None)),
-                        }
-                        for i, doc in enumerate(context_docs)
-                    ],
-                    scores=[1.0] * len(context_docs),
+                    retrieved_docs=retrieved_docs_list,
+                    scores=real_scores[:len(context_docs)],
                     retrieval_time=0
                 ),
                 generation_time=generation_time,
@@ -632,7 +660,17 @@ class RAGPipeline:
                     logger.debug(
                         f"  📄 Doc {i}: Источник '{doc.metadata.get('source', 'unknown')}'"
                         f" - {preview}..."
-                    )            
+                    )
+
+            # 🔍 ДИАГНОСТИКА: Полный анализ что вернулось от retriever
+            print(f"\n🔍 === ДИАГНОСТИКА RETRIEVER ===")
+            for i, doc in enumerate(response.get('context', [])[:3], 1):
+                print(f"  Doc {i}:")
+                print(f"    - source: {doc.metadata.get('source', 'NOT FOUND')}")
+                print(f"    - page: {doc.metadata.get('page', 'NOT FOUND')}")
+                print(f"    - page_number: {doc.metadata.get('page_number', 'NOT FOUND')}")
+                print(f"    - metadata keys: {list(doc.metadata.keys())}")
+            print(f"🔍 === END ДИАГНОСТИКА ===\n")            
 
 
             if self.gigachat_client:

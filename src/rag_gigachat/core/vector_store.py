@@ -156,8 +156,15 @@ class VectorStoreManager:
         return load_path.exists()
 
     def create_from_texts_with_cache(
-            self, texts: Dict[str, str], force_reload: bool = False) -> bool:
-        """Создание FAISS индекса из текстов с использованием кэша"""
+            self, texts: Dict[str, str], force_reload: bool = False,
+            metadata_dict: Optional[Dict[str, Dict[str, Any]]] = None) -> bool:
+        """Создание FAISS индекса из текстов с использованием кэша
+
+        Args:
+            texts: Словарь {doc_id: text}
+            force_reload: Принудительная перезагрузка
+            metadata_dict: Опциональный словарь метаданных {doc_id: metadata_dict}
+        """
         # Валидация входных данных
         if not texts:
             logger.warning("⚠️ Получен пустой словарь текстов")
@@ -188,7 +195,13 @@ class VectorStoreManager:
             if len(text) > max_chars:
                 text = text[:max_chars]
                 logger.debug(f"Документ {doc_id} обрезан до {max_chars} символов")
-            documents.append(Document(page_content=text, metadata={"source": doc_id}))
+
+            # Создаём метаданные: базовый source + дополнительные из metadata_dict
+            meta = {"source": doc_id}
+            if metadata_dict and doc_id in metadata_dict:
+                meta.update(metadata_dict[doc_id])
+
+            documents.append(Document(page_content=text, metadata=meta))
 
         # Финальная проверка перед созданием FAISS индекса
         if not documents:
@@ -295,8 +308,41 @@ class VectorStoreManager:
         docs = self.vector_store.similarity_search(query, k=k)
         elapsed = time.time() - start_time
 
-        logger.debug(f"Поиск завершен. Найдено: {len(docs)}, Время: {elapsed:.3f} сек")
+        logger.debug(f"🔍 ПОИСК: query='{query[:50]}...', k={k}")
+        logger.debug(f"📊 Поиск завершен. Найдено: {len(docs)}, Время: {elapsed:.3f} сек")
         return docs
+
+    def similarity_search_with_scores(self, query: str, k: int = 5) -> List[tuple]:
+        """
+        Поиск похожих документов с оценками релевантности
+
+        Args:
+            query: Поисковый запрос
+            k: Количество результатов
+
+        Returns:
+            Список кортежей (Document, score)
+        """
+        if not self.is_initialized:
+            raise ValueError("FAISS индекс не инициализирован")
+
+        start_time = time.time()
+        logger.debug(f"🔍 ПОИСК: query='{query[:50]}...', k={k}")
+
+        # Получаем документы со scores
+        docs_with_scores = self.vector_store.similarity_search_with_score(query, k=k)
+        elapsed = time.time() - start_time
+
+        # Логируем результаты
+        if docs_with_scores:
+            scores = [score for _, score in docs_with_scores]
+            logger.debug(f"📊 RAW SCORES: {scores}")
+
+            for i, (doc, score) in enumerate(docs_with_scores[:k], 1):
+                logger.debug(f"  📄 Doc {i}: score={score:.4f}, source={doc.metadata.get('source', 'unknown')}")
+
+        logger.debug(f"⏱️ Поиск завершен за {elapsed:.3f} сек, найдено {len(docs_with_scores)} документов")
+        return docs_with_scores
 
     def add_documents(self, documents: List[Document]) -> None:
         """

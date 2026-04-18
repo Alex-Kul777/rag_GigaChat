@@ -5,6 +5,7 @@ Streamlit UI для RAG GigaChat системы.
 
 import logging
 import streamlit as st
+import os
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -68,7 +69,7 @@ def load_documents_to_pipeline(pipeline: RAGPipeline, domain_path: Path):
             pipeline.load_from_pdf_directory(
                 directory=domain_path,
                 recursive=True,
-                force_reload=True
+                force_reload=False
             )
 
             logger.info(f"After load_from_pdf_directory: vector_store_initialized={pipeline.vector_store_initialized}, manager.is_initialized={pipeline.vector_store_manager.is_initialized}")
@@ -111,6 +112,8 @@ def init_session_state():
         # Сессия чата
         "messages": [],
         "chat_history": [],
+        # Debug режим
+        "debug_query_executed": False,
     }
 
     for key, value in defaults.items():
@@ -220,12 +223,35 @@ def handle_user_query(query: str):
                 "4. Задайте вопрос снова"
             )
             return
-        with st.spinner("🔄 Обработка запроса..."):
-            # Получить ответ с источниками
-            result = pipeline.process_query(
-                query,
-                k=st.session_state.k_retrieve
-            )
+
+        # Контейнер для статуса обработки
+        status_container = st.container()
+        progress_bar = None
+        status_text = None
+
+        def update_progress(stage: str, message: str, progress: float = None):
+            """Callback для обновления прогресса в UI"""
+            nonlocal progress_bar, status_text
+            with status_container:
+                if progress_bar is None:
+                    status_text = st.empty()
+                    progress_bar = st.empty()
+
+                status_text.markdown(f"**Ход выполнения:** {message}")
+                if progress is not None:
+                    progress_bar.progress(min(int(progress * 100), 99), text=f"{stage.upper()}: {message}")
+
+        # Получить ответ с источниками
+        result = pipeline.process_query(
+            query,
+            k=st.session_state.k_retrieve,
+            progress_callback=update_progress
+        )
+
+        # Обновить финальный прогресс
+        with status_container:
+            status_text.markdown(f"**Ход выполнения:** ✅ Обработка завершена")
+            progress_bar.progress(100, text="ЗАВЕРШЕНО")
 
         # ✅ Добавить сообщения ТОЛЬКО после успешного получения ответа
         st.session_state.messages.append({
@@ -240,8 +266,15 @@ def handle_user_query(query: str):
             "documents": result.retrieval_results.retrieved_docs if result.retrieval_results else []
         })
 
+        # Очистить статус и показать результат
+        status_container.empty()
+
+        # Показать время обработки
+        st.markdown(f"⏱️ **Время обработки:** {result.generation_time:.1f} сек | 📚 Документов найдено: {len(result.retrieval_results.retrieved_docs) if result.retrieval_results else 0}")
+
         # Показать ответ с источниками
         st.markdown("---")
+        st.subheader("💬 Ответ")
         HighlightedAnswer.show(
             answer=result.answer,
             retrieved_docs=result.retrieval_results.retrieved_docs if result.retrieval_results else [],
@@ -371,72 +404,48 @@ def main():
     # Инициализация состояния
     init_session_state()
 
-    # Авто-загрузка документов если индекс пуст (ПЕРЕД DEBUG чтобы видеть процесс)
-    if not st.session_state.get("_docs_auto_loaded", False):
-        st.write("🔍 АВТОЗАГРУЗКА: Проверка индекса...")
-        try:
-            pipeline = get_rag_pipeline(
-                embedding_model=st.session_state.embedding_model,
-                chunk_size=st.session_state.chunk_size,
-                chunk_overlap=st.session_state.chunk_overlap
-            )
-            st.write(f"АВТОЗАГРУЗКА: Pipeline.vector_store_initialized: {pipeline.vector_store_initialized}")
-            st.write(f"АВТОЗАГРУЗКА: Manager.is_initialized: {pipeline.vector_store_manager.is_initialized}")
+    # Проверка режима debug
+    is_debug_mode = os.environ.get("RAG_DEBUG", "").lower() == "true"
+    debug_query = "Что такое RAG?"
 
-            if not pipeline.vector_store_manager.is_initialized:
-                st.info("📚 АВТОЗАГРУЗКА: Загрузка документов...")
-                # Загружаем из первой доступной domain директории
-                first_domain = list(data_config.documents_dirs.values())[0]
-                st.write(f"АВТОЗАГРУЗКА: Загрузка из {first_domain}")
-                st.write(f"АВТОЗАГРУЗКА: Dir exists: {first_domain.exists()}")
+    # Авто-загрузка документов если индекс пуст
+    try:
+        pipeline = get_rag_pipeline(
+            embedding_model=st.session_state.embedding_model,
+            chunk_size=st.session_state.chunk_size,
+            chunk_overlap=st.session_state.chunk_overlap
+        )
 
+        # Проверяем, нужна ли загрузка (индекс не инициализирован)
+        if not pipeline.vector_store_manager.is_initialized:
+            st.info("📚 Загрузка документов в индекс (выполняется один раз)...")
+            first_domain = list(data_config.documents_dirs.values())[0]
+
+            if first_domain.exists():
                 try:
                     pipeline.load_from_pdf_directory(
                         directory=first_domain,
                         recursive=True,
-                        force_reload=True
+                        force_reload=False
                     )
-                    st.write(f"АВТОЗАГРУЗКА: load_from_pdf_directory завершена")
+                    st.success("✅ Документы загружены в индекс!")
                 except Exception as e:
-                    st.error(f"АВТОЗАГРУЗКА: Exception in load_from_pdf_directory: {e}")
-                    import traceback
-                    st.write(traceback.format_exc())
-
-                st.write(f"АВТОЗАГРУЗКА: vector_store_initialized={pipeline.vector_store_initialized}")
-                st.write(f"АВТОЗАГРУЗКА: Manager.is_initialized={pipeline.vector_store_manager.is_initialized}")
-                st.write(f"АВТОЗАГРУЗКА: Manager.vector_store={pipeline.vector_store_manager.vector_store is not None}")
-                st.session_state._docs_auto_loaded = True
-                st.success("✅ АВТОЗАГРУЗКА: Документы загружены!")
+                    logger.error(f"Ошибка загрузки: {e}", exc_info=True)
+                    st.error(f"❌ Ошибка загрузки документов: {e}")
             else:
-                st.write("✅ АВТОЗАГРУЗКА: Индекс уже инициализирован")
-                st.session_state._docs_auto_loaded = True
-        except Exception as e:
-            import traceback
-            st.error(f"❌ АВТОЗАГРУЗКА ОШИБКА: {e}")
-            st.write(traceback.format_exc())
-            st.session_state._docs_auto_loaded = True
+                st.error(f"❌ Директория не найдена: {first_domain}")
 
-    # Показать финальный статус индекса
-    with st.expander("🔧 DEBUG: Финальный статус", expanded=False):
-        try:
-            pipeline = get_rag_pipeline(
-                embedding_model=st.session_state.embedding_model,
-                chunk_size=st.session_state.chunk_size,
-                chunk_overlap=st.session_state.chunk_overlap
-            )
-            st.write(f"✅ Pipeline создана")
-            st.write(f"Pipeline.vector_store_initialized: {pipeline.vector_store_initialized}")
-            st.write(f"Manager.is_initialized: {pipeline.vector_store_manager.is_initialized}")
-            st.write(f"_docs_auto_loaded flag: {st.session_state.get('_docs_auto_loaded', 'Not set')}")
-        except Exception as e:
-            st.error(f"Ошибка при проверке: {e}")
+    except Exception as e:
+        logger.error(f"Ошибка инициализации: {e}", exc_info=True)
+        st.error(f"❌ Ошибка инициализации: {e}")
 
-    # Обработка загрузки документов
+    # Обработка явной перезагрузки индекса (кнопка в боковой панели)
     if st.session_state.get("force_reload_index", False):
-        st.info("⏳ Загрузка документов начата...")
+        st.info("⏳ Перезагрузка индекса...")
         try:
-            domain_path = data_config.documents_dirs.get(st.session_state.get("selected_domain", list(data_config.documents_dirs.keys())[0]))
-            st.write(f"📂 Директория: {domain_path}")
+            domain_path = data_config.documents_dirs.get(
+                st.session_state.get("selected_domain", list(data_config.documents_dirs.keys())[0])
+            )
 
             if domain_path and domain_path.exists():
                 pipeline = get_rag_pipeline(
@@ -444,23 +453,17 @@ def main():
                     chunk_size=st.session_state.chunk_size,
                     chunk_overlap=st.session_state.chunk_overlap
                 )
-                st.write(f"🔧 Pipeline создана")
-
                 if load_documents_to_pipeline(pipeline, domain_path):
                     st.session_state.force_reload_index = False
-                    st.write(f"✅ Флаг force_reload_index = {st.session_state.force_reload_index}")
-                else:
-                    st.write(f"❌ Загрузка вернула False")
+                    st.success("✅ Индекс обновлен!")
             else:
-                st.error(f"❌ Директория не существует: {domain_path}")
+                st.error(f"❌ Директория не найдена: {domain_path}")
                 st.session_state.force_reload_index = False
         except Exception as e:
-            import traceback
-            st.error(f"❌ Ошибка при загрузке документов: {e}")
-            st.write(traceback.format_exc())
+            logger.error(f"Ошибка перезагрузки: {e}", exc_info=True)
+            st.error(f"❌ Ошибка: {e}")
             st.session_state.force_reload_index = False
 
-    # Авто-загрузка документов если индекс пуст
     # Кастомные стили
     st.markdown("""
     <style>
@@ -494,6 +497,19 @@ def main():
 
     # Статистика
     render_stats()
+
+    # DEBUG MODE: Автоматически выполнить тестовый запрос
+    if is_debug_mode and not st.session_state.debug_query_executed:
+        st.session_state.debug_query_executed = True
+        # Задержка для загрузки документов
+        with st.spinner("🔄 DEBUG: Автоматический запрос..."):
+            import time
+            time.sleep(2)
+            try:
+                handle_user_query(debug_query)
+            except Exception as e:
+                st.error(f"❌ DEBUG запрос ошибка: {e}")
+                logger.error(f"Debug query error: {e}", exc_info=True)
 
 
 if __name__ == "__main__":
