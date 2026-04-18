@@ -9,7 +9,26 @@
 
 This project implements a **Retrieval-Augmented Generation (RAG)** system for answering questions based on PDF documents. The system combines document retrieval with LLM generation to provide accurate, context-aware answers.
 
-## ✨ What's New in v1.8.0
+## ✨ What's New in v1.9.0
+
+- **Integration Tests** (17 new tests): Complete testing coverage for RAG pipeline:
+  - 7 tests for RAGPipeline API (`test_rag_pipeline_query.py`)
+  - 10 tests for CLI (`test_app_cli.py`)
+  - `TESTING.md` with comprehensive test documentation
+- **RAGApp Class**: Unified CLI interface with JSON output support
+  - Full command-line support: --mode query, --query, --documents, --k, --retrieval_type, --output
+  - Structured results with generation metrics and retrieved documents
+- **RAG Pipeline Improvements**:
+  - Fixed LLM timeout (2s → 120s for local models)
+  - Improved data loader path resolution for absolute paths
+  - Enhanced vector store initialization logging
+- **Debug Cycle Infrastructure**: Semi-automatic debugging system with process mining and event logging
+  - Event logging system for RAG pipeline instrumentation
+  - Process mining analysis (variants, bottlenecks, anomaly detection)
+  - Backlog workflow with YAML schema
+  - Debug context and step tracking utilities
+
+### Previous (v1.8.0)
 
 - **UI Testing & Validation** (44 tests): Comprehensive test coverage for Streamlit components:
   - 19 tests for `streamlit_app.py` (session state, query handling, stats)

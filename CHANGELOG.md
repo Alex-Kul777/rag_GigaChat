@@ -2,9 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.9.0] - 2026-04-17
+## [1.9.0] - 2026-04-18
 
 ### Added
+- **Integration тесты для RAG pipeline** — Полное тестовое покрытие:
+  - `tests/integration/test_rag_pipeline_query.py` — 7 тестов API RAGPipeline
+  - `tests/integration/test_app_cli.py` — 10 тестов для CLI app.py
+  - `TESTING.md` — Полная документация по запуску тестов и отладке
+  - Тесты включают: инициализацию, загрузку документов, поиск, генерацию ответов, метрики производительности
+- **RAGApp класс** — Унифицированный интерфейс для работы с RAG pipeline:
+  - Методы: initialize(), process_query()
+  - Полная интеграция с CLI параметрами
+  - JSON output для результатов
 - **Цикл полуавтоматической отладки** — Встроенная система для выявления и устранения дефектов:
   - **Event Logging** (`src/rag_gigachat/utils/event_log.py`) — инструментация RAG пайплайна в формате process mining
     - ProcessEvent dataclass, CaseContext, emit() контекстный менеджер
@@ -24,10 +33,18 @@ All notable changes to this project will be documented in this file.
 - **DebugConfig** — новая секция в config.py для управления отладкой
   - RAG_DEBUG (bool) и RAG_LOG_LEVEL (str) переменные окружения
 
+### Fixed
+- **RAG pipeline timeout** — Увеличен таймаут LLM генерации с 2s на 120s для локальных моделей
+- **Data loader path resolution** — Исправлена обработка абсолютных путей в load_from_pdf_directory
+- **Vector store initialization** — Улучшена логика инициализации вектор-сторе
+
 ### Improved
+- **app.py CLI** — Новые флаги: --mode query, --query, --documents, --k, --retrieval_type, --output
+- **config.py logging** — Полная переконфигурация логирования для отладки
+- **RAG pipeline debugging** — Улучшено логирование для отладки проблем загрузки документов
 - **README_RU.md** — добавлен раздел "Цикл полуавтоматической отладки" с Quick Start
 - **.env.example** — новые переменные RAG_DEBUG и RAG_LOG_LEVEL
-- **Testing** — новые тесты для event_log.py (6 тестов) и backlog schema (2 теста)
+- **Testing** — новые тесты для event_log.py (6 тестов), backlog schema (2 теста), integration tests (17 тестов)
 
 ## [1.8.0] - 2026-04-17
 
