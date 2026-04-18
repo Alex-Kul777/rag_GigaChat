@@ -51,8 +51,8 @@ class ModelConfig:
         "production": {
             "llm": "Qwen/Qwen2.5-0.5B-Instruct",
             "embedding": "intfloat/multilingual-e5-small",
-            "max_tokens": 500,
-            "description": "Сбалансированный (0.5B LLM, ~1.1GB total) - для production"
+            "max_tokens": 256,
+            "description": "Сбалансированный (0.5B LLM, ~1.1GB total) - для production (уменьшено до 256 для стабильности на малых GPU)"
         },
         "quality": {
             "llm": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",

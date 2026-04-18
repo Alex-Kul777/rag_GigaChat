@@ -106,7 +106,8 @@ class LLMManager:
             )
 
         try:
-            torch_dtype = torch.float16 if model_config.device == "cuda" else torch.float32
+            # Используем float32 для стабильности (float16 может вызывать CUDA ошибки на малых GPU)
+            torch_dtype = torch.float32
             print(f"🔍 DEBUG: Используем dtype: {torch_dtype}, device: {model_config.device}")
 
             model = AutoModelForCausalLM.from_pretrained(
@@ -211,6 +212,13 @@ class LLMManager:
             try:
                 attempt_start = time.time()
                 logger.debug(f"⏱️ LLM invoke attempt {attempt + 1}/{max_retries}, timeout={timeout}s")
+
+                # Очищаем GPU кэш перед инференсом
+                if _torch_available:
+                    import torch
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+
                 response = llm.invoke(prompt)
                 elapsed = time.time() - attempt_start
                 logger.info(f"✅ LLM ответ получен за {elapsed:.1f} сек")
