@@ -175,7 +175,7 @@ class LLMManager:
                 self.load_local_model()
         return self.llm
 
-    def invoke_with_retry(self, prompt, max_retries: int = 3):
+    def invoke_with_retry(self, prompt, max_retries: int = 3, timeout: float = 60.0):
         """
         Invoke LLM with exponential backoff retry logic.
         Handles timeouts and transient errors gracefully.
@@ -183,31 +183,42 @@ class LLMManager:
         Args:
             prompt: Input prompt to the LLM
             max_retries: Maximum number of retry attempts (default: 3)
+            timeout: Timeout per attempt in seconds (default: 60.0)
 
         Returns:
             LLM response
 
         Raises:
+            TimeoutError: If call exceeds timeout on all attempts
             Exception: If all retries fail
         """
         llm = self.get_llm()
         last_error = None
+        start = time.time()
 
         for attempt in range(max_retries):
             try:
-                logger.debug(f"LLM invoke attempt {attempt + 1}/{max_retries}")
-                return llm.invoke(prompt)
+                attempt_start = time.time()
+                logger.debug(f"⏱️ LLM invoke attempt {attempt + 1}/{max_retries}, timeout={timeout}s")
+                response = llm.invoke(prompt)
+                elapsed = time.time() - attempt_start
+                logger.info(f"✅ LLM ответ получен за {elapsed:.1f} сек")
+                return response
             except (TimeoutError, Exception) as e:
+                elapsed = time.time() - attempt_start
                 last_error = e
                 if attempt < max_retries - 1:
                     wait_time = (2 ** attempt) * 1.0 + random.uniform(0, 1)
                     logger.warning(
-                        f"LLM call failed (attempt {attempt + 1}): {type(e).__name__}. "
+                        f"❌ LLM call failed after {elapsed:.1f}s (attempt {attempt + 1}): {type(e).__name__}. "
                         f"Retrying in {wait_time:.2f}s..."
                     )
                     time.sleep(wait_time)
                 else:
-                    logger.error(f"LLM call failed after {max_retries} attempts")
+                    total_elapsed = time.time() - start
+                    logger.error(
+                        f"❌ LLM call failed after {max_retries} attempts ({total_elapsed:.1f}s total)"
+                    )
                     raise
 
         raise last_error

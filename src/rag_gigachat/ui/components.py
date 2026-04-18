@@ -580,14 +580,20 @@ class HighlightedAnswer:
         for i, doc in enumerate(retrieved_docs[:3], 1):  # Top 3
             doc_id = doc.get('doc_id', 'Unknown')
             score = doc.get('score', 0.0)
+            source_file = doc.get('source_file', '')
+            page = doc.get('page', doc.get('page_number'))
 
-            # Парсить doc_id вида "filename_pN"
-            parts = doc_id.rsplit('_p', 1)
-            filename = parts[0] if parts else doc_id
-            page = int(parts[1]) if len(parts) > 1 else 1
+            # Используем source_file если он есть, иначе парсим doc_id
+            if source_file:
+                filename = source_file.replace('.pdf', '')
+            else:
+                parts = doc_id.rsplit('_p', 1)
+                filename = parts[0] if parts else doc_id
+                page = int(parts[1]) if len(parts) > 1 else page or 1
 
+            page_str = f", стр. **{page}**" if page else ""
             # Сноска с источником (без ссылки, т.к. открытие в DocumentViewer требует session_state)
-            sources_html += f"\n{i}. **{filename}.pdf**, стр. **{page}** (релевантность: {score:.2f})"
+            sources_html += f"\n{i}. **{filename}.pdf**{page_str} (релевантность: {score:.2f})"
 
         return answer + sources_html
 
@@ -608,18 +614,24 @@ class HighlightedAnswer:
             doc_id = doc.get('doc_id', 'Unknown')
             score = doc.get('score', 0.0)
             text = doc.get('text', '')
+            source_file = doc.get('source_file', '')
+            page = doc.get('page', doc.get('page_number'))
 
-            # Парсить doc_id
-            parts = doc_id.rsplit('_p', 1)
-            filename = parts[0] if parts else doc_id
-            page = int(parts[1]) if len(parts) > 1 else 1
+            # Используем source_file если он есть, иначе парсим doc_id
+            if source_file:
+                filename = source_file.replace('.pdf', '')
+            else:
+                parts = doc_id.rsplit('_p', 1)
+                filename = parts[0] if parts else doc_id
+                page = int(parts[1]) if len(parts) > 1 else page or 1
 
             # Контейнер источника
             with st.container(border=True):
                 col_title, col_score = st.columns([3, 1])
 
                 with col_title:
-                    st.markdown(f"**#{i}. {filename}.pdf**, страница **{page}**")
+                    page_str = f", страница **{page}**" if page else ""
+                    st.markdown(f"**#{i}. {filename}.pdf**{page_str}")
 
                 with col_score:
                     st.metric("Релевантность", f"{score:.2f}", delta=None)

@@ -54,7 +54,16 @@ class DenseRetriever:
     def search(self, query: str, k: int) -> List[Document]:
         """Поиск через FAISS similarity search"""
         logger.debug(f"DenseRetriever: поиск '{query[:50]}...', k={k}")
-        return self._vsm.similarity_search(query, k=k)
+        results = self._vsm.similarity_search(query, k=k)
+
+        # 🔍 ДИАГНОСТИКА: Логируем что вернулось от поиска
+        for i, doc in enumerate(results):
+            logger.debug(
+                f"🔎 RETRIEVER_RESULT[{i}]: source={doc.metadata.get('source')}, "
+                f"metadata_keys={list(doc.metadata.keys())}"
+            )
+
+        return results
 
 
 class SparseRetriever:

@@ -9,6 +9,7 @@ Re-экспорт сохранён для обратной совместимо�
 import logging
 import time
 import concurrent.futures
+from datetime import datetime
 from typing import List, Dict, Optional, Any, TypedDict
 from pathlib import Path
 
@@ -517,12 +518,16 @@ class RAGPipeline:
 
             with emit("llm.call", resource="gigachat", query_len=len(state["question"]), context_len=len(docs_content)):
                 with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    future = executor.submit(self.llm_manager.invoke_with_retry, formatted_prompt)
+                    llm_start = time.time()
+                    future = executor.submit(self.llm_manager.invoke_with_retry, formatted_prompt, timeout=60.0)
                     try:
-                        # Увеличен timeout до 120 сек для медленных локальных моделей (Qwen на CUDA)
-                        response = future.result(timeout=120.0)
+                        response = future.result(timeout=70.0)
+                        llm_elapsed = time.time() - llm_start
+                        logger.info(f"⏱️ LLM вызов завершен за {llm_elapsed:.1f} сек")
                     except concurrent.futures.TimeoutError:
-                        raise TimeoutError("LLM call exceeded 120.0s timeout")
+                        llm_elapsed = time.time() - llm_start
+                        logger.error(f"❌ LLM вызов превысил timeout ({llm_elapsed:.1f}s)")
+                        raise TimeoutError("LLM call exceeded timeout (60s per attempt, 3 attempts max)")
             if hasattr(response, 'content'):
                 answer_text = response.content
             else:
@@ -545,7 +550,7 @@ class RAGPipeline:
         
         logger.info("LangGraph граф построен")
     
-    def process_query(self, query: str, k: int = None, progress_callback=None) -> GenerationResult:
+    def process_query(self, query: str, k: int = None, progress_callback=None, llm_model_name: str = None) -> GenerationResult:
         """Обработка запроса через RAG пайплайн
 
         Args:
@@ -553,6 +558,7 @@ class RAGPipeline:
             k: Количество документов для поиска
             progress_callback: Функция обратного вызова для отслеживания прогресса
                              Принимает (stage: str, message: str, progress: float)
+            llm_model_name: Название LLM модели для отображения в прогрессе
         """
         def _progress(stage: str, message: str, progress: float = None):
             """Вспомогательная функция для отправки обновлений прогресса"""
@@ -600,7 +606,8 @@ class RAGPipeline:
 
             # Подсчет токенов для запроса
             prompt_tokens = self.token_counter.count_text_tokens(query)
-            _progress("generation", "Генерация ответа с помощью LLM...", 0.65)
+            model_display = llm_model_name if llm_model_name else "LLM"
+            _progress("generation", f"Генерация ответа с помощью {model_display}...", 0.65)
 
             # Увеличиваем timeout для медленных моделей
             response = self.graph.invoke({"question": query}, config={"recursion_limit": 50})

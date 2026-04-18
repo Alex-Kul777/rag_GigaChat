@@ -1,0 +1,201 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: 1_Chepurnykh_Dinamika_poletov_samoletov.pdf
+Страница: 88 из 112
+Заголовок: Не указан
+Автор: Не указан
+Дата создания: Не указана
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+88
+)()sin( PP  . В итоге линеаризованные уравнения продольного 
+возмущённого движения примут вид 
+ 
+11211141211 fPbbaaVaV oy   ; 
+221232221 fbaaVa oyz   ; 
+33231333231 fPbbaaVa oyzz   ; 
+043  za . 
+ 
+В этой системе  
+ Mccccm
+FFa M
+xa
+M
+pxap
+V
+xV
+x )()(21
+11  ; SV
+m
+ 2 ; Sq
+Pcp  ; 
+2
+2Vq  ;  
+
+
+ 
+
+
+xa
+xx
+xx cVgm
+FFFFa cos12 ; 
+
+
+ cos14 gm
+FFa x
+x ; 
+
+
+
+
+
+
+ya
+M
+ya
+ya
+V
+yV
+y
+dc
+dMcV
+c
+mV
+FFa 12
+21 ; 
+)(1
+22
+
+
+  yap
+y
+y ccmV
+FFa ; 1 23 a ; 
+
+
+
+z
+V
+R
+V
+y
+z
+RV
+R
+V
+yR
+J
+M
+mV
+F
+J
+MMFMa zz
+zz
+
+
+31
+V
+MmDdc
+dMcV
+c
+V
+bmD M
+zz
+ya
+M
+ya
+yaA
+zz 
+
+
+
+
+
+  12 ;  
+z
+A
+z
+J
+SqbD  ; 
+
+
+
+z
+Ry
+z
+R
+RyR
+J
+M
+mV
+F
+J
+M
+MFMa zz
+zz
+
+
+32     ya
+c
+zzyap
+A
+zz cmDcсV
+bmD
+y1 ; 
+)()()(33
+
+
+  
+
+
+zz
+A
+z
+z
+R
+z
+R
+RR mmV
+bDJ
+M
+J
+M
+MMa zz
+z
+z
+z
+z
+z
+; 
+143 a ;  
+оу
+оу
+оу
+xa
+x
+x cV
+m
+FFb
+
+
+
+11 ;  mm
+FFb
+P
+xP
+x
+1
+12  ; 
+оу
+оу
+оу
+ya
+y
+y cmV
+FFb 
+
+
+ 1
+21 ; 
+ (7.6)

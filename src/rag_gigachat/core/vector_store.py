@@ -22,6 +22,27 @@ from rag_gigachat.config import model_config, vectorstore_config, gigachat_confi
 logger = logging.getLogger(__name__)
 
 
+def normalize_l2_distance_to_relevance(raw_score: float) -> float:
+    """
+    Нормализация L2 расстояния (FAISS) в релевантность [0, 1].
+
+    L2 расстояние: 0 = идентичный, ∞ = полностью различный
+    Релевантность: 1 = идентичный, 0 = различный
+
+    Формула: relevance = 1 / (1 + raw_score)
+
+    Args:
+        raw_score: L2 расстояние из FAISS (обычно > 0)
+
+    Returns:
+        Релевантность в диапазоне [0, 1]
+    """
+    if raw_score < 0:
+        logger.warning(f"Negative L2 distance received: {raw_score}")
+        raw_score = abs(raw_score)
+    return 1.0 / (1.0 + raw_score)
+
+
 class VectorStoreManager:
     """
     Менеджер векторного хранилища на основе FAISS с кэшированием.
@@ -321,7 +342,8 @@ class VectorStoreManager:
             k: Количество результатов
 
         Returns:
-            Список кортежей (Document, score)
+            Список кортежей (Document, normalized_score)
+            Нормализованный score в диапазоне [0, 1]
         """
         if not self.is_initialized:
             raise ValueError("FAISS индекс не инициализирован")
@@ -329,20 +351,30 @@ class VectorStoreManager:
         start_time = time.time()
         logger.debug(f"🔍 ПОИСК: query='{query[:50]}...', k={k}")
 
-        # Получаем документы со scores
-        docs_with_scores = self.vector_store.similarity_search_with_score(query, k=k)
+        # Получаем документы со scores из FAISS
+        docs_with_raw_scores = self.vector_store.similarity_search_with_score(query, k=k)
         elapsed = time.time() - start_time
 
-        # Логируем результаты
-        if docs_with_scores:
-            scores = [score for _, score in docs_with_scores]
-            logger.debug(f"📊 RAW SCORES: {scores}")
+        # Нормализуем scores и логируем оба значения
+        normalized_results = []
+        if docs_with_raw_scores:
+            raw_scores = [score for _, score in docs_with_raw_scores]
+            logger.debug(f"📊 RAW SCORES (L2 distance): {[f'{s:.2f}' for s in raw_scores]}")
 
-            for i, (doc, score) in enumerate(docs_with_scores[:k], 1):
-                logger.debug(f"  📄 Doc {i}: score={score:.4f}, source={doc.metadata.get('source', 'unknown')}")
+            for i, (doc, raw_score) in enumerate(docs_with_raw_scores[:k], 1):
+                normalized_score = normalize_l2_distance_to_relevance(raw_score)
+                normalized_results.append((doc, normalized_score))
 
-        logger.debug(f"⏱️ Поиск завершен за {elapsed:.3f} сек, найдено {len(docs_with_scores)} документов")
-        return docs_with_scores
+                # Логируем оба значения для отладки
+                logger.debug(
+                    f"  📄 Doc {i}: raw={raw_score:.4f} → normalized={normalized_score:.4f}, "
+                    f"source={doc.metadata.get('source', 'unknown')}"
+                )
+        else:
+            normalized_results = docs_with_raw_scores
+
+        logger.debug(f"⏱️ Поиск завершен за {elapsed:.3f} сек, найдено {len(normalized_results)} документов")
+        return normalized_results
 
     def add_documents(self, documents: List[Document]) -> None:
         """

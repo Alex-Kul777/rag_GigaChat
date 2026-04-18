@@ -17,6 +17,10 @@ import os
 # Добавляем текущую директорию в путь
 sys.path.insert(0, str(Path(__file__).parent))
 
+# Подавляем шумные предупреждения от transformers и HuggingFace
+os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
+os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
+
 from rag_gigachat.models import RetrievalType
 from rag_gigachat.core.rag_pipeline import RAGPipeline
 from rag_gigachat.config import model_config, data_config, vectorstore_config, experiment_config, logging_config, gigachat_config

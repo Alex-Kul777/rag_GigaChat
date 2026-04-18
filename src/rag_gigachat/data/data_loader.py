@@ -700,17 +700,24 @@ class CorpusLoader:
         for doc in documents:
             source = Path(doc.metadata.get('source', 'unknown')).stem
             page = doc.metadata.get('page_number', 0)
-            
+            filename = doc.metadata.get('filename', source)
+
             if chunk_size:
                 doc_id = f"{source}_page_{page}"
             else:
                 doc_id = source
-            
+
+            # 🔍 ДИАГНОСТИКА: Логируем как преобразуется имя файла
+            logger.debug(
+                f"📋 DOC_ID_MAPPING: source={source}, filename={filename}, "
+                f"doc_id={doc_id}, page={page}"
+            )
+
             # Сохраняем текст и метаданные
             result[doc_id] = {
                 'text': doc.page_content,
                 'metadata': {
-                    'source_file': doc.metadata.get('filename', source),
+                    'source_file': filename,
                     'source_path': doc.metadata.get('filepath', ''),
                     'author': doc.metadata.get('doc_author', 'Неизвестен'),
                     'title': doc.metadata.get('doc_title', source),
@@ -721,7 +728,7 @@ class CorpusLoader:
                     'chunk_id': doc.metadata.get('chunk_id', 0) if chunk_size else None
                 }
             }
-        
+
         # Сохраняем в кэш
         self.cache.save(result, directory, recursive, chunk_size, {
             'num_pages': len(documents),
@@ -729,8 +736,9 @@ class CorpusLoader:
             'chunk_overlap': chunk_overlap,
             'has_metadata': True
         })
-        
+
         logger.info(f"✅ Загружено {len(result)} документов/чанков с метаданными")
+        print(f"🔍 ДИАГНОСТИКА: Первые 3 doc_id в result: {list(result.keys())[:3]}")
         return result
     
     def get_document_metadata(self, doc_id: str) -> Dict[str, Any]:

@@ -4,8 +4,12 @@ Streamlit UI для RAG GigaChat системы.
 """
 
 import logging
-import streamlit as st
 import os
+# Подавляем шумные предупреждения от transformers
+os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
+os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
+
+import streamlit as st
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -245,7 +249,8 @@ def handle_user_query(query: str):
         result = pipeline.process_query(
             query,
             k=st.session_state.k_retrieve,
-            progress_callback=update_progress
+            progress_callback=update_progress,
+            llm_model_name=st.session_state.llm_model
         )
 
         # Обновить финальный прогресс
