@@ -244,10 +244,16 @@ class VectorStoreManager:
             raise RuntimeError("Не удалось подготовить документы для эмбеддинга")
 
         batch_size = 3
+        cuda_error_occurred = False
 
         for attempt in range(3):
             try:
                 logger.info(f"Попытка {attempt + 1}: создание эмбеддингов из {len(documents)} документов")
+
+                # Диагностика перед эмбеддингом
+                logger.debug(f"🔍 Эмбеддинги: {len(documents)} документов")
+                logger.debug(f"🔍 Размер документов: {[len(d.page_content) for d in documents[:3]]} (первые 3)")
+
                 self.vector_store = FAISS.from_documents(documents, self.embeddings)
                 self.is_initialized = True
                 self.current_hash = doc_hash
@@ -255,6 +261,42 @@ class VectorStoreManager:
                 elapsed = time.time() - start_time
                 logger.info(f"✅ FAISS индекс создан за {elapsed:.2f} сек")
                 return True
+
+            except RuntimeError as e:
+                error_msg = str(e)
+                # CUDA ошибка - переместим embeddings на CPU
+                if ("cuda" in error_msg.lower() or "device-side assert" in error_msg.lower()) and not cuda_error_occurred:
+                    cuda_error_occurred = True
+                    logger.error(f"❌ CUDA ошибка при эмбеддинге: {error_msg}")
+                    logger.warning(f"⚠️ Переключение эмбеддингов на CPU")
+
+                    try:
+                        import torch
+                        torch.cuda.empty_cache()
+
+                        # Пересоздаем embeddings на CPU
+                        if hasattr(self.embeddings, 'client'):
+                            # Это HuggingFaceEmbeddings
+                            self.embeddings = HuggingFaceEmbeddings(
+                                model_name=self.embedding_model,
+                                model_kwargs={'device': 'cpu'},
+                                encode_kwargs={'normalize_embeddings': True}
+                            )
+                            logger.info("✓ Эмбеддинги переместили на CPU")
+
+                            # Повторим попытку на CPU
+                            self.vector_store = FAISS.from_documents(documents, self.embeddings)
+                            self.is_initialized = True
+                            self.current_hash = doc_hash
+                            self.save_to_disk(doc_hash)
+                            elapsed = time.time() - start_time
+                            logger.info(f"✅ FAISS индекс создан на CPU за {elapsed:.2f} сек")
+                            return True
+                    except Exception as cpu_error:
+                        logger.error(f"❌ Ошибка даже на CPU: {cpu_error}")
+                        raise
+                else:
+                    raise
 
             except IndexError as e:
                 logger.error(f"❌ IndexError при создании FAISS: {e}")

@@ -512,20 +512,30 @@ class RAGPipeline:
         # Определяем функцию генерации
         def generate(state: RAGState):
             """Генерация ответа на основе контекста"""
+            # Диагностика перед генерацией
+            logger.debug(f"🔍 [generate] Начало генерации ответа")
+            logger.debug(f"🔍 [generate] Контекст: {len(state['context'])} документов")
+            logger.debug(f"🔍 [generate] Вопрос: {state['question'][:100]}...")
+
             docs_content = "\n\n".join(doc.page_content for doc in state["context"])
 
             if len(docs_content) > model_config.max_context_length:
                 docs_content = docs_content[:model_config.max_context_length] + "..."
+
+            logger.debug(f"🔍 [generate] Размер контекста: {len(docs_content)} символов")
 
             formatted_prompt = self.prompt.format_messages(
                 question=state["question"],
                 context=docs_content
             )
 
+            logger.debug(f"🔍 [generate] Размер prompt: {len(str(formatted_prompt))} символов")
+
             with emit("llm.call", resource="gigachat", query_len=len(state["question"]), context_len=len(docs_content)):
                 with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                     llm_start = time.time()
                     timeout_val = None if self.llm_manager.model_type == "local" else 60.0
+                    logger.debug(f"🔍 [generate] Вызов LLM: model_type={self.llm_manager.model_type}, timeout={timeout_val}")
                     future = executor.submit(self.llm_manager.invoke_with_retry, formatted_prompt, timeout=timeout_val)
                     try:
                         result_timeout = 300.0 if self.llm_manager.model_type == "local" else 70.0

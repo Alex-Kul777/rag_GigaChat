@@ -145,7 +145,15 @@ class LLMManager:
             self.llm = HuggingFacePipeline(pipeline=text_gen_pipeline)
             self.is_initialized = True
 
-            print("✅ DEBUG: Модель успешно загружена")
+            # Диагностика успешной загрузки
+            if _torch_available:
+                import torch
+                print(f"✅ DEBUG: Модель успешно загружена (dtype={torch_dtype})")
+                if torch.cuda.is_available():
+                    gpu_mem = torch.cuda.memory_allocated(0) / 1e9
+                    print(f"🔍 GPU память используется: {gpu_mem:.2f} GB")
+            else:
+                print("✅ DEBUG: Модель успешно загружена (CPU)")
             return self.llm
 
         except Exception as e:
@@ -207,22 +215,82 @@ class LLMManager:
         llm = self.get_llm()
         last_error = None
         start = time.time()
+        cuda_error_encountered = False
 
         for attempt in range(max_retries):
             try:
                 attempt_start = time.time()
                 logger.debug(f"⏱️ LLM invoke attempt {attempt + 1}/{max_retries}, timeout={timeout}s")
 
-                # Очищаем GPU кэш перед инференсом
+                # Диагностика перед CUDA операциями
                 if _torch_available:
                     import torch
                     if torch.cuda.is_available():
+                        # Логируем статус GPU
+                        gpu_mem_alloc = torch.cuda.memory_allocated(0) / 1e9
+                        gpu_mem_reserved = torch.cuda.memory_reserved(0) / 1e9
+                        logger.debug(f"🔍 GPU память: allocated={gpu_mem_alloc:.2f}GB, reserved={gpu_mem_reserved:.2f}GB")
+
+                        # Очищаем GPU кэш
                         torch.cuda.empty_cache()
+                        logger.debug(f"🔍 GPU кэш очищен")
 
                 response = llm.invoke(prompt)
                 elapsed = time.time() - attempt_start
                 logger.info(f"✅ LLM ответ получен за {elapsed:.1f} сек")
                 return response
+
+            except RuntimeError as e:
+                elapsed = time.time() - attempt_start
+                error_msg = str(e)
+
+                # Специальная обработка CUDA ошибок
+                if "cuda" in error_msg.lower() or "device-side assert" in error_msg.lower():
+                    cuda_error_encountered = True
+                    logger.error(f"❌ CUDA ошибка: {error_msg}")
+
+                    # Fallback на CPU
+                    if self.model_type == "local" and _torch_available:
+                        logger.warning(f"⚠️  Переключение локальной модели на CPU")
+                        try:
+                            import torch
+                            torch.cuda.empty_cache()
+                            torch.cuda.reset_peak_memory_stats()
+
+                            # Переместим модель на CPU
+                            if hasattr(self.llm, 'model'):
+                                self.llm.model.to('cpu')
+                                logger.info("✓ Модель перемещена на CPU")
+
+                            # Повторим попытку на CPU
+                            response = llm.invoke(prompt)
+                            logger.info(f"✅ Ответ получен на CPU за {elapsed:.1f} сек")
+                            return response
+                        except Exception as cpu_error:
+                            logger.error(f"❌ Ошибка даже на CPU: {cpu_error}")
+                            last_error = e
+                    else:
+                        last_error = e
+                else:
+                    last_error = e
+
+                if attempt < max_retries - 1 and not cuda_error_encountered:
+                    wait_time = (2 ** attempt) * 1.0 + random.uniform(0, 1)
+                    logger.warning(
+                        f"❌ LLM call failed after {elapsed:.1f}s (attempt {attempt + 1}): {type(e).__name__}. "
+                        f"Retrying in {wait_time:.2f}s..."
+                    )
+                    time.sleep(wait_time)
+                elif cuda_error_encountered:
+                    logger.error(f"❌ CUDA ошибка не решена на CPU")
+                    raise
+                else:
+                    total_elapsed = time.time() - start
+                    logger.error(
+                        f"❌ LLM call failed after {max_retries} attempts ({total_elapsed:.1f}s total)"
+                    )
+                    raise
+
             except (TimeoutError, Exception) as e:
                 elapsed = time.time() - attempt_start
                 last_error = e
