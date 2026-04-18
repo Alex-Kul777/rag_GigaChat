@@ -312,12 +312,7 @@ class RAGPipeline:
 
         self.vector_store_initialized = True
         logger.info(f"Set vector_store_initialized=True")
-
-        if from_cache:
-            logger.info(f"Loaded {len(documents)} documents/chunks from FAISS cache")
-        else:
-            logger.info(f"Created {len(documents)} documents/chunks")
-
+        logger.info(f"Created {len(documents)} documents/chunks")
         logger.info(f"load_from_pdf_directory COMPLETE")
     
     def load_from_pdf_directory_with_metadata(self, 
@@ -353,6 +348,7 @@ class RAGPipeline:
         _chunk_overlap = chunk_overlap if chunk_overlap is not None else self.chunk_overlap
         
         # Загружаем документы через data_loader
+        logger.info(f"[load_from_pdf_directory_with_metadata] Вызываю corpus_loader.load_from_pdf_directory_with_metadata")
         documents = self.corpus_loader.load_from_pdf_directory_with_metadata(
             directory,
             recursive=recursive,
@@ -360,7 +356,10 @@ class RAGPipeline:
             chunk_overlap=_chunk_overlap,
             force_reload=force_reload
         )
-        
+
+        logger.info(f"[load_from_pdf_directory_with_metadata] corpus_loader вернул {len(documents) if documents else 0} документов")
+        print(f"[DEBUG] documents type: {type(documents)}, len: {len(documents) if documents else 0}")
+
         if not documents:
             logger.warning("Не найдено документов для загрузки")
             return
@@ -517,9 +516,10 @@ class RAGPipeline:
                 with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                     future = executor.submit(self.llm_manager.invoke_with_retry, formatted_prompt)
                     try:
-                        response = future.result(timeout=2.0)
+                        # Увеличен timeout до 120 сек для медленных локальных моделей (Qwen на CUDA)
+                        response = future.result(timeout=120.0)
                     except concurrent.futures.TimeoutError:
-                        raise TimeoutError("LLM call exceeded 2.0s timeout")
+                        raise TimeoutError("LLM call exceeded 120.0s timeout")
             if hasattr(response, 'content'):
                 answer_text = response.content
             else:
@@ -578,7 +578,8 @@ class RAGPipeline:
             prompt_tokens = self.token_counter.count_text_tokens(query)
 
             print("🔍 DEBUG: Запускаем граф...")
-            response = self.graph.invoke({"question": query})
+            # Увеличиваем timeout для медленных моделей
+            response = self.graph.invoke({"question": query}, config={"recursion_limit": 50})
             print(f"🔍 DEBUG: Граф выполнен, ответ получен")
             logger.debug (f"🔍 logger.debug: Граф выполнен, ответ получен")
             

@@ -450,8 +450,13 @@ class DocumentLoader:
                 # Создаем директорию для текстовых файлов
                 # Извлекаем путь к директории с PDF
                 pdf_parent_dir = pdf_path.parent
-                # Формируем путь для текстовых файлов
-                temp_dir = Path("temp") / pdf_path.parent.relative_to(Path("."))
+                # Формируем путь для текстовых файлов (безопасно обрабатываем абсолютные пути)
+                try:
+                    rel_path = pdf_path.parent.relative_to(Path(".").resolve())
+                    temp_dir = Path("temp") / rel_path
+                except ValueError:
+                    # Если не получается сделать относительный путь, используем имя директории
+                    temp_dir = Path("temp") / pdf_path.parent.name
                 temp_dir.mkdir(parents=True, exist_ok=True)
 
                 # Сохраняем каждую страницу в отдельный текстовый файл
@@ -484,7 +489,10 @@ class DocumentLoader:
             return documents
             
         except Exception as e:
-            logger.error(f"Ошибка загрузки PDF {pdf_path}: {e}")
+            logger.error(f"Ошибка загрузки PDF {pdf_path}: {e}", exc_info=True)
+            print(f"[ERROR] Ошибка загрузки PDF {pdf_path}: {e}")
+            import traceback
+            traceback.print_exc()
             return []
     
     def load_directory_with_metadata(self, 
@@ -499,26 +507,36 @@ class DocumentLoader:
         if not force_reload:
             cache_key = self.cache._get_cache_key(directory, recursive, None)
             langchain_cache = self.cache.cache_dir / f"{cache_key}_with_metadata.pkl"
-            
+            print(f"[DEBUG] Проверяем кэш: {langchain_cache}")
+            print(f"[DEBUG] Кэш существует? {langchain_cache.exists()}")
+
             if langchain_cache.exists():
                 try:
                     with open(langchain_cache, 'rb') as f:
                         documents = pickle.load(f)
                     logger.info(f"📦 Загружено {len(documents)} документов из кэша (с метаданными)")
+                    print(f"[DEBUG] Загружено из кэша {len(documents)} документов")
                     return documents
                 except Exception as e:
                     logger.warning(f"Ошибка загрузки кэша: {e}")
+                    print(f"[DEBUG] Ошибка при загрузке кэша: {e}")
         
         logger.info(f"📁 Загрузка PDF из директории: {directory} (с извлечением метаданных)")
-        
+        print(f"[DEBUG] Директория существует? {directory.exists()}")
+        print(f"[DEBUG] Это директория? {directory.is_dir()}")
+
         documents = []
-        
+
         # Рекурсивный обход файлов
         if recursive:
             pdf_files = list(directory.rglob(glob_pattern))
         else:
             pdf_files = list(directory.glob(glob_pattern))
-        
+
+        print(f"[DEBUG] Найдено PDF файлов: {len(pdf_files)}")
+        for pdf_file in pdf_files:
+            print(f"[DEBUG] PDF файл: {pdf_file.name}")
+
         for pdf_file in tqdm(pdf_files, desc="Обработка PDF файлов"):
             docs = self.load_pdf_with_metadata(pdf_file)
             documents.extend(docs)
@@ -657,14 +675,19 @@ class CorpusLoader:
                 logger.info(f"load_from_pdf_directory_with_metadata: Не используем кэш")
         
         logger.info(f"📁 Загрузка PDF из: {directory} с метаданными")
-        
+
         # Загружаем документы с метаданными
+        print(f"[DEBUG] Вызываю document_loader.load_directory_with_metadata...")
         documents = self.document_loader.load_directory_with_metadata(
             directory, "**/*.pdf", recursive, force_reload
         )
-        
+
+        print(f"[DEBUG] Получено документов: {len(documents) if documents else 0}")
+        logger.info(f"[DEBUG] Получено документов: {len(documents) if documents else 0}")
+
         if not documents:
             logger.warning("Не найдено PDF документов")
+            print(f"[DEBUG] Не найдено документов, возвращаю пустой словарь")
             return {}
         
         # Опциональное разделение на чанки

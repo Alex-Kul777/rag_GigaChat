@@ -43,14 +43,14 @@ class ModelConfig:
     """Конфигурация моделей"""
     
     # LLM модели
-    #llm_model_name: str = "Qwen/Qwen2.5-0.5B-Instruct"
+    llm_model_name: str = "Qwen/Qwen2.5-0.5B-Instruct"
     #llm_model_name: str = "ai-forever/rugpt3small_based_on_gpt2"
-    llm_model_name: str = "GigaChat-2-Max"
+    #llm_model_name: str = "GigaChat-2-Max"
     
     # Embedding модели
     #embedding_model_name: str = "intfloat/multilingual-e5-base"
-    #embedding_model_name: str = "intfloat/multilingual-e5-small"
-    embedding_model_name: str = "GigaChat-2-Max"
+    embedding_model_name: str = "intfloat/multilingual-e5-small"
+    #embedding_model_name: str = "GigaChat-2-Max"
     
     # Параметры генерации
     max_new_tokens: int = 500  # Снижено с 2000; типичный русский ответ требует 200-300 токенов
