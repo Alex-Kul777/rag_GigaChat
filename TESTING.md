@@ -1,5 +1,49 @@
 # 🧪 Тестирование RAG Pipeline
 
+## 🚀 Выбор профиля моделей
+
+RAG система поддерживает несколько предустановленных профилей моделей для разных сценариев:
+
+| Профиль | LLM | Размер | Скорость | Для чего |
+|---------|-----|--------|----------|----------|
+| **production** (default) | Qwen2.5-0.5B | ~1.1 GB | ⚡⚡⚡ | Production, балансный выбор |
+| **quality** | TinyLlama-1.1B | ~2.3 GB | ⚡⚡ | Лучшее качество ответов |
+| **llama** | Llama-3.2-1B | ~2.1 GB | ⚡⚡ | Новая Meta, оптимизирована для мобильных |
+| **testing** | GPT2 | ~370 MB | ⚡⚡⚡⚡ | Быстрые тесты на ноутбуке |
+| **ci** | DistilGPT2 | ~350 MB | ⚡⚡⚡⚡⚡ | CI/CD пайплайны (минимальный) |
+
+### Запуск с выбранным профилем
+
+```bash
+# Production (default, текущая конфигурация)
+python app.py --mode query --query "Что такое RAG?" --documents data/domain_2_Debug/books
+
+# Качество (лучшие ответы, медленнее)
+export RAG_MODEL_PROFILE=quality
+python app.py --mode query --query "Что такое RAG?" --documents data/domain_2_Debug/books
+
+# Быстрое тестирование (на слабом ПК)
+export RAG_MODEL_PROFILE=testing
+python app.py --mode query --query "Что такое RAG?" --documents data/domain_2_Debug/books
+
+# CI/CD (суперминимальный)
+export RAG_MODEL_PROFILE=ci
+pytest tests/integration/test_rag_pipeline_query.py -v
+
+# Llama (новая модель Meta)
+export RAG_MODEL_PROFILE=llama
+python app.py --mode ui
+```
+
+### Просмотр доступных профилей
+
+```python
+from src.rag_gigachat.config import print_model_profiles
+print_model_profiles()
+```
+
+---
+
 ## Обзор
 
 Проект содержит два типа тестов для проверки RAG pipeline:

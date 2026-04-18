@@ -40,22 +40,66 @@ gigachat_config = GigaChatConfig()
 
 @dataclass
 class ModelConfig:
-    """Конфигурация моделей"""
-    
-    # LLM модели
-    llm_model_name: str = "Qwen/Qwen2.5-0.5B-Instruct"
-    #llm_model_name: str = "ai-forever/rugpt3small_based_on_gpt2"
-    #llm_model_name: str = "GigaChat-2-Max"
-    
-    # Embedding модели
-    #embedding_model_name: str = "intfloat/multilingual-e5-base"
-    embedding_model_name: str = "intfloat/multilingual-e5-small"
-    #embedding_model_name: str = "GigaChat-2-Max"
-    
-    # Параметры генерации
-    max_new_tokens: int = 500  # Снижено с 2000; типичный русский ответ требует 200-300 токенов
+    """Конфигурация моделей с поддержкой профилей"""
 
-    #temperature: float = 0.7
+    # Профиль модели (production, quality, testing, ci)
+    # Определяет размер и скорость моделей
+    model_profile: str = os.getenv("RAG_MODEL_PROFILE", "production")
+
+    # Таблица профилей
+    _PROFILES = {
+        "production": {
+            "llm": "Qwen/Qwen2.5-0.5B-Instruct",
+            "embedding": "intfloat/multilingual-e5-small",
+            "max_tokens": 500,
+            "description": "Сбалансированный (0.5B LLM, ~1.1GB total) - для production"
+        },
+        "quality": {
+            "llm": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+            "embedding": "sentence-transformers/all-MiniLM-L6-v2",
+            "max_tokens": 600,
+            "description": "Высокое качество (1.1B LLM, ~2.3GB total) - для лучших результатов"
+        },
+        "llama": {
+            "llm": "meta-llama/Llama-3.2-1B-Instruct",
+            "embedding": "sentence-transformers/all-MiniLM-L6-v2",
+            "max_tokens": 600,
+            "description": "Новая Meta (1B LLM, ~2.1GB total) - оптимизирована для мобильных"
+        },
+        "testing": {
+            "llm": "gpt2",
+            "embedding": "sentence-transformers/all-MiniLM-L6-v2",
+            "max_tokens": 150,
+            "description": "Минимальный (117M LLM, ~370MB total) - для быстрых тестов"
+        },
+        "ci": {
+            "llm": "distilgpt2",
+            "embedding": "sentence-transformers/all-MiniLM-L6-v2",
+            "max_tokens": 100,
+            "description": "Супер-минимальный (82M LLM, ~350MB total) - только для CI/CD"
+        },
+    }
+
+    def __post_init__(self):
+        """Инициализация моделей по выбранному профилю"""
+        if self.model_profile not in self._PROFILES:
+            available = ", ".join(self._PROFILES.keys())
+            raise ValueError(f"Неизвестный профиль '{self.model_profile}'. Доступные: {available}")
+
+        profile = self._PROFILES[self.model_profile]
+        self.llm_model_name = profile["llm"]
+        self.embedding_model_name = profile["embedding"]
+        self.max_new_tokens = profile["max_tokens"]
+
+    # LLM модели (переопределяются в __post_init__)
+    llm_model_name: str = ""
+
+    # Embedding модели (переопределяются в __post_init__)
+    embedding_model_name: str = ""
+
+    # Параметры генерации (переопределяются в __post_init__)
+    max_new_tokens: int = 500
+
     temperature: float = 0.7
 
     # Конфигурация для RAGAS метрик
@@ -66,23 +110,36 @@ class ModelConfig:
 
     top_p: float = 0.9
     repetition_penalty: float = 1.1
-    
+
     # Параметры поиска
     default_k_retrieve: int = 5
-    #default_k_retrieve: int = 3
     max_context_length: int = 2000
-    
+
     # Устройство
-    #device: str = "cpu"  # Принудительно CPU для экономии памяти
     device: str = _device
-    
+
     # Режим работы
     mode: str = "ui"
     use_retriever: bool = True
-    
+
     # Квантование (для экономии памяти)
     use_8bit_quantization: bool = False
     use_4bit_quantization: bool = False
+
+    @classmethod
+    def get_profile_info(cls, profile: str) -> str:
+        """Информация о профиле"""
+        if profile in cls._PROFILES:
+            return cls._PROFILES[profile]["description"]
+        return "Неизвестный профиль"
+
+    @classmethod
+    def list_profiles(cls) -> str:
+        """Список всех доступных профилей"""
+        lines = ["📦 Доступные профили моделей:\n"]
+        for name, info in cls._PROFILES.items():
+            lines.append(f"  • {name:12} - {info['description']}")
+        return "\n".join(lines)
 
 
 @dataclass
@@ -301,25 +358,28 @@ def get_config_summary() -> str:
     ==================================================
     КОНФИГУРАЦИЯ RAG СИСТЕМЫ
     ==================================================
-    
+
+    ПРОФИЛЬ МОДЕЛЕЙ: {model_config.model_profile.upper()}
+      {ModelConfig.get_profile_info(model_config.model_profile)}
+
     МОДЕЛИ:
       LLM: {model_config.llm_model_name}
       Embeddings: {model_config.embedding_model_name}
       Device: {model_config.device}
       Max tokens: {model_config.max_new_tokens}
       Temperature: {model_config.temperature}
-    
+
     ДАННЫЕ:
       Data dir: {data_config.data_dir}
       Cache dir: {data_config.cache_dir}
       Chunk size: {data_config.chunk_size}
       Chunk overlap: {data_config.chunk_overlap}
       PDF max pages: {data_config.pdf_max_pages}
-    
+
     ВЕКТОРНОЕ ХРАНИЛИЩЕ:
       Type: {vectorstore_config.vector_store_type}
       Persist dir: {vectorstore_config.persist_dir}
-    
+
     ЭКСПЕРИМЕНТЫ:
       Ks eval: {experiment_config.ks_eval}
       Save results: {experiment_config.save_results}
@@ -328,13 +388,25 @@ def get_config_summary() -> str:
     return summary
 
 
+# Функции для работы с профилями
+def get_available_profiles() -> str:
+    """Получить список доступных профилей"""
+    return ModelConfig.list_profiles()
+
+def print_model_profiles():
+    """Вывести информацию о профилях в консоль"""
+    print(get_available_profiles())
+
 # Экспорт для удобного импорта
 __all__ = [
     'model_config',
-    'data_config', 
+    'data_config',
     'vectorstore_config',
     'experiment_config',
     'logging_config',
     'update_config_from_args',
-    'get_config_summary'
+    'get_config_summary',
+    'get_available_profiles',
+    'print_model_profiles',
+    'ModelConfig',
 ]
