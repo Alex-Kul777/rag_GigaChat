@@ -18,6 +18,7 @@ except ImportError:
     GIGACHAT_AVAILABLE = False
 
 from rag_gigachat.config import model_config, vectorstore_config, gigachat_config
+from rag_gigachat.core.model_downloader import check_and_download_model
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +96,14 @@ class VectorStoreManager:
             )
 
         logger.info(f"Используем локальные эмбеддинги: {self.embedding_model}")
+
+        # Гибридный режим: проверяем/скачиваем модель эмбеддингов если нужно
+        if not check_and_download_model(self.embedding_model):
+            raise RuntimeError(
+                f"Не удалось загрузить модель эмбеддингов {self.embedding_model}. "
+                f"Проверьте интернет-соединение или скачайте модель вручную."
+            )
+
         return HuggingFaceEmbeddings(
             model_name=self.embedding_model,
             model_kwargs={'device': model_config.device},

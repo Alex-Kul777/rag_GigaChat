@@ -23,6 +23,7 @@ except ImportError:
     _torch_available = False
 
 from rag_gigachat.config import model_config, gigachat_config
+from rag_gigachat.core.model_downloader import check_and_download_model
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,13 @@ class LLMManager:
 
         logger.info(f"Загрузка локальной модели: {self.model_name}")
         print(f"🔍 DEBUG: Загрузка модели {self.model_name}")
+
+        # Гибридный режим: проверяем/скачиваем модель если нужно
+        if not check_and_download_model(self.model_name):
+            raise RuntimeError(
+                f"Не удалось загрузить модель {self.model_name}. "
+                f"Проверьте интернет-соединение или скачайте модель вручную."
+            )
 
         try:
             torch_dtype = torch.float16 if model_config.device == "cuda" else torch.float32
