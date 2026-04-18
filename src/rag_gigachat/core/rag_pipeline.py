@@ -106,9 +106,15 @@ class RAGPipeline:
             embedding_type=embedding_type,
             persist_dir=vectorstore_config.persist_dir
         )
+        # Auto-detect если GigaChat недоступен, fallback на local
+        _llm_type = llm_type
+        if llm_type == "gigachat" and not gigachat_config.api_key:
+            logger.warning("⚠️ GigaChat API ключ не найден, переключаюсь на локальную модель")
+            _llm_type = "local"
+
         self.llm_manager = llm_manager or LLMManager(
-            model_name=model_config.llm_model_name if llm_type == "local" else None,
-            model_type=llm_type
+            model_name=model_config.llm_model_name if _llm_type == "local" else None,
+            model_type=_llm_type
         )
 
         # Используем загрузчик из data_loader
