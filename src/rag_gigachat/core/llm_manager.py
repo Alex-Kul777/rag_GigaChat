@@ -46,8 +46,11 @@ class LLMManager:
         self.model_name = model_name or model_config.llm_model_name
         self.llm = None
         self.is_initialized = False
+        self.is_offline = model_type == "local"
 
-        logger.info(f"LLMManager инициализирован. Модель: {model_name}")
+        offline_status = "OFFLINE" if self.is_offline else "ONLINE"
+        logger.info(f"LLMManager init: model_type={model_type}, model={self.model_name}, mode={offline_status}")
+        print(f"📦 LLMManager: {offline_status} mode, model_type={model_type}")
 
     def load_gigachat_model(self) -> BaseLLM:
         """

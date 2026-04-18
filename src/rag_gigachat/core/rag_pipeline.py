@@ -519,14 +519,16 @@ class RAGPipeline:
             with emit("llm.call", resource="gigachat", query_len=len(state["question"]), context_len=len(docs_content)):
                 with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                     llm_start = time.time()
-                    future = executor.submit(self.llm_manager.invoke_with_retry, formatted_prompt, timeout=60.0)
+                    timeout_val = None if self.llm_manager.model_type == "local" else 60.0
+                    future = executor.submit(self.llm_manager.invoke_with_retry, formatted_prompt, timeout=timeout_val)
                     try:
-                        response = future.result(timeout=70.0)
+                        result_timeout = 300.0 if self.llm_manager.model_type == "local" else 70.0
+                        response = future.result(timeout=result_timeout)
                         llm_elapsed = time.time() - llm_start
-                        logger.info(f"⏱️ LLM вызов завершен за {llm_elapsed:.1f} сек")
+                        logger.info(f"⏱️ LLM вызов завершен за {llm_elapsed:.1f} сек (тип: {self.llm_manager.model_type}, timeout: {timeout_val})")
                     except concurrent.futures.TimeoutError:
                         llm_elapsed = time.time() - llm_start
-                        logger.error(f"❌ LLM вызов превысил timeout ({llm_elapsed:.1f}s)")
+                        logger.error(f"❌ LLM вызов превысил timeout ({llm_elapsed:.1f}s, тип: {self.llm_manager.model_type})")
                         raise TimeoutError("LLM call exceeded timeout (60s per attempt, 3 attempts max)")
             if hasattr(response, 'content'):
                 answer_text = response.content

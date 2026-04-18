@@ -8,6 +8,9 @@ import os
 # Подавляем шумные предупреждения от transformers
 os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
 os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
+os.environ['HF_HUB_OFFLINE'] = '1'  # Режим оффлайн для HF Hub
+os.environ['TRANSFORMERS_OFFLINE'] = '1'  # Оффлайн режим для transformers
+os.environ['TRANSFORMERS_CACHE'] = '/tmp/hf_cache'  # Кэш локальных моделей
 
 import streamlit as st
 from pathlib import Path
