@@ -21,8 +21,8 @@ import random
 try:
     from langchain_community.document_loaders import PyPDFLoader, TextLoader
     from langchain_community.document_loaders import DirectoryLoader
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
-    from langchain.schema import Document as LangChainDocument
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+    from langchain_core.documents import Document as LangChainDocument
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     LANGCHAIN_AVAILABLE = False
