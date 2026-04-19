@@ -33,6 +33,7 @@ from rag_gigachat.config import (
 from rag_gigachat.models import RetrievalResult, GenerationResult, RetrievalType
 from rag_gigachat.data.data_loader import CorpusLoader, DocumentLoader, TextSplitter
 from rag_gigachat.token_counter import TokenCounter
+from rag_gigachat.utils.text_utils import filter_documents_by_token_count
 from rag_gigachat.core.vector_store import VectorStoreManager       # noqa: F401 (re-export)
 from rag_gigachat.core.llm_manager import LLMManager                # noqa: F401 (re-export)
 from rag_gigachat.core.retriever import BaseRetriever, DenseRetriever, make_retriever  # noqa: F401
@@ -394,11 +395,64 @@ class RAGPipeline:
         if not documents:
             logger.warning("Не найдено документов для загрузки")
             return
-        
+
         # Сохраняем метаданные отдельно
         self.documents_metadata = {}
         texts_for_vectorstore = {}
         metadata_for_vectorstore = {}
+
+        # Применяем фильтрацию по токенам (удаляем чанки <30 токенов)
+        # Преобразуем в LangChainDocument для фильтрации
+        docs_list = []
+        doc_ids_list = []
+
+        for doc_id, data in documents.items():
+            if isinstance(data, dict) and 'text' in data:
+                doc = Document(
+                    page_content=data['text'],
+                    metadata=data.get('metadata', {})
+                )
+            else:
+                doc = Document(
+                    page_content=data if isinstance(data, str) else str(data),
+                    metadata={}
+                )
+            docs_list.append(doc)
+            doc_ids_list.append(doc_id)
+
+        # Фильтруем по минимальному количеству токенов
+        filtered_docs = filter_documents_by_token_count(
+            docs_list,
+            min_tokens=30,
+            language=None  # Auto-detect
+        )
+
+        # Восстанавливаем отфильтрованные ID
+        filtered_ids = set()
+        for filtered_doc in filtered_docs:
+            # Найдем исходный ID по содержимому
+            for idx, orig_doc in enumerate(docs_list):
+                if orig_doc.page_content == filtered_doc.page_content:
+                    filtered_ids.add(doc_ids_list[idx])
+                    break
+
+        # Создаем новый словарь с отфильтрованными документами
+        filtered_documents = {
+            doc_id: data for doc_id, data in documents.items()
+            if doc_id in filtered_ids
+        }
+
+        logger.info(
+            f"📊 Фильтрация по токенам: {len(documents)} → {len(filtered_documents)} документов "
+            f"(удалено {len(documents) - len(filtered_documents)} низкокачественных чанков)"
+        )
+
+        # Используем отфильтрованные документы
+        documents = filtered_documents
+
+        if not documents:
+            logger.warning("⚠️ После фильтрации по токенам не осталось документов")
+            return
 
         for doc_id, data in documents.items():
             if isinstance(data, dict) and 'metadata' in data:
