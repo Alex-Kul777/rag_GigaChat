@@ -49,15 +49,28 @@ class LLMManager:
         self.is_initialized = False
         self.is_offline = model_type == "local"
 
-        # В режиме отладки используем быструю модель
-        if debug_config.debug_mode and model_type == "local":
-            original_model = self.model_name
-            self.model_name = debug_config.debug_model_name
-            logger.info(f"🐛 DEBUG MODE: Using fast model {self.model_name} instead of {original_model}")
-            print(f"🐛 DEBUG MODE: Using fast model {self.model_name}")
+        # 🐛 DEBUG MODE: Логируем статус debug-режима
+        import os
+        env_debug_mode = os.getenv("RAG_DEBUG_MODE", "false").lower() == "true"
+
+        if model_type == "local":
+            if debug_config.debug_mode:
+                # ✅ DEBUG режим ВКЛЮЧЕН
+                original_model = self.model_name
+                self.model_name = debug_config.debug_model_name
+                logger.info(f"🐛 DEBUG MODE ENABLED: Using fast model {self.model_name} (125M) instead of {original_model} (500M)")
+                logger.info(f"⏱️  Expected: Load ~2-3sec, Generate ~1-2sec, Memory ~400MB")
+                print(f"🐛 DEBUG MODE: {self.model_name} (fast, 125M params)")
+            else:
+                # ❌ DEBUG режим ОТКЛЮЧЕН
+                if env_debug_mode != debug_config.debug_mode:
+                    logger.warning(f"⚠️  DEBUG MODE: RAG_DEBUG_MODE={env_debug_mode} but debug_config.debug_mode={debug_config.debug_mode}")
+                logger.info(f"📦 PRODUCTION MODE: Using {self.model_name} (500M, high quality)")
+                logger.info(f"💡 To use debug mode with fast model: export RAG_DEBUG_MODE=true")
+                print(f"📦 Production mode: {self.model_name}")
 
         offline_status = "OFFLINE" if self.is_offline else "ONLINE"
-        logger.info(f"LLMManager init: model_type={model_type}, model={self.model_name}, mode={offline_status}")
+        logger.info(f"LLMManager: model_type={model_type}, model={self.model_name}, mode={offline_status}")
         print(f"📦 LLMManager: {offline_status} mode, model_type={model_type}")
 
     def load_gigachat_model(self) -> BaseLLM:

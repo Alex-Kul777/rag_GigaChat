@@ -434,6 +434,18 @@ def main():
 
     logger.debug(f"🚀 RERUN STREAMLIT #1: Инициализация main()")
 
+    # 🐛 ДИАГНОСТИКА DEBUG-РЕЖИМА: Проверяем и логируем статус
+    import os
+    env_debug = os.getenv("RAG_DEBUG_MODE", "false").lower() == "true"
+    from rag_gigachat.config import debug_config
+
+    if env_debug or debug_config.debug_mode:
+        logger.info(f"✅ DEBUG-РЕЖИМ АКТИВЕН: Используется {debug_config.debug_model_name} (125M параметров)")
+        st.info(f"✅ **DEBUG-режим активен**: Используется быстрая модель {debug_config.debug_model_name} (125M параметров, ~3 сек на загрузку)")
+    else:
+        logger.info(f"📦 PRODUCTION-РЕЖИМ: Используется {model_config.llm_model_name} (500M параметров, высокое качество)")
+        logger.info(f"💡 Для включения debug-режима выполните: export RAG_DEBUG_MODE=true")
+
     # Инициализация состояния
     init_session_state()
 
