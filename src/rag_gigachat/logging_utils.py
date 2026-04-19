@@ -228,3 +228,164 @@ class _ClassLoggerAdapter(logging.LoggerAdapter):
             kwargs['extra'] = {}
         kwargs['extra']['class_name'] = self.extra['class_name']
         return msg, kwargs
+
+
+from dataclasses import dataclass, field
+from typing import List, Dict, Optional
+import time
+import uuid
+
+
+@dataclass
+class StageMetrics:
+    """Метрики отдельного этапа обработки"""
+    stage_name: str
+    timestamp_start: str
+    timestamp_end: str = ""
+    duration_ms: int = 0
+    status: str = "PENDING"  # PENDING, OK, ERROR, TIMEOUT
+    input_size: int = 0
+    output_size: int = 0
+    memory_mb: float = 0.0
+    error_msg: str = ""
+    metrics: Dict[str, any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        """Конвертировать в словарь для логирования"""
+        return {
+            'stage': self.stage_name,
+            'timestamp_start': self.timestamp_start,
+            'timestamp_end': self.timestamp_end,
+            'duration_ms': self.duration_ms,
+            'status': self.status,
+            'input_size': self.input_size,
+            'output_size': self.output_size,
+            'memory_mb': self.memory_mb,
+            'error_msg': self.error_msg,
+            'custom_metrics': self.metrics,
+        }
+
+
+class PipelineTimer:
+    """Таймер для измерения времени выполнения этапов обработки"""
+
+    def __init__(self, logger: logging.Logger):
+        """
+        Args:
+            logger: логгер для записи информации
+        """
+        self.logger = logger
+        self.stages: Dict[str, Dict] = {}
+        self.request_id = str(uuid.uuid4())[:8]
+
+    def start_stage(self, stage_name: str, params: dict = None) -> str:
+        """
+        Начать измерение этапа
+
+        Args:
+            stage_name: название этапа (LOAD_DOCS, RETRIEVAL и т.д.)
+            params: дополнительные параметры для логирования
+
+        Returns:
+            request_id для трассировки
+        """
+        timestamp = datetime.utcnow().isoformat() + "Z"
+        self.stages[stage_name] = {
+            'start_time': time.time(),
+            'timestamp_start': timestamp,
+            'params': params or {},
+            'status': 'RUNNING'
+        }
+
+        # Логируем начало этапа
+        self.logger.info(
+            f"[{self.request_id}] 🧪 [{stage_name} START]",
+            extra={
+                'stage': stage_name,
+                'action': 'START',
+                'request_id': self.request_id,
+                'metrics': params or {}
+            }
+        )
+
+        return self.request_id
+
+    def end_stage(self, stage_name: str, metrics: dict = None, status: str = "OK") -> StageMetrics:
+        """
+        Завершить измерение этапа
+
+        Args:
+            stage_name: название этапа
+            metrics: итоговые метрики этапа
+            status: статус (OK, ERROR, TIMEOUT)
+
+        Returns:
+            StageMetrics объект с информацией об этапе
+        """
+        if stage_name not in self.stages:
+            return None
+
+        stage_info = self.stages[stage_name]
+        elapsed_ms = int((time.time() - stage_info['start_time']) * 1000)
+        timestamp_end = datetime.utcnow().isoformat() + "Z"
+
+        stage_metrics = StageMetrics(
+            stage_name=stage_name,
+            timestamp_start=stage_info['timestamp_start'],
+            timestamp_end=timestamp_end,
+            duration_ms=elapsed_ms,
+            status=status,
+            metrics={**stage_info['params'], **(metrics or {})}
+        )
+
+        # Определяем emoji по статусу
+        emoji = {
+            'OK': '✅',
+            'ERROR': '❌',
+            'TIMEOUT': '⏱️',
+            'PENDING': '⏳'
+        }.get(status, '❓')
+
+        # Логируем завершение этапа
+        self.logger.info(
+            f"[{self.request_id}] {emoji} [{stage_name} END] duration={elapsed_ms}ms, status={status}",
+            extra={
+                'stage': stage_name,
+                'action': 'END',
+                'request_id': self.request_id,
+                'metrics': {
+                    'duration_ms': elapsed_ms,
+                    'status': status,
+                    **stage_metrics.metrics
+                }
+            }
+        )
+
+        return stage_metrics
+
+    def get_all_metrics(self) -> List[StageMetrics]:
+        """Получить метрики всех завершенных этапов"""
+        return [
+            stage.get('metrics_obj')
+            for stage in self.stages.values()
+            if 'metrics_obj' in stage
+        ]
+
+    def summary(self) -> Dict[str, int]:
+        """
+        Получить сводку времени по этапам
+
+        Returns:
+            {'STAGE_NAME': duration_ms, ...}
+        """
+        summary = {}
+        total_time = 0
+
+        for stage_name, stage_info in self.stages.items():
+            if 'start_time' in stage_info:
+                elapsed_ms = int((time.time() - stage_info['start_time']) * 1000)
+                summary[stage_name] = elapsed_ms
+                total_time += elapsed_ms
+
+        summary['TOTAL'] = total_time
+        return summary
