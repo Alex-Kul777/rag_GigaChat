@@ -144,6 +144,7 @@ def init_session_state():
         "chat_history": [],
         # Debug режим
         "debug_query_executed": False,
+        "auto_test_question_sent": False,  # 🧪 Флаг для автоматического вопроса
     }
 
     for key, value in defaults.items():
@@ -446,12 +447,27 @@ def main():
         logger.info(f"📦 PRODUCTION-РЕЖИМ: Используется {model_config.llm_model_name} (500M параметров, высокое качество)")
         logger.info(f"💡 Для включения debug-режима выполните: export RAG_DEBUG_MODE=true")
 
+    # 🧪 ТЕСТОВЫЙ ВОПРОС: Проверяем есть ли вопрос для автоматического отправления
+    test_question = debug_config.test_question
+    if test_question:
+        logger.info(f"🧪 АВТОМАТИЧЕСКИЙ ВОПРОС: '{test_question}'")
+        st.info(f"🧪 **Автоматический тест**: Отправляется вопрос '{test_question}'")
+
     # Инициализация состояния
     init_session_state()
 
-    # Проверка режима debug
+    # Проверка режима debug и тестового вопроса
     is_debug_mode = os.environ.get("RAG_DEBUG", "").lower() == "true"
     debug_query = "Что такое RAG?"
+
+    # 🧪 ТЕСТОВЫЙ ВОПРОС: Может быть установлен через env var или флаг
+    test_question = debug_config.test_question or os.getenv("RAG_TEST_QUESTION", "")
+    if test_question:
+        logger.info(f"🧪 Автоматический вопрос установлен: '{test_question}'")
+        # Используем test_question вместо debug_query, если он установлен
+        question_to_auto_send = test_question
+    else:
+        question_to_auto_send = None
 
     # Авто-загрузка документов если индекс пуст
     try:
@@ -559,8 +575,34 @@ def main():
     # Статистика
     render_stats()
 
-    # DEBUG MODE: Автоматически выполнить тестовый запрос
-    if is_debug_mode and not st.session_state.debug_query_executed:
+    # 🧪 АВТОМАТИЧЕСКАЯ ОТПРАВКА ВОПРОСА: После загрузки документов
+    # Используем session_state флаг чтобы отправить только один раз за сессию
+    if question_to_auto_send and not st.session_state.get("auto_test_question_sent", False):
+        # Проверяем, что индекс инициализирован (документы загружены)
+        try:
+            pipeline = get_rag_pipeline(
+                embedding_model=st.session_state.embedding_model,
+                chunk_size=st.session_state.chunk_size,
+                chunk_overlap=st.session_state.chunk_overlap
+            )
+            if pipeline.vector_store_manager.is_initialized:
+                st.session_state.auto_test_question_sent = True
+                logger.info(f"🧪 ОТПРАВКА АВТОМАТИЧЕСКОГО ВОПРОСА: '{question_to_auto_send}'")
+                # Задержка для стабилизации интерфейса
+                with st.spinner(f"🧪 Автоматическая отправка вопроса: '{question_to_auto_send}'"):
+                    import time
+                    time.sleep(1)
+                    try:
+                        handle_user_query(question_to_auto_send)
+                        logger.info(f"✅ Автоматический вопрос обработан успешно")
+                    except Exception as e:
+                        logger.error(f"❌ Ошибка при автоматической отправке: {e}", exc_info=True)
+                        st.error(f"❌ Ошибка при отправке вопроса: {e}")
+        except Exception as e:
+            logger.error(f"❌ Ошибка при инициализации для автоответа: {e}", exc_info=True)
+
+    # DEBUG MODE: Автоматически выполнить тестовый запрос (старая логика для совместимости)
+    elif is_debug_mode and not st.session_state.debug_query_executed:
         st.session_state.debug_query_executed = True
         # Задержка для загрузки документов
         with st.spinner("🔄 DEBUG: Автоматический запрос..."):

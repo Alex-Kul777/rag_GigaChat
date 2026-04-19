@@ -255,6 +255,9 @@ class DebugConfig:
     debug_mode: bool = os.getenv("RAG_DEBUG_MODE", "false").lower() == "true"
     debug_model_name: str = "facebook/opt-125m"  # 125M параметров, очень быстрая, CPU-friendly
 
+    # Автоматический тестовый вопрос при запуске в debug-режиме
+    test_question: str = os.getenv("RAG_TEST_QUESTION", "")  # Пустая строка = не отправлять
+
 
 # Глобальные экземпляры конфигураций
 model_config = ModelConfig()
