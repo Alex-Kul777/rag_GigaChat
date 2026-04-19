@@ -9,6 +9,7 @@ import sys
 import argparse
 import json
 import logging
+import time
 from pathlib import Path
 from typing import Optional, Dict, Any
 import subprocess
@@ -149,11 +150,26 @@ def run_streamlit_ui():
             cwd=str(current_dir),
             env=os.environ.copy()
         )
-        process.wait()
+        # Ждем завершения процесса пользователем (Ctrl+C)
+        # Используем poll() чтобы проверять статус периодически
+        while True:
+            if process.poll() is not None:
+                # Процесс неожиданно завершился, перезапустим его
+                print("⚠️  Streamlit процесс завершился, перезапускаю...")
+                process = subprocess.Popen(
+                    streamlit_cmd,
+                    cwd=str(current_dir),
+                    env=os.environ.copy()
+                )
+            time.sleep(1)
     except KeyboardInterrupt:
         print("\n🛑 Остановка Streamlit...")
-        process.terminate()
-        process.wait()
+        if process and process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
         print("✅ Streamlit остановлен")
     except Exception as e:
         print(f"❌ Ошибка запуска Streamlit: {e}")
