@@ -1,0 +1,28 @@
+name: Docs Check
+
+on:
+  push:
+    paths:
+      - '**.md'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - '**.md'
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    name: Check Markdown Links
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run link checker
+        run: |
+          chmod +x scripts/check_links.sh
+          bash scripts/check_links.sh
+
+      - name: Check critical files exist
+        run: |
+          test -f CLAUDE.md && echo "✅ CLAUDE.md exists" || exit 1
+          test -d docs/ && echo "✅ docs/ exists" || exit 1
+          test -f docs/README.md && echo "✅ docs/README.md exists" || exit 1
