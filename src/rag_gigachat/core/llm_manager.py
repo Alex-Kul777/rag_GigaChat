@@ -51,10 +51,12 @@ class LLMManager:
 
         # 🐛 DEBUG MODE: Логируем статус debug-режима
         import os
+        # Проверяем ТЕКУЩЕЕ значение переменной окружения (не только при инициализации config)
         env_debug_mode = os.getenv("RAG_DEBUG_MODE", "false").lower() == "true"
 
         if model_type == "local":
-            if debug_config.debug_mode:
+            # Используем env_debug_mode, т.к. это актуальное значение в текущем процессе
+            if env_debug_mode:
                 # ✅ DEBUG режим ВКЛЮЧЕН
                 original_model = self.model_name
                 self.model_name = debug_config.debug_model_name
@@ -63,8 +65,6 @@ class LLMManager:
                 print(f"🐛 DEBUG MODE: {self.model_name} (fast, 125M params)")
             else:
                 # ❌ DEBUG режим ОТКЛЮЧЕН
-                if env_debug_mode != debug_config.debug_mode:
-                    logger.warning(f"⚠️  DEBUG MODE: RAG_DEBUG_MODE={env_debug_mode} but debug_config.debug_mode={debug_config.debug_mode}")
                 logger.info(f"📦 PRODUCTION MODE: Using {self.model_name} (500M, high quality)")
                 logger.info(f"💡 To use debug mode with fast model: export RAG_DEBUG_MODE=true")
                 print(f"📦 Production mode: {self.model_name}")

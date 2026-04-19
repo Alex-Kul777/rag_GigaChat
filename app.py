@@ -144,11 +144,20 @@ def run_streamlit_ui():
     print("⏹️  Для остановки нажмите Ctrl+C")
     print("-" * 60)
 
+    # Подготовить окружение для subprocess
+    # Важно: явно передать RAG_DEBUG_MODE и другие env vars
+    env = os.environ.copy()
+    # Логируем что передаём
+    if env.get("RAG_DEBUG_MODE") == "true":
+        print(f"🐛 DEBUG MODE: Передаю RAG_DEBUG_MODE=true в Streamlit subprocess")
+    if env.get("RAG_TEST_QUESTION"):
+        print(f"🧪 TEST QUESTION: {env.get('RAG_TEST_QUESTION')}")
+
     try:
         process = subprocess.Popen(
             streamlit_cmd,
             cwd=str(current_dir),
-            env=os.environ.copy()
+            env=env
         )
         # Ждем завершения процесса пользователем (Ctrl+C)
         # Используем poll() чтобы проверять статус периодически
@@ -313,6 +322,7 @@ def main():
         if args.test_question:
             os.environ["RAG_TEST_QUESTION"] = args.test_question
             logger.info(f"🧪 Тестовый вопрос установлен: {args.test_question}")
+
         success = run_streamlit_ui()
         if not success:
             sys.exit(1)
