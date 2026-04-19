@@ -503,7 +503,7 @@ class RAGPipeline:
             'EMBEDDING',
             params={
                 'embedding_model': self.vector_store_manager.embedding_model,
-                'embedding_dim': self.vector_store_manager.embedding_dim
+                'embedding_dim': self.vector_store_manager.get_embedding_dim()
             }
         )
 

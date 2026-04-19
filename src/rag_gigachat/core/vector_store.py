@@ -72,11 +72,23 @@ class VectorStoreManager:
         self.vector_store = None
         self.is_initialized = False
         self.current_hash = None
+        self._embedding_dim_cache = None
 
         logger.info(
             f"VectorStoreManager инициализирован. "
             f"Тип эмбеддингов: {embedding_type}, Директория: {self.persist_dir}"
         )
+
+    def get_embedding_dim(self) -> int:
+        """Get embedding dimension (cached)"""
+        if self._embedding_dim_cache:
+            return self._embedding_dim_cache
+        try:
+            dim = len(self.embeddings.embed_query("test"))
+            self._embedding_dim_cache = dim
+            return dim
+        except:
+            return 384
 
     def _init_embeddings(self):
         """Инициализация модели эмбеддингов"""
