@@ -7,6 +7,7 @@ rag_core.py - Facade: RAG пайплайн (LangChain + LangGraph).
 Re-экспорт сохранён для обратной совместимости.
 """
 import logging
+import re
 import time
 import concurrent.futures
 from datetime import datetime
@@ -58,6 +59,29 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 logger.setLevel(getattr(logging, logging_config.log_level))
+
+
+def format_answer(text: str) -> str:
+    """Форматирование ответа LLM для компактного отображения.
+
+    - Множественные пробелы → один пробел
+    - Каждое предложение (после точки) → новая строка
+    - Без пустых строк
+    - Левое выравнивание
+    """
+    if not text:
+        return ""
+
+    # Удаляем множественные пробелы/переносы
+    text = re.sub(r'\s+', ' ', text)
+    text = text.strip()
+
+    # Точка + пробелы + (заглавная буква или цифра) → новая строка
+    text = re.sub(r'\.\s+(?=[А-ЯЁ0-9])', '.\n', text)
+
+    # Убираем пустые строки
+    lines = [line.strip() for line in text.split('\n') if line.strip()]
+    return '\n'.join(lines)
 
 
 class RAGState(TypedDict):
@@ -551,7 +575,7 @@ class RAGPipeline:
             else:
                 answer_text = str(response)
 
-            return {"answer": answer_text}
+            return {"answer": format_answer(answer_text)}
 
         # Определяем функцию рендера (BKL-002: обеспечить полноту трассировки)
         def render(state: RAGState):
