@@ -2,6 +2,9 @@
 
 import re
 from typing import Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def analyze_text_quality(text: str) -> Dict[str, Any]:
@@ -65,3 +68,54 @@ def analyze_text_quality(text: str) -> Dict[str, Any]:
     analysis['waste_percent'] = round((total_issues / max(len(text), 1)) * 100, 2)
 
     return analysis
+
+
+def normalize_text(text: str) -> str:
+    """Нормализация текста для улучшения качества эмбеддингов.
+
+    Действия:
+    - Удаляет множественные пробелы (2+) → один пробел
+    - Удаляет множественные переносы строк (3+) → два переноса (абзац)
+    - Убирает табуляции и странные whitespace
+    - Чистит разрывы внутри слов (буква+перенос→буква)
+    - Удаляет пространство в начале/конце строк
+
+    Args:
+        text: Сырой текст из PDF
+
+    Returns:
+        Нормализованный текст
+
+    Example:
+        >>> normalize_text("Текст    с     пробелами.\\n\\n\\n")
+        'Текст с пробелами.'
+    """
+    if not text:
+        return ""
+
+    # 1. Заменяем табуляции на пробелы
+    text = text.replace('\t', ' ')
+
+    # 2. Убираем no-break space (U+00A0)
+    text = text.replace('\u00A0', ' ')
+
+    # 3. Удаляем множественные пробелы (2+) → один пробел
+    text = re.sub(r' {2,}', ' ', text)
+
+    # 4. Нормализуем переносы строк (CRLF → LF)
+    text = text.replace('\r\n', '\n').replace('\r', '\n')
+
+    # 5. Чистим разрывы внутри слов
+    # Паттерн: строчная буква (кириллица или латиница) + перевод строки + строчная буква
+    text = re.sub(r'([а-яёa-z])\n([а-яёa-z])', r'\1\2', text, flags=re.IGNORECASE)
+
+    # 6. Удаляем множественные переносы строк (3+) → два переноса (абзац)
+    text = re.sub(r'\n{3,}', '\n\n', text)
+
+    # 7. Убираем пробелы в начале/конце каждой строки
+    text = '\n'.join(line.strip() for line in text.split('\n'))
+
+    # 8. Финальный trim
+    text = text.strip()
+
+    return text
