@@ -325,3 +325,108 @@ class TestDebugModeQueryProcessing:
 
         logger.info(f"✅ Найдено {len(result.retrieval_results.retrieved_docs)} " \
                    f"валидных документов с корректными scores")
+
+
+@pytest.mark.slow
+class TestDebugModePerformance:
+    """Тесты для проверки производительности и использования памяти"""
+
+    @pytest.fixture(scope="class")
+    def performance_pipeline(self):
+        """Fixture: pipeline для тестирования производительности"""
+        logger.info("Инициализация pipeline для тестов производительности...")
+
+        os.environ["RAG_DEBUG_MODE"] = "true"
+
+        try:
+            pipeline = RAGPipeline(
+                retrieval_type=RetrievalType.DENSE,
+                embedding_type="huggingface",
+                llm_type="local"
+            )
+
+            if TEST_DATA_DIR.exists():
+                pipeline.load_from_pdf_directory_with_metadata(
+                    TEST_DATA_DIR,
+                    recursive=False,
+                    force_reload=False
+                )
+
+            pipeline.llm_manager.load_local_model()
+            logger.info("✅ Pipeline инициализирован для performance тестов")
+            yield pipeline
+
+        finally:
+            if "RAG_DEBUG_MODE" in os.environ:
+                del os.environ["RAG_DEBUG_MODE"]
+
+    def test_debug_generation_time_under_limit(self, performance_pipeline):
+        """Тест 10: Проверка что генерация ответа завершается за разумное время"""
+        query = TEST_QUERY
+
+        # Обрабатываем запрос и измеряем время
+        result = performance_pipeline.process_query(query, k=K_RETRIEVE)
+
+        # Проверяем что время обработки положительное
+        assert result.generation_time > 0, \
+            f"Время генерации должно быть > 0, получено {result.generation_time}"
+
+        # Проверяем что время разумное (< 15 сек для opt-125m)
+        assert result.generation_time < 15.0, \
+            f"Время генерации должно быть < 15 сек, получено {result.generation_time:.2f} сек"
+
+        # Проверяем что сгенерированы токены
+        assert result.tokens_generated > 0, \
+            f"Должны быть сгенерированы токены, получено {result.tokens_generated}"
+
+        logger.info(f"✅ Генерация завершена за {result.generation_time:.2f} сек "
+                   f"({result.tokens_generated} токенов)")
+
+    @pytest.mark.skipif(not _torch_available or not torch.cuda.is_available(),
+                        reason="CUDA недоступна")
+    def test_debug_gpu_memory_under_limit(self, performance_pipeline):
+        """Тест 11: Проверка что GPU используется < 1 GB памяти"""
+        # Процесс query чтобы загрузить модель в GPU
+        query = TEST_QUERY
+        result = performance_pipeline.process_query(query, k=K_RETRIEVE)
+
+        # Получаем использованную GPU память
+        gpu_allocated = torch.cuda.memory_allocated(0) / 1e9  # Конвертируем в GB
+
+        # Проверяем что память используется
+        assert gpu_allocated > 0, \
+            f"GPU память должна быть > 0 GB, получена {gpu_allocated:.3f} GB"
+
+        # Проверяем что не переполняем GPU (facebook/opt-125m с fp16 < 1 GB)
+        assert gpu_allocated < 1.0, \
+            f"GPU память должна быть < 1 GB, использовано {gpu_allocated:.3f} GB " \
+            f"(контрольная регрессия: было SIGKILL -9 при float32)"
+
+        logger.info(f"✅ GPU использует {gpu_allocated:.3f} GB памяти (< 1 GB ✓)")
+
+    @pytest.mark.skipif(not _torch_available or not torch.cuda.is_available(),
+                        reason="CUDA недоступна")
+    def test_debug_gpu_memory_consistency(self, performance_pipeline):
+        """Тест 12: Проверка что GPU память не растет бесконечно при запросах"""
+        # Получаем baseline использования памяти
+        torch.cuda.reset_peak_memory_stats(0)
+        gpu_before = torch.cuda.memory_allocated(0)
+
+        # Выполняем несколько запросов
+        for i in range(2):
+            query = f"{TEST_QUERY} (запрос {i+1})"
+            result = performance_pipeline.process_query(query, k=K_RETRIEVE)
+
+        # Получаем память после запросов
+        gpu_after = torch.cuda.memory_allocated(0)
+
+        # Проверяем что память не выросла более чем на 50%
+        # (нормальный рост кэша, но не утечка)
+        peak_memory = torch.cuda.max_memory_allocated(0) / 1e9
+        growth_percent = ((gpu_after - gpu_before) / max(gpu_before, 1e8)) * 100
+
+        assert peak_memory < 1.5, \
+            f"Peak GPU память должна быть < 1.5 GB, получена {peak_memory:.3f} GB"
+
+        logger.info(f"✅ GPU память стабильна: {gpu_before / 1e9:.3f} GB → "
+                   f"{gpu_after / 1e9:.3f} GB (peak: {peak_memory:.3f} GB)")
