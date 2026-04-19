@@ -172,7 +172,12 @@ class DataConfig:
     chunk_size: int = 500
     chunk_overlap: int = 80
     chunk_separators: List[str] = field(default_factory=lambda: ["\n\n", "\n", ".", "!", "?", ",", " ", ""])
-    
+
+    # Параметры фильтрации по токенам
+    token_filtering_enabled: bool = True  # Включить/отключить фильтрацию по токенам
+    token_filter_min_tokens: int = 30  # Минимальное количество токенов для сохранения чанка
+    token_filter_max_tokens: Optional[int] = None  # Максимальное количество токенов (None = без ограничений)
+
     # Параметры кэширования
     cache_enabled: bool = True
     #force_reload: bool = True

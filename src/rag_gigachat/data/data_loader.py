@@ -829,21 +829,28 @@ class CorpusLoader:
             splitter = TextSplitter(chunk_size, chunk_overlap or 50)
             documents = splitter.split_documents(documents)
 
-        # 🔍 Применяем фильтрацию по токенам
-        docs_before_filter = len(documents)
-        documents = filter_documents_by_token_count(documents, min_tokens=30)
-        docs_after_filter = len(documents)
-
-        if docs_before_filter > docs_after_filter:
-            removed = docs_before_filter - docs_after_filter
-            logger.info(
-                f"🔍 Фильтрация по токенам: удалено {removed}/{docs_before_filter} чанков "
-                f"(остаток: {docs_after_filter})"
+        # 🔍 Применяем фильтрацию по токенам (если включена в конфигурации)
+        if data_config.token_filtering_enabled:
+            docs_before_filter = len(documents)
+            documents = filter_documents_by_token_count(
+                documents,
+                min_tokens=data_config.token_filter_min_tokens,
+                max_tokens=data_config.token_filter_max_tokens
             )
+            docs_after_filter = len(documents)
 
-        if not documents:
-            logger.warning("⚠️ Все документы отфильтрованы по критерию минимального количества токенов")
-            return {}
+            if docs_before_filter > docs_after_filter:
+                removed = docs_before_filter - docs_after_filter
+                logger.info(
+                    f"🔍 Фильтрация по токенам: удалено {removed}/{docs_before_filter} чанков "
+                    f"(мин={data_config.token_filter_min_tokens}, макс={data_config.token_filter_max_tokens}, остаток={docs_after_filter})"
+                )
+
+            if not documents:
+                logger.warning("⚠️ Все документы отфильтрованы по критерию минимального количества токенов")
+                return {}
+        else:
+            logger.debug("Фильтрация по токенам отключена в конфигурации")
 
         # Преобразование в словарь с сохранением метаданных
         result = {}
