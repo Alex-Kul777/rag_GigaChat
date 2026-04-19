@@ -147,9 +147,10 @@ class RAGPipeline:
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
 
-        # 🧪 Инициализируем таймер для метрик per-stage
-        from rag_gigachat.logging_utils import PipelineTimer
+        # 🧪 Инициализируем таймер и трекер памяти для метрик per-stage
+        from rag_gigachat.logging_utils import PipelineTimer, MemoryTracker
         self.pipeline_timer = PipelineTimer(logger)
+        self.memory_tracker = MemoryTracker()
 
         self.vector_store_initialized = False
         self.graph = None
@@ -784,6 +785,7 @@ class RAGPipeline:
 
             # 🧪 RETRIEVAL START
             k_value = k or model_config.default_k_retrieve
+            self.memory_tracker.start_stage('RETRIEVAL')
             self.pipeline_timer.start_stage(
                 'RETRIEVAL',
                 params={'k': k_value, 'metric': 'cosine'}
@@ -799,14 +801,18 @@ class RAGPipeline:
             docs = [doc for doc, _ in docs_with_scores]
             real_scores = [score for _, score in docs_with_scores]
 
-            # 🧪 RETRIEVAL END - логируем метрики
+            # 🧪 RETRIEVAL END - логируем метрики и память
+            memory_metrics = self.memory_tracker.end_stage('RETRIEVAL')
+            retrieval_metrics = {
+                'docs_count': len(docs),
+                'top_score': real_scores[0] if real_scores else 0.0,
+                'avg_score': sum(real_scores) / len(real_scores) if real_scores else 0.0
+            }
+            retrieval_metrics.update(memory_metrics)
+
             self.pipeline_timer.end_stage(
                 'RETRIEVAL',
-                metrics={
-                    'docs_count': len(docs),
-                    'top_score': real_scores[0] if real_scores else 0.0,
-                    'avg_score': sum(real_scores) / len(real_scores) if real_scores else 0.0
-                },
+                metrics=retrieval_metrics,
                 status='OK'
             )
 
@@ -823,6 +829,7 @@ class RAGPipeline:
             _progress("generation", f"Генерация ответа с помощью {model_display}...", 0.65)
 
             # 🧪 GENERATION START - начало генерации ответа
+            self.memory_tracker.start_stage('GENERATION')
             self.pipeline_timer.start_stage(
                 'GENERATION',
                 params={
@@ -839,13 +846,17 @@ class RAGPipeline:
             # 🧪 GENERATION END - генерация завершена
             response_text = response.get("answer", "")
             response_tokens = len(response_text.split())
+            memory_metrics = self.memory_tracker.end_stage('GENERATION')
+            generation_metrics = {
+                'tokens_generated': response_tokens,
+                'response_length': len(response_text),
+                'temperature': model_config.temperature
+            }
+            generation_metrics.update(memory_metrics)
+
             self.pipeline_timer.end_stage(
                 'GENERATION',
-                metrics={
-                    'tokens_generated': response_tokens,
-                    'response_length': len(response_text),
-                    'temperature': model_config.temperature
-                },
+                metrics=generation_metrics,
                 status='OK'
             )
 
@@ -946,6 +957,19 @@ class RAGPipeline:
                 status='OK'
             )
 
+            # 🔍 Анализ bottleneck и рекомендации
+            from rag_gigachat.logging_utils import BottleneckAnalyzer
+            metrics_list = [
+                type('M', (), {
+                    'stage_name': stage,
+                    'duration_ms': times if isinstance(times, int) else 0,
+                    'metrics': {}
+                })()
+                for stage, times in stage_summary.items() if stage != 'TOTAL'
+            ]
+            analyzer = BottleneckAnalyzer(metrics_list, total_time_ms)
+            bottleneck_analysis = analyzer.analyze()
+
             # Логируем финальную сводку
             logger.info(
                 f"[{request_id}] 📊 PIPELINE SUMMARY: "
@@ -953,6 +977,15 @@ class RAGPipeline:
                 f"generation={stage_summary.get('GENERATION', 0)}ms, docs={len(context_docs)}, tokens={result.tokens_generated}",
                 extra={'stage': 'SUMMARY', 'metrics': stage_summary}
             )
+
+            # Логируем анализ bottleneck
+            if bottleneck_analysis:
+                logger.info(
+                    f"[{request_id}] 🎯 BOTTLENECK: {bottleneck_analysis.get('bottleneck_stage')} "
+                    f"({bottleneck_analysis.get('bottleneck_percent'):.1f}% времени) - "
+                    f"{bottleneck_analysis.get('recommendation')}",
+                    extra={'stage': 'BOTTLENECK', 'metrics': bottleneck_analysis}
+                )
 
             return result
 

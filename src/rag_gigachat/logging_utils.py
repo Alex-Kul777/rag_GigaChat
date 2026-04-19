@@ -389,3 +389,173 @@ class PipelineTimer:
 
         summary['TOTAL'] = total_time
         return summary
+
+
+class MemoryTracker:
+    """Отслеживание использования памяти per-stage"""
+
+    def __init__(self):
+        self.memory_stats = {}
+        try:
+            import psutil
+            self.psutil = psutil
+            self.process = psutil.Process()
+        except ImportError:
+            self.psutil = None
+            self.process = None
+
+    def start_stage(self, stage_name: str):
+        """Начать отслеживание памяти для этапа"""
+        if not self.psutil:
+            return
+
+        try:
+            self.memory_stats[stage_name] = {
+                'start_rss': self.process.memory_info().rss / 1024 / 1024,  # MB
+                'start_vms': self.process.memory_info().vms / 1024 / 1024,  # MB
+            }
+            if hasattr(self.process.memory_info(), 'pfaults'):
+                self.memory_stats[stage_name]['start_pfaults'] = self.process.memory_info().pfaults
+
+            try:
+                import torch
+                if torch.cuda.is_available():
+                    self.memory_stats[stage_name]['start_gpu'] = torch.cuda.memory_allocated() / 1024 / 1024  # MB
+            except:
+                pass
+        except:
+            pass
+
+    def end_stage(self, stage_name: str) -> dict:
+        """Завершить отслеживание и получить статистику"""
+        if not self.psutil or stage_name not in self.memory_stats:
+            return {}
+
+        try:
+            end_rss = self.process.memory_info().rss / 1024 / 1024
+            end_vms = self.process.memory_info().vms / 1024 / 1024
+
+            stats = self.memory_stats[stage_name]
+            result = {
+                'rss_mb': end_rss,
+                'rss_delta_mb': end_rss - stats['start_rss'],
+                'vms_mb': end_vms,
+                'vms_delta_mb': end_vms - stats['start_vms'],
+            }
+
+            if 'start_gpu' in stats:
+                try:
+                    import torch
+                    if torch.cuda.is_available():
+                        end_gpu = torch.cuda.memory_allocated() / 1024 / 1024
+                        result['gpu_mb'] = end_gpu
+                        result['gpu_delta_mb'] = end_gpu - stats['start_gpu']
+                except:
+                    pass
+
+            return result
+        except:
+            return {}
+
+
+class MetricsExporter:
+    """Экспорт метрик в DataFrame и Excel"""
+
+    def __init__(self, metrics_list: List[StageMetrics]):
+        self.metrics_list = metrics_list
+
+    def to_dataframe(self):
+        """Конвертировать метрики в pandas DataFrame"""
+        try:
+            import pandas as pd
+
+            data = []
+            for m in self.metrics_list:
+                row = {
+                    'stage': m.stage_name,
+                    'timestamp_start': m.timestamp_start,
+                    'timestamp_end': m.timestamp_end,
+                    'duration_ms': m.duration_ms,
+                    'status': m.status,
+                    'memory_mb': m.memory_mb,
+                }
+                row.update(m.metrics)
+                data.append(row)
+
+            return pd.DataFrame(data)
+        except ImportError:
+            raise ImportError("pandas требуется для экспорта в DataFrame. Установите: pip install pandas")
+
+    def to_excel(self, filename: str):
+        """Экспортировать метрики в Excel файл"""
+        try:
+            import pandas as pd
+
+            df = self.to_dataframe()
+            df.to_excel(filename, index=False, engine='openpyxl')
+            return filename
+        except ImportError as e:
+            raise ImportError("Требуется pandas и openpyxl. Установите: pip install pandas openpyxl")
+
+    def summary_stats(self) -> dict:
+        """Получить сводную статистику"""
+        total_time = sum(m.duration_ms for m in self.metrics_list)
+        max_memory = max((m.memory_mb for m in self.metrics_list), default=0)
+
+        return {
+            'total_duration_ms': total_time,
+            'stages_count': len(self.metrics_list),
+            'max_memory_mb': max_memory,
+            'avg_stage_time_ms': total_time / len(self.metrics_list) if self.metrics_list else 0,
+        }
+
+
+class BottleneckAnalyzer:
+    """Анализ узких мест в pipeline"""
+
+    def __init__(self, metrics_list: List[StageMetrics], total_time_ms: int):
+        self.metrics_list = metrics_list
+        self.total_time_ms = total_time_ms
+
+    def analyze(self) -> dict:
+        """Проанализировать и найти bottleneck"""
+        if not self.metrics_list:
+            return {}
+
+        # Сортируем по времени
+        sorted_metrics = sorted(self.metrics_list, key=lambda m: m.duration_ms, reverse=True)
+
+        bottleneck = sorted_metrics[0]
+        bottleneck_percent = (bottleneck.duration_ms / self.total_time_ms) * 100 if self.total_time_ms > 0 else 0
+
+        result = {
+            'bottleneck_stage': bottleneck.stage_name,
+            'bottleneck_duration_ms': bottleneck.duration_ms,
+            'bottleneck_percent': bottleneck_percent,
+            'recommendation': self._get_recommendation(bottleneck),
+            'top_stages': [
+                {
+                    'stage': m.stage_name,
+                    'duration_ms': m.duration_ms,
+                    'percent': (m.duration_ms / self.total_time_ms) * 100 if self.total_time_ms > 0 else 0
+                }
+                for m in sorted_metrics[:3]
+            ]
+        }
+
+        return result
+
+    def _get_recommendation(self, bottleneck: StageMetrics) -> str:
+        """Получить рекомендацию для устранения bottleneck"""
+        stage = bottleneck.stage_name
+
+        recommendations = {
+            'RETRIEVAL': 'Рассмотрите использование быстрого индекса (IVF) или увеличение nprobe',
+            'GENERATION': 'Используйте меньшую модель, уменьшите max_tokens или используйте квантование',
+            'CHUNKING': 'Уменьшите chunk_size или используйте параллельную обработку',
+            'EMBEDDING': 'Используйте более быструю модель embedding или батчинг',
+            'INDEX': 'Используйте более быстрый индекс тип (IVF вместо FLAT)',
+            'LOAD_DOCS': 'Используйте кэширование или параллельную загрузку PDF'
+        }
+
+        return recommendations.get(stage, 'Оптимизируйте этап обработки')
