@@ -243,10 +243,12 @@ class LoggingConfig:
 
 @dataclass
 class DebugConfig:
-    """Конфигурация отладки и process mining"""
+    """Конфигурация отладки и быстрого debug-режима"""
 
     debug_enabled: bool = os.getenv("RAG_DEBUG", "false").lower() == "true"
     log_level: str = os.getenv("RAG_LOG_LEVEL", "INFO")
+    debug_mode: bool = os.getenv("RAG_DEBUG_MODE", "false").lower() == "true"
+    debug_model_name: str = "facebook/opt-125m"  # 125M параметров, очень быстрая, CPU-friendly
 
 
 # Глобальные экземпляры конфигураций

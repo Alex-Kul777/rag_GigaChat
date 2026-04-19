@@ -23,7 +23,7 @@ except ImportError:
     _torch_available = False
     torch = None  # Placeholder если torch недоступен
 
-from rag_gigachat.config import model_config, gigachat_config
+from rag_gigachat.config import model_config, gigachat_config, debug_config
 from rag_gigachat.core.model_downloader import check_and_download_model
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,13 @@ class LLMManager:
         self.llm = None
         self.is_initialized = False
         self.is_offline = model_type == "local"
+
+        # В режиме отладки используем быструю модель
+        if debug_config.debug_mode and model_type == "local":
+            original_model = self.model_name
+            self.model_name = debug_config.debug_model_name
+            logger.info(f"🐛 DEBUG MODE: Using fast model {self.model_name} instead of {original_model}")
+            print(f"🐛 DEBUG MODE: Using fast model {self.model_name}")
 
         offline_status = "OFFLINE" if self.is_offline else "ONLINE"
         logger.info(f"LLMManager init: model_type={model_type}, model={self.model_name}, mode={offline_status}")
@@ -89,10 +96,7 @@ class LLMManager:
 
     def load_local_model(self) -> BaseLLM:
         """
-        Загрузка локальной модели через HuggingFace
-
-        Returns:
-            LangChain LLM объект
+        Загрузка локальной модели через HuggingFace (text-generation task)
         """
         if not _torch_available:
             raise RuntimeError(
@@ -100,7 +104,7 @@ class LLMManager:
             )
 
         import torch  # Явный импорт в функцию
-        from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline as hf_pipeline
+        from transformers import AutoTokenizer, pipeline as hf_pipeline
 
         logger.info(f"Загрузка локальной модели: {self.model_name}")
         print(f"🔍 DEBUG: Загрузка модели {self.model_name}")
@@ -113,42 +117,22 @@ class LLMManager:
             )
 
         try:
-            # Используем float32 для стабильности (float16 может вызывать CUDA ошибки на малых GPU)
             if not _torch_available or torch is None:
                 raise RuntimeError("PyTorch недоступен")
 
             torch_dtype = torch.float32
-            print(f"🔍 DEBUG: Используем dtype: {torch_dtype}, device: {model_config.device}")
-
-            model = AutoModelForCausalLM.from_pretrained(
-                self.model_name,
-                torch_dtype=torch_dtype,
-                dtype=torch_dtype,
-                device_map="auto" if model_config.device == "cuda" else None,
-                trust_remote_code=True,
-                low_cpu_mem_usage=True
-            )
-            print("🔍 DEBUG: Модель загружена")
-
-            tokenizer = AutoTokenizer.from_pretrained(
-                self.model_name,
-                trust_remote_code=True
-            )
-            print("🔍 DEBUG: Токенизатор загружен")
-
-            if tokenizer.pad_token is None:
-                tokenizer.pad_token = tokenizer.eos_token
+            print(f"🔍 DEBUG: dtype: {torch_dtype}, device: {model_config.device}")
 
             print("🔍 DEBUG: Создаем pipeline...")
             text_gen_pipeline = hf_pipeline(
                 "text-generation",
-                model=model,
-                tokenizer=tokenizer,
+                model=self.model_name,
+                torch_dtype=torch_dtype,
+                device=-1,  # CPU (безопаснее для малых GPU)
                 max_new_tokens=model_config.max_new_tokens,
                 temperature=model_config.temperature,
                 top_p=model_config.top_p,
                 do_sample=True,
-                device=0 if model_config.device == "cuda" else -1
             )
             print("🔍 DEBUG: Pipeline создан")
 
@@ -156,14 +140,10 @@ class LLMManager:
             self.is_initialized = True
 
             # Диагностика успешной загрузки
-            if _torch_available:
-                import torch
-                print(f"✅ DEBUG: Модель успешно загружена (dtype={torch_dtype})")
-                if torch.cuda.is_available():
-                    gpu_mem = torch.cuda.memory_allocated(0) / 1e9
-                    print(f"🔍 GPU память используется: {gpu_mem:.2f} GB")
-            else:
-                print("✅ DEBUG: Модель успешно загружена (CPU)")
+            print(f"✅ DEBUG: Модель успешно загружена (text-generation)")
+            if _torch_available and torch.cuda.is_available():
+                gpu_mem = torch.cuda.memory_allocated(0) / 1e9
+                print(f"🔍 GPU память используется: {gpu_mem:.2f} GB")
             return self.llm
 
         except Exception as e:
