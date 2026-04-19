@@ -87,9 +87,11 @@ def test_token_counter_cache_reuse():
 
 
 @pytest.mark.unit
-def test_max_new_tokens_reduced():
-    """Verify max_new_tokens is reduced to 500 for latency optimization"""
+def test_max_new_tokens_production_profile():
+    """Verify max_new_tokens is configured for production profile"""
     from rag_gigachat.config import model_config
 
-    assert model_config.max_new_tokens == 500, \
-        f"BKL-003: max_new_tokens must be 500 for latency, got {model_config.max_new_tokens}"
+    # Production profile uses 256 tokens for GPU stability
+    # (previously 500, reduced for small GPU support)
+    assert model_config.max_new_tokens == 256, \
+        f"BKL-003: max_new_tokens must be 256 for production stability, got {model_config.max_new_tokens}"
