@@ -133,22 +133,30 @@ class LLMManager:
             if not _torch_available or torch is None:
                 raise RuntimeError("PyTorch недоступен")
 
-            torch_dtype = torch.float32
-            print(f"🔍 DEBUG: dtype: {torch_dtype}, device: {model_config.device}")
+            # 🐛 DEBUG MODE: Использовать fp16 для экономии GPU памяти при debug моделях
+            import os
+            is_debug_mode = os.getenv("RAG_DEBUG_MODE", "false").lower() == "true"
+            torch_dtype = torch.float16 if is_debug_mode else torch.float32
+            print(f"🔍 DEBUG: dtype: {torch_dtype} ({('fp16 - быстро!' if is_debug_mode else 'fp32 - качество')}), device: {model_config.device}")
 
             print("🔍 DEBUG: Создаем pipeline...")
+            # Использовать device=-1 (CPU) для экономии памяти, или cuda если есть место
+            use_device = 0 if torch.cuda.is_available() else -1  # 0=GPU, -1=CPU
+            print(f"🔍 DEBUG: Используем device: {'GPU (cuda:0)' if use_device == 0 else 'CPU'}")
+
             text_gen_pipeline = hf_pipeline(
                 "text-generation",
                 model=self.model_name,
                 torch_dtype=torch_dtype,
-                device=-1,  # CPU (безопаснее для малых GPU)
+                device=use_device,
+                device_map="auto" if use_device == 0 else None,  # Auto split между GPU/CPU если нужно
                 max_new_tokens=model_config.max_new_tokens,
                 temperature=model_config.temperature,
                 top_p=model_config.top_p,
                 do_sample=True,
-                repetition_penalty=1.2,  # Предотвращение зацикливания
-                no_repeat_ngram_size=3,  # Не повторять n-граммы из 3+ слов
-                early_stopping=True,  # Остановить генерацию если логично
+                repetition_penalty=1.2,
+                no_repeat_ngram_size=3,
+                early_stopping=True,
             )
             print("🔍 DEBUG: Pipeline создан")
 
