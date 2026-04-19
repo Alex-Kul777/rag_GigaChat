@@ -44,7 +44,7 @@ from rag_gigachat.models import TestSample
 from rag_gigachat.config import data_config, model_config, logging_config
 
 # Импортируем текстовые утилиты для нормализации и разбиения на предложения
-from rag_gigachat.utils.text_utils import normalize_text, SpacySmartSplitter, SPACY_AVAILABLE
+from rag_gigachat.utils.text_utils import normalize_text, SpacySmartSplitter, SPACY_AVAILABLE, filter_documents_by_token_count
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -828,7 +828,23 @@ class CorpusLoader:
         if chunk_size:
             splitter = TextSplitter(chunk_size, chunk_overlap or 50)
             documents = splitter.split_documents(documents)
-        
+
+        # 🔍 Применяем фильтрацию по токенам
+        docs_before_filter = len(documents)
+        documents = filter_documents_by_token_count(documents, min_tokens=30)
+        docs_after_filter = len(documents)
+
+        if docs_before_filter > docs_after_filter:
+            removed = docs_before_filter - docs_after_filter
+            logger.info(
+                f"🔍 Фильтрация по токенам: удалено {removed}/{docs_before_filter} чанков "
+                f"(остаток: {docs_after_filter})"
+            )
+
+        if not documents:
+            logger.warning("⚠️ Все документы отфильтрованы по критерию минимального количества токенов")
+            return {}
+
         # Преобразование в словарь с сохранением метаданных
         result = {}
         for doc in documents:
