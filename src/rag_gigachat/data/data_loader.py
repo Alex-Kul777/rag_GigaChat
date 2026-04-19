@@ -43,6 +43,9 @@ from rag_gigachat.models import TestSample
 # Импортируем конфигурацию
 from rag_gigachat.config import data_config, model_config, logging_config
 
+# Импортируем текстовые утилиты для нормализации и разбиения на предложения
+from rag_gigachat.utils.text_utils import normalize_text, SpacySmartSplitter, SPACY_AVAILABLE
+
 # Настройка логирования
 logger = logging.getLogger(__name__)
 
@@ -553,59 +556,179 @@ class DocumentLoader:
 
 class TextSplitter:
     """
-    Разделитель текста на чанки с использованием LangChain
+    Разделитель текста на чанки с использованием spaCy для интеллектуального разбиения на предложения.
+
+    Использует SpacySmartSplitter для:
+    - Нормализации текста (удаление артефактов из PDF)
+    - Интеллектуального разбиения на предложения с поддержкой RU+EN
+    - Группировки предложений в чанки по размеру
+    - Сохранения семантической целостности
     """
-    
-    def __init__(self, 
+
+    def __init__(self,
                  chunk_size: int = 500,
                  chunk_overlap: int = 50,
                  separators: List[str] = None):
         """
         Инициализация сплиттера
-        
+
         Args:
-            chunk_size: Размер чанка в символах
-            chunk_overlap: Перекрытие между чанками
-            separators: Разделители для разбиения
+            chunk_size: Целевой размер чанка в символах (для группировки предложений)
+            chunk_overlap: Перекрытие между чанками в символах
+            separators: Используется для совместимости, но игнорируется (используется spaCy)
         """
-        chunk_size = chunk_size or data_config.chunk_size
-        chunk_overlap = chunk_overlap or data_config.chunk_overlap
-        separators = separators or data_config.chunk_separators
-        
-        self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            separators=separators,
-            length_function=len,
+        self.chunk_size = chunk_size or data_config.chunk_size
+        self.chunk_overlap = chunk_overlap or data_config.chunk_overlap
+
+        # Инициализируем spaCy сплиттер (singleton)
+        if SPACY_AVAILABLE:
+            self.spacy_splitter = SpacySmartSplitter()
+            logger.info("🔧 TextSplitter: используется SpacySmartSplitter для разбиения на предложения")
+        else:
+            self.spacy_splitter = None
+            logger.warning("⚠️ TextSplitter: SpacySmartSplitter недоступен, используется fallback")
+
+        # Fallback: рекурсивный сплиттер (если spaCy не установлена)
+        if not SPACY_AVAILABLE:
+            self.text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=self.chunk_size,
+                chunk_overlap=self.chunk_overlap,
+                separators=separators or data_config.chunk_separators,
+                length_function=len,
+            )
+        else:
+            self.text_splitter = None
+
+        logger.info(
+            f"TextSplitter инициализирован: chunk_size={self.chunk_size}, "
+            f"overlap={self.chunk_overlap}, spacy={'доступна' if SPACY_AVAILABLE else 'недоступна'}"
         )
-        
-        logger.info(f"TextSplitter инициализирован: chunk_size={chunk_size}, overlap={chunk_overlap}")
-    
+
+    def _group_sentences_into_chunks(self, sentences: List[str]) -> List[str]:
+        """
+        Группировка предложений в чанки нужного размера
+
+        Args:
+            sentences: Список предложений
+
+        Returns:
+            Список чанков (строк)
+        """
+        if not sentences:
+            return []
+
+        chunks = []
+        current_chunk = []
+        current_length = 0
+
+        for sentence in sentences:
+            sent_len = len(sentence)
+
+            # Если добавление предложения превышает лимит и уже есть предложения в чанке
+            if current_length + sent_len + 1 > self.chunk_size and current_chunk:
+                # Сохраняем текущий чанк
+                chunk_text = " ".join(current_chunk)
+                chunks.append(chunk_text)
+
+                # Начинаем новый чанк с перекрытием (если нужно)
+                if self.chunk_overlap > 0 and len(current_chunk) > 0:
+                    # Добавляем последние предложения для перекрытия
+                    overlap_text = ""
+                    overlap_len = 0
+                    for prev_sent in reversed(current_chunk):
+                        if overlap_len + len(prev_sent) < self.chunk_overlap:
+                            overlap_text = prev_sent + " " + overlap_text
+                            overlap_len += len(prev_sent) + 1
+                        else:
+                            break
+
+                    current_chunk = [overlap_text.strip()] if overlap_text.strip() else []
+                    current_length = len(overlap_text)
+                else:
+                    current_chunk = []
+                    current_length = 0
+
+            # Добавляем предложение в текущий чанк
+            current_chunk.append(sentence)
+            current_length += sent_len + 1
+
+        # Добавляем последний чанк
+        if current_chunk:
+            chunks.append(" ".join(current_chunk))
+
+        return chunks
+
     def split_documents(self, documents: List[LangChainDocument]) -> List[LangChainDocument]:
         """
-        Разделение документов на чанки
-        
+        Разделение документов на чанки с предварительной нормализацией и разбиением на предложения
+
         Args:
             documents: Список документов LangChain
-        
+
         Returns:
-            Список чанков
+            Список чанков с сохранением метаданных
         """
-        chunks = self.text_splitter.split_documents(documents)
-        logger.info(f"Разделено {len(documents)} документов на {len(chunks)} чанков")
-        return chunks
-    
+        if not SPACY_AVAILABLE or self.spacy_splitter is None:
+            # Fallback на RecursiveCharacterTextSplitter
+            logger.debug("Используется fallback разбиение (RecursiveCharacterTextSplitter)")
+            chunks = self.text_splitter.split_documents(documents)
+            logger.info(f"Разделено {len(documents)} документов на {len(chunks)} чанков (fallback)")
+            return chunks
+
+        result_chunks = []
+
+        for doc in documents:
+            text = doc.page_content
+
+            # 1. Нормализуем текст
+            normalized_text = normalize_text(text)
+
+            # 2. Разбиваем на предложения с автоопределением языка
+            sentences = self.spacy_splitter.split_into_sentences(normalized_text)
+
+            # 3. Группируем предложения в чанки
+            chunk_texts = self._group_sentences_into_chunks(sentences)
+
+            # 4. Создаем новые документы с сохранением метаданных
+            for i, chunk_text in enumerate(chunk_texts):
+                chunk_doc = LangChainDocument(
+                    page_content=chunk_text,
+                    metadata={
+                        **doc.metadata,
+                        'chunk_id': i,
+                        'chunk_count': len(chunk_texts),
+                        'original_length': len(text),
+                        'normalized_length': len(normalized_text),
+                        'chunk_length': len(chunk_text),
+                    }
+                )
+                result_chunks.append(chunk_doc)
+
+        logger.info(
+            f"spaCy разбиение: {len(documents)} документов → {len(result_chunks)} чанков, "
+            f"нормализация + разбиение на предложения"
+        )
+        return result_chunks
+
     def split_text(self, text: str) -> List[str]:
         """
         Разделение текста на чанки
-        
+
         Args:
             text: Исходный текст
-        
+
         Returns:
             Список чанков
         """
-        chunks = self.text_splitter.split_text(text)
+        if not SPACY_AVAILABLE or self.spacy_splitter is None:
+            # Fallback
+            return self.text_splitter.split_text(text)
+
+        # Нормализуем и разбиваем на предложения
+        normalized_text = normalize_text(text)
+        sentences = self.spacy_splitter.split_into_sentences(normalized_text)
+        chunks = self._group_sentences_into_chunks(sentences)
+
         return chunks
 
 
