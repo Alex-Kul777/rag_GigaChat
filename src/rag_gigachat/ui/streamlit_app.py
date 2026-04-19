@@ -26,7 +26,7 @@ from rag_gigachat.ui.components import (
     HighlightedAnswer,
     AnswerInteraction
 )
-from rag_gigachat.config import model_config, data_config, gigachat_config
+from rag_gigachat.config import model_config, data_config, gigachat_config, debug_config
 from rag_gigachat.core.rag_pipeline import RAGPipeline
 
 
@@ -116,6 +116,11 @@ def load_documents_to_pipeline(pipeline: RAGPipeline, domain_path: Path):
 
 def init_session_state():
     """Инициализировать session_state при первом запуске"""
+    # 🐛 DEBUG MODE: Выбрать правильное имя модели для отображения
+    import os
+    env_debug_mode = os.getenv("RAG_DEBUG_MODE", "false").lower() == "true"
+    llm_model_display = debug_config.debug_model_name if env_debug_mode else model_config.llm_model_name
+
     defaults = {
         "show_config_modal": False,
         "show_document_viewer": False,
@@ -124,7 +129,7 @@ def init_session_state():
         "selected_files": [],
         "force_reload_index": False,
         # Модели
-        "llm_model": model_config.llm_model_name,
+        "llm_model": llm_model_display,
         "embedding_model": model_config.embedding_model_name,
         "max_tokens": model_config.max_new_tokens,
         "temperature": model_config.temperature,
@@ -438,7 +443,6 @@ def main():
     # 🐛 ДИАГНОСТИКА DEBUG-РЕЖИМА: Проверяем и логируем статус
     import os
     env_debug = os.getenv("RAG_DEBUG_MODE", "false").lower() == "true"
-    from rag_gigachat.config import debug_config
 
     if env_debug or debug_config.debug_mode:
         logger.info(f"✅ DEBUG-РЕЖИМ АКТИВЕН: Используется {debug_config.debug_model_name} (125M параметров)")
