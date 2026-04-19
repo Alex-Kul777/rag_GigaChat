@@ -282,11 +282,21 @@ def main():
         help="Путь для сохранения результата (JSON)"
     )
 
+    parser.add_argument(
+        "--test-question",
+        type=str,
+        help="Автоматически отправить тестовый вопрос при запуске UI (debug режим)"
+    )
+
     args = parser.parse_args()
 
     print(f"💻 Используется устройство: {model_config.device}")
 
     if args.mode == "ui":
+        # 🧪 Передать тестовый вопрос в session_state через env var
+        if args.test_question:
+            os.environ["RAG_TEST_QUESTION"] = args.test_question
+            logger.info(f"🧪 Тестовый вопрос установлен: {args.test_question}")
         success = run_streamlit_ui()
         if not success:
             sys.exit(1)

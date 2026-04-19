@@ -1,0 +1,30 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 11 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CONTENTSCharlieGorichanaz,BrendanLoudermilk,EricMorris,CosminPârvulescuandAlfredoSolano.
+•Chapter, :AmjadAlmahairi,NikolaBanić,KevinBennett,2LinearAlgebraPhilippeCastonguay,OscarChang,EricFosler-Lussier,AndreyKhalyavin,
+SergeyOreshkov,IstvánPetrás,DennisPrangle,ThomasRohée,GitanjaliGulveSehgal,ColbyToland,AlessandroVitaleandBobWelland.
+•Chapter, :JohnPhilipAnderson,Kai3ProbabilityandInformationTheoryArulkumaran,VincentDumoulin,RuiFa,StephanGouws,ArtemOboturov,
+AnttiRasmus,AlexeySurkovandVolkerTresp.
+•Chapter , :Tran LamAnIan Fischer andHu4NumericalComputationYuhuang.
+•Chapter, :DzmitryBahdanau,JustinDomingue,5MachineLearningBasicsNikhilGarg,MakotoOtsuka,BobPepin,PhilipPopien,EmmanuelRayner,
+PeterShepard,Kee-BongSong,ZhengSunandAndyWu.
+•Chapter,6DeepFeedforwardNetworks:UrielBerdugo,FabrizioBottarel,
+ElizabethBurl,IshanDurugkar,JeﬀHlywa,JongWookKim,DavidKruegerandAdityaKumarPraharaj.
+•Chapter, :MortenKolbæk,KshitijLauria,7RegularizationforDeepLearningInkyuLee,SunilMohan,HaiPhongPhanandJoshuaSalisbury.
+•Chapter,8OptimizationforTrainingDeepModels:MarcelAckermann,PeterArmitage,RowelAtienza,AndrewBrock,TeganMaharaj,JamesMartens,
+KashifRasul,KlausStroblandNicholasTurner.
+•Chapter,9ConvolutionalNetworks:MartínArjovsky,EugeneBrevdo,Kon-
+stantinDivilov,EricJensen,MehdiMirza,AlexPaino,MarjorieSayer,RyanStoutandWentaoWu.
+•Chapter,10SequenceModeling:RecurrentandRecursiveNets:GökçenEraslan,StevenHickson,RazvanPascanu,LorenzovonRitter,RuiRodrigues,
+DmitriySerdyuk,DongyuShiandKaiyuYang.
+•Chapter, :DanielBeckstein.11PracticalMethodology
+•Chapter, :GeorgeDahl,VladimirNekrasovandRibana12ApplicationsRoscher.
+•Chapter,13LinearFactorModels:JayanthKoushik.
+ix

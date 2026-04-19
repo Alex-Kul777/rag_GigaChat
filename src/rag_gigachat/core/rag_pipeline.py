@@ -147,6 +147,11 @@ class RAGPipeline:
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
 
+        # 🧪 Инициализируем таймер и трекер памяти для метрик per-stage
+        from rag_gigachat.logging_utils import PipelineTimer, MemoryTracker
+        self.pipeline_timer = PipelineTimer(logger)
+        self.memory_tracker = MemoryTracker()
+
         self.vector_store_initialized = False
         self.graph = None
         self.prompt = None
@@ -347,8 +352,8 @@ class RAGPipeline:
         logger.info(f"Created {len(documents)} documents/chunks")
         logger.info(f"load_from_pdf_directory COMPLETE")
     
-    def load_from_pdf_directory_with_metadata(self, 
-                                             directory: Path, 
+    def load_from_pdf_directory_with_metadata(self,
+                                             directory: Path,
                                              recursive: bool = True,
                                              chunk_size: int = None,
                                              chunk_overlap: int = None,
@@ -356,7 +361,18 @@ class RAGPipeline:
         """
         Загрузка PDF документов из директории с сохранением метаданных и кэшированием FAISS индекса
         """
-        logger.info(f"Загрузка PDF из директории с метаданными: {directory}")
+        # 🧪 Начинаем логирование LOAD_DOCS с параметрами
+        self.pipeline_timer.start_stage(
+            'LOAD_DOCS',
+            params={
+                'directory': str(directory),
+                'recursive': recursive,
+                'force_reload': force_reload,
+                'embedding_model': self.vector_store_manager.embedding_model
+            }
+        )
+
+        logger.info(f"📂 [LOAD_DOCS START] Загрузка PDF из {directory}")
 
         # Проверяем, не менялся ли тип эмбеддингов
         cache_file = self.vector_store_manager.persist_dir / "embedding_type.txt"
@@ -373,14 +389,23 @@ class RAGPipeline:
 
         # Сохраняем текущий тип
         with open(cache_file, 'w') as f:
-            f.write(self.vector_store_manager.embedding_type)        
-    
+            f.write(self.vector_store_manager.embedding_type)
+
 
         _chunk_size = chunk_size if chunk_size is not None else self.chunk_size
         _chunk_overlap = chunk_overlap if chunk_overlap is not None else self.chunk_overlap
-        
+
+        # 🧪 Начинаем CHUNKING с параметрами
+        self.pipeline_timer.start_stage(
+            'CHUNKING',
+            params={
+                'chunk_size': _chunk_size,
+                'chunk_overlap': _chunk_overlap
+            }
+        )
+
         # Загружаем документы через data_loader
-        logger.info(f"[load_from_pdf_directory_with_metadata] Вызываю corpus_loader.load_from_pdf_directory_with_metadata")
+        logger.info(f"🔨 [CHUNKING START] chunk_size={_chunk_size}, overlap={_chunk_overlap}")
         documents = self.corpus_loader.load_from_pdf_directory_with_metadata(
             directory,
             recursive=recursive,
@@ -389,7 +414,18 @@ class RAGPipeline:
             force_reload=force_reload
         )
 
-        logger.info(f"[load_from_pdf_directory_with_metadata] corpus_loader вернул {len(documents) if documents else 0} документов")
+        # 🧪 Завершаем CHUNKING
+        self.pipeline_timer.end_stage(
+            'CHUNKING',
+            metrics={
+                'chunks_created': len(documents) if documents else 0,
+                'chunk_size': _chunk_size,
+                'chunk_overlap': _chunk_overlap
+            },
+            status='OK'
+        )
+
+        logger.info(f"✅ [CHUNKING END] Создано {len(documents) if documents else 0} чанков")
         print(f"[DEBUG] documents type: {type(documents)}, len: {len(documents) if documents else 0}")
 
         if not documents:
@@ -462,19 +498,73 @@ class RAGPipeline:
             else:
                 texts_for_vectorstore[doc_id] = data
 
+        # 🧪 EMBEDDING START - создание эмбеддингов
+        self.pipeline_timer.start_stage(
+            'EMBEDDING',
+            params={
+                'embedding_model': self.vector_store_manager.embedding_model,
+                'embedding_dim': self.vector_store_manager.embedding_dim
+            }
+        )
+
+        logger.info(f"🔗 [EMBEDDING START] model={self.vector_store_manager.embedding_model}")
+
         # Создаем FAISS индекс с кэшированием (передаём полные метаданные)
         from_cache = self.vector_store_manager.create_from_texts_with_cache(
             texts_for_vectorstore,
             force_reload=force_reload,
             metadata_dict=metadata_for_vectorstore
         )
-        
+
+        # 🧪 EMBEDDING END
+        self.pipeline_timer.end_stage(
+            'EMBEDDING',
+            metrics={
+                'vectors_created': len(texts_for_vectorstore),
+                'embedding_model': self.vector_store_manager.embedding_model,
+                'from_cache': from_cache
+            },
+            status='OK'
+        )
+
+        logger.info(f"✅ [EMBEDDING END] Создано {len(texts_for_vectorstore)} эмбеддингов")
+
+        # 🧪 INDEX START - создание индекса
+        self.pipeline_timer.start_stage(
+            'INDEX',
+            params={
+                'index_type': 'FAISS',
+                'metric': 'cosine'
+            }
+        )
+
         self.vector_store_initialized = True
-        
+
+        # 🧪 INDEX END
+        self.pipeline_timer.end_stage(
+            'INDEX',
+            metrics={
+                'index_size': len(texts_for_vectorstore),
+                'index_type': 'FAISS',
+                'from_cache': from_cache
+            },
+            status='OK'
+        )
+
+        # 🧪 LOAD_DOCS END - завершение полной загрузки
+        self.pipeline_timer.end_stage(
+            'LOAD_DOCS',
+            metrics={
+                'total_documents': len(texts_for_vectorstore),
+                'from_cache': from_cache
+            },
+            status='OK'
+        )
+
         if from_cache:
-            logger.info(f"📦 Загружено {len(texts_for_vectorstore)} документов/чанков из кэша FAISS")
+            logger.info(f"📦 [LOAD_DOCS END] Загружено {len(texts_for_vectorstore)} документов/чанков из кэша FAISS")
         else:
-            logger.info(f"✅ Создано {len(texts_for_vectorstore)} документов/чанков с метаданными")
+            logger.info(f"✅ [LOAD_DOCS END] Создано {len(texts_for_vectorstore)} документов/чанков с метаданными")
     
     def load_from_sample_corpus(self, force_reload: bool = False) -> None:
         """
@@ -662,9 +752,19 @@ class RAGPipeline:
                 progress_callback(stage, message, progress)
             print(f"🔍 [{stage}] {message}")
 
+        # 🧪 PIPELINE START - начало обработки запроса с использованием PipelineTimer
+        request_id = self.pipeline_timer.start_stage(
+            'PIPELINE',
+            params={
+                'query_length': len(query),
+                'query': query[:80],
+                'k': k or model_config.default_k_retrieve
+            }
+        )
         _progress("init", "Начало обработки запроса")
 
         if not self.vector_store_initialized:
+            logger.error(f"[{request_id}] ❌ [PIPELINE ERROR] FAISS индекс не инициализирован")
             raise ValueError("FAISS индекс не инициализирован. Сначала загрузите документы.")
 
         _progress("init", "Индекс инициализирован", 0.1)
@@ -683,15 +783,38 @@ class RAGPipeline:
         try:
             _progress("retrieval", "Поиск релевантных документов...", 0.3)
 
+            # 🧪 RETRIEVAL START
+            k_value = k or model_config.default_k_retrieve
+            self.memory_tracker.start_stage('RETRIEVAL')
+            self.pipeline_timer.start_stage(
+                'RETRIEVAL',
+                params={'k': k_value, 'metric': 'cosine'}
+            )
+
             # Получаем документы с реальными scores от FAISS
             docs_with_scores = self.vector_store_manager.similarity_search_with_scores(
-                query, k=k or model_config.default_k_retrieve
+                query, k=k_value
             )
             logger.debug(f"🎯 Получены {len(docs_with_scores)} документов с scores")
 
             # Преобразуем в список документов и список scores
             docs = [doc for doc, _ in docs_with_scores]
             real_scores = [score for _, score in docs_with_scores]
+
+            # 🧪 RETRIEVAL END - логируем метрики и память
+            memory_metrics = self.memory_tracker.end_stage('RETRIEVAL')
+            retrieval_metrics = {
+                'docs_count': len(docs),
+                'top_score': real_scores[0] if real_scores else 0.0,
+                'avg_score': sum(real_scores) / len(real_scores) if real_scores else 0.0
+            }
+            retrieval_metrics.update(memory_metrics)
+
+            self.pipeline_timer.end_stage(
+                'RETRIEVAL',
+                metrics=retrieval_metrics,
+                status='OK'
+            )
 
             _progress("retrieval", f"Найдено {len(docs)} документов", 0.5)
 
@@ -705,8 +828,38 @@ class RAGPipeline:
             model_display = llm_model_name if llm_model_name else "LLM"
             _progress("generation", f"Генерация ответа с помощью {model_display}...", 0.65)
 
+            # 🧪 GENERATION START - начало генерации ответа
+            self.memory_tracker.start_stage('GENERATION')
+            self.pipeline_timer.start_stage(
+                'GENERATION',
+                params={
+                    'model': model_display,
+                    'prompt_tokens': prompt_tokens,
+                    'temperature': model_config.temperature,
+                    'top_p': model_config.top_p
+                }
+            )
+
             # Увеличиваем timeout для медленных моделей
             response = self.graph.invoke({"question": query}, config={"recursion_limit": 50})
+
+            # 🧪 GENERATION END - генерация завершена
+            response_text = response.get("answer", "")
+            response_tokens = len(response_text.split())
+            memory_metrics = self.memory_tracker.end_stage('GENERATION')
+            generation_metrics = {
+                'tokens_generated': response_tokens,
+                'response_length': len(response_text),
+                'temperature': model_config.temperature
+            }
+            generation_metrics.update(memory_metrics)
+
+            self.pipeline_timer.end_stage(
+                'GENERATION',
+                metrics=generation_metrics,
+                status='OK'
+            )
+
             _progress("generation", "Ответ получен", 0.95)
             logger.debug (f"🔍 logger.debug: Граф выполнен, ответ получен")
             
@@ -786,10 +939,62 @@ class RAGPipeline:
             else:
                 self.token_counter.add_request(query, result.answer)
 
+            # 🧪 PIPELINE END - завершение обработки с итоговыми метриками
+            total_time_ms = int((time.time() - start_time) * 1000)
+
+            # Получаем сводку времени по всем этапам
+            stage_summary = self.pipeline_timer.summary()
+
+            self.pipeline_timer.end_stage(
+                'PIPELINE',
+                metrics={
+                    'total_duration_ms': total_time_ms,
+                    'docs_retrieved': len(context_docs),
+                    'tokens_generated': result.tokens_generated,
+                    'retrieval_ms': stage_summary.get('RETRIEVAL', 0),
+                    'generation_ms': stage_summary.get('GENERATION', 0)
+                },
+                status='OK'
+            )
+
+            # 🔍 Анализ bottleneck и рекомендации
+            from rag_gigachat.logging_utils import BottleneckAnalyzer
+            metrics_list = [
+                type('M', (), {
+                    'stage_name': stage,
+                    'duration_ms': times if isinstance(times, int) else 0,
+                    'metrics': {}
+                })()
+                for stage, times in stage_summary.items() if stage != 'TOTAL'
+            ]
+            analyzer = BottleneckAnalyzer(metrics_list, total_time_ms)
+            bottleneck_analysis = analyzer.analyze()
+
+            # Логируем финальную сводку
+            logger.info(
+                f"[{request_id}] 📊 PIPELINE SUMMARY: "
+                f"total={total_time_ms}ms, retrieval={stage_summary.get('RETRIEVAL', 0)}ms, "
+                f"generation={stage_summary.get('GENERATION', 0)}ms, docs={len(context_docs)}, tokens={result.tokens_generated}",
+                extra={'stage': 'SUMMARY', 'metrics': stage_summary}
+            )
+
+            # Логируем анализ bottleneck
+            if bottleneck_analysis:
+                logger.info(
+                    f"[{request_id}] 🎯 BOTTLENECK: {bottleneck_analysis.get('bottleneck_stage')} "
+                    f"({bottleneck_analysis.get('bottleneck_percent'):.1f}% времени) - "
+                    f"{bottleneck_analysis.get('recommendation')}",
+                    extra={'stage': 'BOTTLENECK', 'metrics': bottleneck_analysis}
+                )
+
             return result
-            
+
         except Exception as e:
-            logger.error(f"Ошибка обработки запроса: {e}")
+            self.pipeline_timer.end_stage('PIPELINE', status='ERROR')
+            logger.error(
+                f"[{request_id}] ❌ [PIPELINE ERROR] {type(e).__name__}: {str(e)[:100]}",
+                extra={'stage': 'PIPELINE', 'action': 'ERROR', 'metrics': {'error_type': type(e).__name__}}
+            )
             import traceback
             print(f"🔍 DEBUG: Ошибка: {e}")
             traceback.print_exc()

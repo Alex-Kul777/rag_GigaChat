@@ -1,0 +1,26 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 50 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER2.LINEARALGEBRAdeﬁneavectorbywritingoutitselementsinthetextinlineasarowmatrix,
+thenusingthetransposeoperatortoturnitintoastandardcolumnvector,e.g.,
+x= [x1,x2,x3].
+Ascalarcanbethoughtofasamatrixwithonlyasingleentry.Fromthis,wecanseethatascalarisitsowntranspose:a a= .
+Wecanaddmatricestoeachother,aslongastheyhavethesameshape,justbyaddingtheircorrespondingelements: whereC A B= + Ci,j= Ai,j+Bi,j.
+Wecanalsoaddascalartoamatrixormultiplyamatrixbyascalar,justbyperformingthatoperationoneachelementofamatrix:D=a·B+cwhereDi,j= aB·i,j+c.
+Inthecontextofdeeplearning,wealsousesomelessconventionalnotation.
+Weallowtheadditionofmatrixandavector,yieldinganothermatrix:C=A+b,
+whereCi,j=Ai,j+bj.Inotherwords,thevectorbisaddedtoeachrowofthematrix.Thisshorthandeliminatestheneedtodeﬁneamatrixwithbcopiedintoeachrowbeforedoingtheaddition.Thisimplicitcopyingofbtomanylocationsiscalled .broadcasting
+2.2MultiplyingMatricesandVectorsOneofthemostimportantoperationsinvolvingmatricesismultiplicationoftwomatrices.ThematrixproductofmatricesAandBisathirdmatrixC.Inorderforthisproducttobedeﬁned,AmusthavethesamenumberofcolumnsasBhasrows.IfAisofshapem n×andBisofshapen p×,thenCisofshapem p×.Wecanwritethematrixproductjustbyplacingtwoormorematricestogether,e.g.
+C AB= . (2.4)
+TheproductoperationisdeﬁnedbyCi,j=
+
+kAi,kBk,j. (2.5)
+Notethatthestandardproductoftwomatricesisjustamatrixcontainingnottheproductoftheindividualelements.Suchanoperationexistsandiscalledtheelement-wiseproduct Hadamardproductor ,andisdenotedas .A B
+Thedotproductbetweentwovectorsxandyofthesamedimensionalityisthematrixproductxy.WecanthinkofthematrixproductC=ABascomputingCi,jasthedotproductbetweenrowofandcolumnof.i A j B
+34

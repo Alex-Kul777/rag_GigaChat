@@ -1,0 +1,20 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 16 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CONTENTSFunctionsf f: A B→ ThefunctionwithdomainandrangeA Bfg f g◦ Compositionofthefunctionsandf(;)xθ Afunctionofxparametrizedbyθ. (Sometimeswewritef(x)andomittheargumentθtolightennotation)
+logx xNaturallogarithmof
+σx() Logisticsigmoid,1
+1+exp()−x
+ζx x() log(1+exp(Softplus, ))
+||||xp Lpnormofx
+||||x L2normofxx+ Positivepartof,i.e.,x max(0),x
+1condition is1iftheconditionistrue,0otherwiseSometimesweuseafunctionfwhoseargumentisascalarbutapplyittoavector,matrix,ortensor:f(x),f(X),orf(X).Thisdenotestheapplicationofftothearrayelement-wise.Forexample,ifC=σ(X),thenCi,j,k=σ(Xi,j,k)forallvalidvaluesof,and.ij kDatasetsandDistributionspdata Thedatageneratingdistribution
+ˆpdata TheempiricaldistributiondeﬁnedbythetrainingsetX Asetoftrainingexamplesx()i The-thexample(input)fromadatasetiy()iory()i Thetargetassociatedwithx()iforsupervisedlearn-
+ingX Them n×matrixwithinputexamplex()iinrowXi,:
+xiv

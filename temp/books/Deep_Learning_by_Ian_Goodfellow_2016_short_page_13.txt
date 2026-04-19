@@ -1,0 +1,13 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 13 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+NotationThissectionprovidesaconcisereferencedescribingthenotationusedthroughoutthisbook.Ifyouareunfamiliarwithanyofthecorrespondingmathematicalconcepts,wedescribemostoftheseideasinchapters2–4.
+NumbersandArraysa Ascalar(integerorreal)
+a AvectorA AmatrixA AtensorIn Identitymatrixwithrowsandcolumnsn nI Identitymatrixwithdimensionalityimpliedbycontexte()i Standardbasisvector[0,...,0,1,0,...,0]witha
+1atpositionidiag()a Asquare,diagonalmatrixwithdiagonalentriesgivenbyaaAscalarrandomvariablea Avector-valuedrandomvariableA Amatrix-valuedrandomvariablexi

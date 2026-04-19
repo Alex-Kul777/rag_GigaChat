@@ -1,0 +1,49 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 59 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER2.LINEARALGEBRA
+󰤓 󰤓 󰤓    
+
+󰤓
+󰤓
+󰤓
+
+
+
+
+
+
+
+
+󰤓 󰤓 󰤓    
+
+
+󰤓
+󰤓
+󰤓
+
+
+
+
+
+
+
+
+
+
+
+
+Figure2.3:Anexampleoftheeﬀectofeigenvectorsandeigenvalues.Here,wehaveamatrixAwithtwoorthonormaleigenvectors,v(1)witheigenvalueλ1andv(2)witheigenvalueλ2.(Left)Weplotthesetofallunitvectorsu∈R2asaunitcircle.(Right)WeplotthesetofallpointsAu.ByobservingthewaythatAdistortstheunitcircle,wecanseethatitscalesspaceindirectionv()ibyλi.
+eigenvectorstoformamatrixVwithoneeigenvectorpercolumn:V= [v(1),...,
+v()n].Likewise,wecanconcatenatetheeigenvaluestoformavectorλ= [λ1,...,
+λn].The ofisthengivenbyeigendecomposition AA V λV= diag()−1. (2.40)
+Wehaveseenthatconstructingmatriceswithspeciﬁceigenvaluesandeigenvec-
+torsallowsustostretchspaceindesireddirections. However,weoftenwanttodecomposematricesintotheireigenvaluesandeigenvectors.Doingsocanhelpustoanalyzecertainpropertiesofthematrix,muchasdecomposinganintegerintoitsprimefactorscanhelpusunderstandthebehaviorofthatinteger.
+Noteverymatrixcanbedecomposedintoeigenvaluesandeigenvectors.Insome
+43

@@ -1,0 +1,29 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 55 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER2.LINEARALGEBRAsolution.
+Sofarwehavediscussedmatrixinversesasbeingmultipliedontheleft.Itisalsopossibletodeﬁneaninversethatismultipliedontheright:
+AA−1= I. (2.29)
+Forsquarematrices,theleftinverseandrightinverseareequal.
+2.5NormsSometimesweneedtomeasurethesizeofavector.Inmachinelearning,weusuallymeasurethesizeofvectorsusingafunctioncalledanorm.Formally,theLpnormisgivenby
+||||xp=
+
+i
+|xi|p
+1
+p
+(2.30)
+forp ,p .∈R ≥1
+Norms,includingtheLpnorm,arefunctionsmappingvectorstonon-negativevalues.Onanintuitivelevel,thenormofavectorxmeasuresthedistancefromtheorigintothepointx.Morerigorously,anormisanyfunctionfthatsatisﬁesthefollowingproperties:
+• ⇒f() = 0 x x= 0
+• ≤f(+) x y f f()+x ()y(thetriangleinequality)
+•∀∈ ||α R,fα(x) = αf()xTheL2norm,withp= 2,isknownastheEuclideannorm.ItissimplytheEuclideandistancefromtheorigintothepointidentiﬁedbyx.TheL2normisusedsofrequentlyinmachinelearningthatitisoftendenotedsimplyas||||x,withthesubscriptomitted.Itisalsocommontomeasurethesizeofavectorusing2
+thesquaredL2norm,whichcanbecalculatedsimplyasxx.
+ThesquaredL2normismoreconvenienttoworkwithmathematicallyandcomputationallythantheL2normitself.Forexample,thederivativesofthesquaredL2normwithrespecttoeachelementofxeachdependonlyonthecorrespondingelementofx,whileallofthederivativesoftheL2normdependontheentirevector.Inmanycontexts,thesquaredL2normmaybeundesirablebecauseitincreasesveryslowlyneartheorigin.Inseveralmachinelearning
+39

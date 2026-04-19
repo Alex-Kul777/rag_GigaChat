@@ -1,0 +1,33 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 37 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER1.INTRODUCTION
+1900 1950 198520002015
+Y
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+Datasetsize(numberexamples)
+IrisMNISTPublicSVHNImageNetCIFAR-10
+ImageNet10kILSVRC 2014
+Sports-1MRotatedTvs.CTvs.Gvs.FCriminalsCanadianHansardWMTFigure1.8:Datasetsizeshaveincreasedgreatlyovertime.Intheearly1900s,statisticiansstudieddatasetsusinghundredsorthousandsofmanuallycompiledmeasurements( ,Garson
+1900Gosset1908Anderson1935Fisher1936; ,; ,;,).Inthe1950sthrough1980s,thepioneersofbiologicallyinspiredmachinelearningoftenworkedwithsmall,syntheticdatasets,suchaslow-resolutionbitmapsofletters,thatweredesignedtoincurlowcomputationalcostanddemonstratethatneuralnetworkswereabletolearnspeciﬁckindsoffunctions(WidrowandHoﬀ1960Rumelhart 1986b,; etal.,).Inthe1980sand1990s,machinelearningbecamemorestatisticalinnatureandbegantoleveragelargerdatasetscontainingtensofthousandsofexamplessuchastheMNISTdataset(showninﬁgure)ofscans1.9
+ofhandwrittennumbers( ,).Intheﬁrstdecadeofthe2000s,moreLeCunetal.1998bsophisticateddatasetsofthissamesize,suchastheCIFAR-10dataset(KrizhevskyandHinton2009,)continuedtobeproduced.Towardtheendofthatdecadeandthroughouttheﬁrsthalfofthe2010s,signiﬁcantlylargerdatasets,containinghundredsofthousandstotensofmillionsofexamples,completelychangedwhatwaspossiblewithdeeplearning.
+ThesedatasetsincludedthepublicStreetViewHouseNumbersdataset( ,Netzeretal.
+2011),variousversionsoftheImageNetdataset( ,,;Dengetal.20092010aRussakovskyetal. etal.,),andtheSports-1Mdataset(2014a Karpathy,).Atthetopofthe2014
+graph,weseethatdatasetsoftranslatedsentences,suchasIBM’sdatasetconstructedfromtheCanadianHansard( ,)andtheWMT2014EnglishtoFrenchBrownetal.1990
+dataset(Schwenk2014,)aretypicallyfaraheadofotherdatasetsizes.
+21

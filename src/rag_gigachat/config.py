@@ -172,7 +172,12 @@ class DataConfig:
     chunk_size: int = 500
     chunk_overlap: int = 80
     chunk_separators: List[str] = field(default_factory=lambda: ["\n\n", "\n", ".", "!", "?", ",", " ", ""])
-    
+
+    # Параметры фильтрации по токенам
+    token_filtering_enabled: bool = True  # Включить/отключить фильтрацию по токенам
+    token_filter_min_tokens: int = 30  # Минимальное количество токенов для сохранения чанка
+    token_filter_max_tokens: Optional[int] = None  # Максимальное количество токенов (None = без ограничений)
+
     # Параметры кэширования
     cache_enabled: bool = True
     #force_reload: bool = True
@@ -214,31 +219,34 @@ class VectorStoreConfig:
 @dataclass
 class ExperimentConfig:
     """Конфигурация экспериментов"""
-    
+
     # Параметры оценки
     ks_eval: List[int] = field(default_factory=lambda: [1, 3, 5, 10])
     batch_size: int = 32
-    
+
     # Сохранение результатов
     save_results: bool = True
     save_detailed_predictions: bool = True
-    
+
     # Логирование
     detailed_logging: bool = True
-    log_level: str = "INFO"
+    log_level: str = "DEBUG"  # Используем DEBUG для полного логирования
 
 
 @dataclass
 class LoggingConfig:
-    """Конфигурация логирования"""
+    """Конфигурация логирования с поддержкой process mining"""
 
-    #log_level: str = "INFO"
     log_level: str = "DEBUG"
-    log_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    log_format: str = '%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d | %(message)s'
     log_date_format: str = '%Y-%m-%d %H:%M:%S'
     log_to_file: bool = True
     log_to_console: bool = True
     log_file_name: str = "logs/rag_app.log"
+    log_json_file: str = "logs/rag_app.json"  # JSON файл для process mining анализа
+
+    # Использовать расширенное логирование (модуль/класс/метод)
+    use_contextual_formatting: bool = True
 
 
 @dataclass
@@ -246,9 +254,12 @@ class DebugConfig:
     """Конфигурация отладки и быстрого debug-режима"""
 
     debug_enabled: bool = os.getenv("RAG_DEBUG", "false").lower() == "true"
-    log_level: str = os.getenv("RAG_LOG_LEVEL", "INFO")
+    log_level: str = os.getenv("RAG_LOG_LEVEL", "DEBUG")  # DEBUG по умолчанию для видимости
     debug_mode: bool = os.getenv("RAG_DEBUG_MODE", "false").lower() == "true"
     debug_model_name: str = "facebook/opt-125m"  # 125M параметров, очень быстрая, CPU-friendly
+
+    # Автоматический тестовый вопрос при запуске в debug-режиме
+    test_question: str = os.getenv("RAG_TEST_QUESTION", "")  # Пустая строка = не отправлять
 
 
 # Глобальные экземпляры конфигураций
@@ -274,43 +285,53 @@ SILENCE_LIBRARIES = [
 
 
 def configure_logging():
-    """Настройка логирования с подавлением логов сторонних библиотек"""
-    # Получаем уровень из конфигурации
+    """Настройка логирования с расширенным форматированием для process mining"""
+    from rag_gigachat.logging_utils import ContextualFormatter, JSONFormatter
+
     log_level = getattr(logging, logging_config.log_level.upper(), logging.INFO)
-    
-    # Устанавливаем уровень для корневого логгера ИЗ КОНФИГУРАЦИИ
+
+    # Устанавливаем уровень для корневого логгера
     root_logger = logging.getLogger()
-    root_logger.setLevel(log_level)  # ← ИСПРАВЛЕНО: используем log_level вместо WARNING
-    
+    root_logger.setLevel(log_level)
+
     # Очищаем существующие обработчики
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
-    
-    # Настраиваем обработчики
-    formatter = logging.Formatter(
-        logging_config.log_format,
-        logging_config.log_date_format
-    )
-    
-    log_level = getattr(logging, logging_config.log_level.upper(), logging.INFO)
-    
-    # Консольный обработчик (только для наших модулей)
+
+    # Консольный обработчик (расширенный формат)
     if logging_config.log_to_console:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(log_level)
-        console_handler.setFormatter(formatter)
-        console_handler.addFilter(ModuleFilter(OUR_MODULES))
+        console_formatter = ContextualFormatter(
+            fmt='%(message)s',
+            datefmt=logging_config.log_date_format
+        )
+        console_handler.setFormatter(console_formatter)
         root_logger.addHandler(console_handler)
-    
-    # Файловый обработчик (все логи)
+
+    # Текстовый файловый обработчик
     if logging_config.log_to_file:
         log_file = Path(logging_config.log_file_name)
         log_file.parent.mkdir(parents=True, exist_ok=True)
         file_handler = logging.FileHandler(log_file, encoding='utf-8')
         file_handler.setLevel(log_level)
-        file_handler.setFormatter(formatter)
+        file_formatter = ContextualFormatter(
+            fmt='%(message)s',
+            datefmt=logging_config.log_date_format
+        )
+        file_handler.setFormatter(file_formatter)
         root_logger.addHandler(file_handler)
-    
+
+    # JSON файловый обработчик (для process mining анализа)
+    if logging_config.log_to_file:
+        json_file = Path(logging_config.log_json_file)
+        json_file.parent.mkdir(parents=True, exist_ok=True)
+        json_handler = logging.FileHandler(json_file, encoding='utf-8')
+        json_handler.setLevel(log_level)
+        json_formatter = JSONFormatter()
+        json_handler.setFormatter(json_formatter)
+        root_logger.addHandler(json_handler)
+
     # Подавляем логи от сторонних библиотек
     for lib in SILENCE_LIBRARIES:
         logging.getLogger(lib).setLevel(logging.WARNING)

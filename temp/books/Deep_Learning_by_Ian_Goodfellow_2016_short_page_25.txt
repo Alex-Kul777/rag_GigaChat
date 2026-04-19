@@ -1,0 +1,16 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 25 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER1.INTRODUCTIONAIMachine learningRepresentation learningDeep learningExample:
+KnowledgebasesExample:
+LogisticregressionExample:
+ShallowautoencodersExample:
+MLPsFigure1.4:AVenndiagramshowinghowdeeplearningisakindofrepresentationlearning,
+whichisinturnakindofmachinelearning,whichisusedformanybutnotallapproachestoAI.EachsectionoftheVenndiagramincludesanexampleofanAItechnology.
+9

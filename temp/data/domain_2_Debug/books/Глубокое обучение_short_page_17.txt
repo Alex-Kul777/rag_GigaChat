@@ -1,0 +1,56 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Глубокое обучение_short.pdf
+Страница: 17 из 60
+Заголовок: Глубокое обучение
+Автор: Ян Гудфеллоу, Иошуа Бенджио, Аарон Курвилль
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+16  БлагодарностиGorichanaz), Брендан Лоудермилк (Brendan Loudermilk), Эрис Моррис (Eric
+Morris), Космин Пярвулеску (Cosmin Pa�rvulescu) и Альфредо Солано (Alfredo
+Solano).
+ Глава 2 «Линейная алгебра»: Амджад Алмахаири (Amjad Almahairi), Нико-
+ла Баниц (Nikola Banic), Кэвин Беннетт (Kevin Bennett), Филипп Кастонге
+(Philippe Castonguay), Оскар Чанг (Oscar Chang), Эрик Фослер-Люссье (Eric
+Fosler-Lussier), Андрей Халявин, Сергей Орешков (Sergey Oreshkov), Иштван
+Петрас (István Petrás), Дэннис Прэнгл (Dennis Prangle), Томас Рохе (Thomas
+Rohée), Гитанджали Г улве Сехгал (Gitanjali Gulve Sehgal), Колби Толанд (Colby
+T oland), Алессандро Витале (Alessandro Vitale) и Боб Уэлланд (Bob W elland).
+ Глава 3 «Т еория вероятностей и теория информации»: Джон Филипп Андер-
+сон (John Philip Anderson), Кай Арулкумаран (Kai Arulkumaran), Венсан Дю-
+муле (Vincent Dumoulin), Руй Фа (Rui Fa), Стефан Г оус (Stephan Gouws), Ар-
+тем Оботуров, Антти Расмус (Antti Rasmus), Алексей Сурков и Фолькер Т респ
+(V olker Tresp).
+ Глава 4 «Численные методы»: Т ран Лам Аниан Фишер (Tran Lam AnIan Fisch-
+er) и Х у Ю Х уан (Hu Yuhuang).
+ Глава 5 «Основы машинного обучения»: Дзмитри Бахданау (Dzmitry Bah da-
+nau), Жюстен Доманге (Justin Domingue), Нихил Гарг (Nikhil Garg), Макото
+Оцука (Makoto Otsuka), Боб Пепин (Bob Pepin), Филип Попьен (Philip Pop-
+ien), Бхарат Прабхакар (Bharat Prabhakar), Эммануэль Райнер (Emmanuel
+Rayner), Питер Шепард (Peter Shepard), Ки-Бонг Сонг (Kee-Bong Song), Чжен
+Сун (Zheng Sun) и Энди Ву (Andy Wu).
+ Глава 6 «Глубокие сети прямого распространения»: У риэль Бердуго (Uriel Ber-
+dugo), Фабрицио Боттарель (Fabrizio Bottarel), Элизабет Бэрл (Elizabeth Burl),
+Ишан Дуругкар (Ishan Durugkar), Джефф Хлыва (Jeff Hlywa), Ёнг Вук Ким
+(Jong W ook Kim), Давид Крюгер (David Krueger), Адития Кумар Прахарадж
+(Aditya Kumar Praharaj) и Стэн Сутла (Sten Sootla).
+ Глава 7 «Регуляризация в глубоком обучении»: Мортен Колбэк (Morten Kol-
+bæk), Читыдж Лауриа (Kshitij Lauria), Инкю Ли (Inkyu Lee), Сунил Мохан
+(Sunil Mohan), Хай Пхонг Пхан (Hai Phong Phan) и Джошуа Сэлисбэри (Josh-
+ua Salisbury).
+ Глава 8 «Оптимизация обучения глубоких моделей»: Марсель Аккерман
+(Mar cel Ackermann), Питер Армитейдж (Peter Armitage), Роуэл Атиенза (Ro-
+wel Atienza), Эндрю Брок (Andrew Brock), Т еган Махарадж (T egan Maharaj),
+Джеймс Мартенс (James Martens), Мостафа Натегх (Mostafa Nategh), Кашиф
+Расул (Kashif Rasul), Клаус Штробль (Klaus Strobl) и Никола Т эрнер (Nicholas
+T urner).
+ Глава 9 «Сверточные сети»: Мартен Аржовски (Martín Arjovsky), Евгений
+Бревдо (Eugene Brevdo), Константин Дивилов, Эрик Йенсен (Eric Jensen),
+Мехди Мирза (Mehdi Mirza), Алекс Пайно (Alex Paino), Марджори Сэйер
+(Marjorie Sayer), Райан Стаут (Ryan Stout) и Вентао Ву (W entao Wu).
+ Глава 10 «Моделирование последовательностей: рекуррентные и рекурсивные
+сети»: Гёкчен Ераслан (Gökçen Eraslan), Стивен Хиксон (Steven Hickson), Раз-
+ван Паскану (Razvan Pascanu), Лоренхо фон Риттер (Lorenzo von Ritter), Руй
+Родригес (Rui Rodrigues), Дмитрий Сердюк, Донгуй Ши (Dongyu Shi) и Кай
+Ю Яан (Kaiyu Y ang).

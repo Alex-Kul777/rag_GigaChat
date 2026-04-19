@@ -60,34 +60,56 @@ def get_rag_pipeline(embedding_model: str, chunk_size: int, chunk_overlap: int) 
 
 
 def load_documents_to_pipeline(pipeline: RAGPipeline, domain_path: Path):
-    """Загрузить документы из директории в FAISS индекс"""
+    """Загрузить документы из директории в FAISS индекс
+
+    📌 Использует session_state кэш для предотвращения множественных загрузок
+    """
+    # ✅ КЭШИРОВАНИЕ: Проверяем, уже ли загружен индекс для этой директории
+    cache_key = f"index_loaded_{domain_path}"
+    if cache_key in st.session_state and st.session_state[cache_key]:
+        logger.debug(f"✅ Индекс уже в памяти: {domain_path} (используем кэш session_state)")
+        return True
+
     try:
+        logger.info(f"🔄 ВЫЗОВ load_documents_to_pipeline (domain={domain_path.name})")
         with st.spinner("📚 Загрузка документов в индекс..."):
-            logger.info(f"Starting document loading from {domain_path}")
-            logger.info(f"Directory exists: {domain_path.exists()}")
+            logger.info(f"📍 Начало загрузки документов из: {domain_path}")
+            logger.info(f"📍 Директория существует: {domain_path.exists()}")
 
             # Проверить наличие PDF файлов
             pdf_files = list(domain_path.rglob("*.pdf"))
-            logger.info(f"Found {len(pdf_files)} PDF files")
+            logger.info(f"📊 Найдено PDF файлов: {len(pdf_files)}")
+            if pdf_files:
+                logger.debug(f"📋 Список PDF файлов: {[f.name for f in pdf_files[:5]]}{'...' if len(pdf_files) > 5 else ''}")
 
             if not pdf_files:
+                logger.warning(f"⚠️ PDF файлы не найдены в {domain_path}")
                 st.warning(f"⚠️ PDF файлы не найдены в {domain_path}")
                 return False
 
+            logger.debug(f"🚀 Загружаем {len(pdf_files)} PDF файлов в pipeline...")
             pipeline.load_from_pdf_directory(
                 directory=domain_path,
                 recursive=True,
                 force_reload=False
             )
 
-            logger.info(f"After load_from_pdf_directory: vector_store_initialized={pipeline.vector_store_initialized}, manager.is_initialized={pipeline.vector_store_manager.is_initialized}")
+            logger.info(f"✅ PDF загружены в индекс")
+            logger.debug(f"📊 Статус индекса: vector_store_initialized={pipeline.vector_store_initialized}, "
+                        f"manager.is_initialized={pipeline.vector_store_manager.is_initialized}")
+
+            # ✅ Сохраняем в session_state, чтобы не загружать заново
+            st.session_state[cache_key] = True
+            logger.debug(f"💾 Кэш session_state сохранен: {cache_key}")
 
         st.success("✅ Документы успешно загружены в индекс!")
+        logger.info(f"✅ Загрузка завершена успешно")
         return True
     except Exception as e:
         import traceback
         error_msg = f"{type(e).__name__}: {str(e)}"
-        logger.error(f"Error loading documents: {error_msg}", exc_info=True)
+        logger.error(f"❌ Ошибка загрузки документов: {error_msg}", exc_info=True)
+        logger.debug(f"Traceback: {traceback.format_exc()}")
         st.error(f"❌ Ошибка загрузки документов: {error_msg}")
         return False
 
@@ -122,6 +144,7 @@ def init_session_state():
         "chat_history": [],
         # Debug режим
         "debug_query_executed": False,
+        "auto_test_question_sent": False,  # 🧪 Флаг для автоматического вопроса
     }
 
     for key, value in defaults.items():
@@ -410,42 +433,87 @@ def main():
         initial_sidebar_state="expanded"
     )
 
+    logger.debug(f"🚀 RERUN STREAMLIT #1: Инициализация main()")
+
+    # 🐛 ДИАГНОСТИКА DEBUG-РЕЖИМА: Проверяем и логируем статус
+    import os
+    env_debug = os.getenv("RAG_DEBUG_MODE", "false").lower() == "true"
+    from rag_gigachat.config import debug_config
+
+    if env_debug or debug_config.debug_mode:
+        logger.info(f"✅ DEBUG-РЕЖИМ АКТИВЕН: Используется {debug_config.debug_model_name} (125M параметров)")
+        st.info(f"✅ **DEBUG-режим активен**: Используется быстрая модель {debug_config.debug_model_name} (125M параметров, ~3 сек на загрузку)")
+    else:
+        logger.info(f"📦 PRODUCTION-РЕЖИМ: Используется {model_config.llm_model_name} (500M параметров, высокое качество)")
+        logger.info(f"💡 Для включения debug-режима выполните: export RAG_DEBUG_MODE=true")
+
+    # 🧪 ТЕСТОВЫЙ ВОПРОС: Проверяем есть ли вопрос для автоматического отправления
+    test_question = debug_config.test_question
+    if test_question:
+        logger.info(f"🧪 АВТОМАТИЧЕСКИЙ ВОПРОС: '{test_question}'")
+        st.info(f"🧪 **Автоматический тест**: Отправляется вопрос '{test_question}'")
+
     # Инициализация состояния
     init_session_state()
 
-    # Проверка режима debug
+    # Проверка режима debug и тестового вопроса
     is_debug_mode = os.environ.get("RAG_DEBUG", "").lower() == "true"
     debug_query = "Что такое RAG?"
 
+    # 🧪 ТЕСТОВЫЙ ВОПРОС: Может быть установлен через env var или флаг
+    test_question = debug_config.test_question or os.getenv("RAG_TEST_QUESTION", "")
+    if test_question:
+        logger.info(f"🧪 Автоматический вопрос установлен: '{test_question}'")
+        # Используем test_question вместо debug_query, если он установлен
+        question_to_auto_send = test_question
+    else:
+        question_to_auto_send = None
+
     # Авто-загрузка документов если индекс пуст
     try:
+        logger.debug(f"🚀 RERUN STREAMLIT #2: get_rag_pipeline()")
         pipeline = get_rag_pipeline(
             embedding_model=st.session_state.embedding_model,
             chunk_size=st.session_state.chunk_size,
             chunk_overlap=st.session_state.chunk_overlap
         )
 
-        # Проверяем, нужна ли загрузка (индекс не инициализирован)
-        if not pipeline.vector_store_manager.is_initialized:
-            st.info("📚 Загрузка документов в индекс (выполняется один раз)...")
+        # ✅ КЭШИРОВАНИЕ: Проверяем, нужна ли загрузка
+        # Используем session_state флаг для предотвращения множественных загрузок
+        auto_load_key = "auto_load_executed"
+        if auto_load_key not in st.session_state:
+            st.session_state[auto_load_key] = False
+
+        # Загружаем ТОЛЬКО если: 1) индекс пуст И 2) еще не загружали в этой сессии
+        if not pipeline.vector_store_manager.is_initialized and not st.session_state[auto_load_key]:
+            logger.info(f"📚 Первый запуск: загружаем документы в индекс (выполняется один раз за сессию)")
+            st.info("📚 Загрузка документов в индекс (выполняется один раз за сессию)...")
+
             first_domain = list(data_config.documents_dirs.values())[0]
+            logger.debug(f"📁 Первый домен для загрузки: {first_domain.name}")
 
             if first_domain.exists():
                 try:
+                    logger.info(f"🔄 Начинаю загрузку PDF из {first_domain}")
                     pipeline.load_from_pdf_directory(
                         directory=first_domain,
                         recursive=True,
                         force_reload=False
                     )
+                    st.session_state[auto_load_key] = True  # ✅ Отмечаем, что загрузили
+                    logger.info(f"✅ Документы загружены в индекс успешно")
                     st.success("✅ Документы загружены в индекс!")
                 except Exception as e:
-                    logger.error(f"Ошибка загрузки: {e}", exc_info=True)
+                    logger.error(f"❌ Ошибка загрузки PDF: {e}", exc_info=True)
                     st.error(f"❌ Ошибка загрузки документов: {e}")
             else:
+                logger.error(f"❌ Директория не найдена: {first_domain}")
                 st.error(f"❌ Директория не найдена: {first_domain}")
+        else:
+            logger.debug(f"✅ Индекс уже инициализирован или уже загружали в этой сессии (auto_load={st.session_state[auto_load_key]})")
 
     except Exception as e:
-        logger.error(f"Ошибка инициализации: {e}", exc_info=True)
+        logger.error(f"❌ Ошибка инициализации main(): {e}", exc_info=True)
         st.error(f"❌ Ошибка инициализации: {e}")
 
     # Обработка явной перезагрузки индекса (кнопка в боковой панели)
@@ -507,8 +575,34 @@ def main():
     # Статистика
     render_stats()
 
-    # DEBUG MODE: Автоматически выполнить тестовый запрос
-    if is_debug_mode and not st.session_state.debug_query_executed:
+    # 🧪 АВТОМАТИЧЕСКАЯ ОТПРАВКА ВОПРОСА: После загрузки документов
+    # Используем session_state флаг чтобы отправить только один раз за сессию
+    if question_to_auto_send and not st.session_state.get("auto_test_question_sent", False):
+        # Проверяем, что индекс инициализирован (документы загружены)
+        try:
+            pipeline = get_rag_pipeline(
+                embedding_model=st.session_state.embedding_model,
+                chunk_size=st.session_state.chunk_size,
+                chunk_overlap=st.session_state.chunk_overlap
+            )
+            if pipeline.vector_store_manager.is_initialized:
+                st.session_state.auto_test_question_sent = True
+                logger.info(f"🧪 ОТПРАВКА АВТОМАТИЧЕСКОГО ВОПРОСА: '{question_to_auto_send}'")
+                # Задержка для стабилизации интерфейса
+                with st.spinner(f"🧪 Автоматическая отправка вопроса: '{question_to_auto_send}'"):
+                    import time
+                    time.sleep(1)
+                    try:
+                        handle_user_query(question_to_auto_send)
+                        logger.info(f"✅ Автоматический вопрос обработан успешно")
+                    except Exception as e:
+                        logger.error(f"❌ Ошибка при автоматической отправке: {e}", exc_info=True)
+                        st.error(f"❌ Ошибка при отправке вопроса: {e}")
+        except Exception as e:
+            logger.error(f"❌ Ошибка при инициализации для автоответа: {e}", exc_info=True)
+
+    # DEBUG MODE: Автоматически выполнить тестовый запрос (старая логика для совместимости)
+    elif is_debug_mode and not st.session_state.debug_query_executed:
         st.session_state.debug_query_executed = True
         # Задержка для загрузки документов
         with st.spinner("🔄 DEBUG: Автоматический запрос..."):

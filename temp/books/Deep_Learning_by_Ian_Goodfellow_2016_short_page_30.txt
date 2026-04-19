@@ -1,0 +1,26 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 30 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER1.INTRODUCTION
+1940 1950 1960 1970 1980 1990 2000
+Year
+0.000000
+0.000050
+0.000100
+0.000150
+0.000200
+0.000250
+FrequencyofWordorPhrasecybernetics
+(connectionism+neuralnetworks)
+Figure1.7:Theﬁgureshowstwoofthethreehistoricalwavesofartiﬁcialneuralnetsresearch,asmeasuredbythefrequencyofthephrases“cybernetics”and“connectionism”or
+“neuralnetworks”accordingtoGoogleBooks(thethirdwaveistoorecenttoappear).The
+ﬁrstwavestartedwithcyberneticsinthe1940s–1960s,withthedevelopmentoftheoriesofbiologicallearning( ,;,)andimplementationsofMcCullochandPitts1943Hebb1949
+theﬁrstmodelssuchastheperceptron(Rosenblatt1958,)allowingthetrainingofasingleneuron.Thesecondwavestartedwiththeconnectionistapproachofthe1980–1995period,
+withback-propagation( ,)totrainaneuralnetworkwithoneortwoRumelhartetal.1986ahiddenlayers.Thecurrentandthirdwave,deeplearning,startedaround2006(Hintonetal. etal. etal.,;2006Bengio,;2007Ranzato,),andisjustnowappearinginbook2007aformasof2016.Theothertwowavessimilarlyappearedinbookformmuchlaterthanthecorrespondingscientiﬁcactivityoccurred.
+14

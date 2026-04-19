@@ -1,0 +1,38 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 49 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER2.LINEARALGEBRAA=
+
+
+A11, A12,
+A21, A22,
+A31, A32,
+
+⇒A=
+A11, A21, A31,
+A12, A22, A32,
+
+Figure2.1:Thetransposeofthematrixcanbethoughtofasamirrorimageacrossthemaindiagonal.
+the-th of.Whenweneedtoexplicitlyidentifytheelementsofi column Aamatrix,wewritethemasanarrayenclosedinsquarebrackets:
+A11, A12,
+A21, A22,
+
+. (2.2)
+Sometimeswemayneedtoindexmatrix-valuedexpressionsthatarenotjustasingleletter.Inthiscase,weusesubscriptsaftertheexpression,butdonotconvertanythingtolowercase.Forexample,f(A)i,jgiveselement(i,j)
+ofthematrixcomputedbyapplyingthefunctionto.f A
+•Tensors:Insomecaseswewillneedanarraywithmorethantwoaxes.
+Inthegeneralcase,anarrayofnumbersarrangedonaregulargridwithavariablenumberofaxesisknownasatensor.Wedenoteatensornamed“A”
+withthistypeface:A.WeidentifytheelementofAatcoordinates(i,j,k)
+bywritingAi,j,k.
+Oneimportantoperationonmatricesisthetranspose. Thetransposeofamatrixisthemirrorimageofthematrixacrossadiagonalline,calledthemaindiagonal,runningdownandtotheright,startingfromitsupperleftcorner.See
+ﬁgureforagraphicaldepictionofthisoperation.Wedenotethetransposeofa2.1
+matrixasA A,anditisdeﬁnedsuchthat
+(A)i,j= Aj,i. (2.3)
+Vectorscanbethoughtofasmatricesthatcontainonlyonecolumn.Thetransposeofavectoristhereforeamatrixwithonlyonerow.Sometimeswe
+33

@@ -1,0 +1,30 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 3 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+ContentsWebsite viiAcknowledgments viiiNotation xi
+1Introduction 1
+1.1WhoShouldReadThisBook?. . . . . .. . . . . . . . .. . . . .8
+1.2HistoricalTrendsinDeepLearning. . . . . . . . .. . . . . . . .11
+IAppliedMathandMachineLearningBasics 29
+2LinearAlgebra 31
+2.1Scalars,Vectors,MatricesandTensors. . . . . . . . .. . . . . .31
+2.2MultiplyingMatricesandVectors. . . . . . . . .. . . . . . . ..34
+2.3IdentityandInverseMatrices. . . . . . . . .. . . . . . . .. . .36
+2.4LinearDependenceandSpan. . . . . . . . .. . . . . . . .. . .37
+2.5Norms. . . . . . . . .. . . . . . . .. . . . . . . .. . . . . . . .39
+2.6SpecialKindsofMatricesandVectors. . . . . . . . . . . . . . .40
+2.7Eigendecomposition. . . . . . . . . .. . . . . . . .. . . . . . . .42
+2.8SingularValueDecomposition. . . . . . . .. . . . . . . .. . . .44
+2.9TheMoore-PenrosePseudoinverse. . . . . . . . .. . . . . . . ..45
+2.10TheTraceOperator. . . . . . . . .. . . . . . . .. . . . . . . .46
+2.11TheDeterminant. .. . . . . . . .. . . . . . . .. . . . . . . . .47
+2.12Example:PrincipalComponentsAnalysis. . . . . . . . .. . . .48
+3ProbabilityandInformationTheory 53
+3.1WhyProbability?. . . . .. . . . . . . . .. . . . . . . .. . . . .54
+i
