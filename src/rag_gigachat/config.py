@@ -219,18 +219,18 @@ class VectorStoreConfig:
 @dataclass
 class ExperimentConfig:
     """Конфигурация экспериментов"""
-    
+
     # Параметры оценки
     ks_eval: List[int] = field(default_factory=lambda: [1, 3, 5, 10])
     batch_size: int = 32
-    
+
     # Сохранение результатов
     save_results: bool = True
     save_detailed_predictions: bool = True
-    
+
     # Логирование
     detailed_logging: bool = True
-    log_level: str = "INFO"
+    log_level: str = "DEBUG"  # Используем DEBUG для полного логирования
 
 
 @dataclass
@@ -251,7 +251,7 @@ class DebugConfig:
     """Конфигурация отладки и быстрого debug-режима"""
 
     debug_enabled: bool = os.getenv("RAG_DEBUG", "false").lower() == "true"
-    log_level: str = os.getenv("RAG_LOG_LEVEL", "INFO")
+    log_level: str = os.getenv("RAG_LOG_LEVEL", "DEBUG")  # DEBUG по умолчанию для видимости
     debug_mode: bool = os.getenv("RAG_DEBUG_MODE", "false").lower() == "true"
     debug_model_name: str = "facebook/opt-125m"  # 125M параметров, очень быстрая, CPU-friendly
 
