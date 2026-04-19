@@ -5,6 +5,9 @@ Integration test для Debug Mode — проверка инициализаци
 import pytest
 import logging
 import os
+import sys
+import subprocess
+import time
 from pathlib import Path
 
 from rag_gigachat.core.llm_manager import LLMManager
@@ -430,3 +433,160 @@ class TestDebugModePerformance:
 
         logger.info(f"✅ GPU память стабильна: {gpu_before / 1e9:.3f} GB → "
                    f"{gpu_after / 1e9:.3f} GB (peak: {peak_memory:.3f} GB)")
+
+
+@pytest.mark.slow
+class TestDebugModeStreamlit:
+    """Тесты для проверки Streamlit UI интеграции с debug режимом"""
+
+    PROJECT_ROOT = Path(__file__).parent.parent.parent
+    APP_FILE = PROJECT_ROOT / "app.py"
+
+    def test_debug_streamlit_starts_and_stays_alive(self):
+        """Тест 13: Проверка что Streamlit запускается и не падает за 20 сек"""
+        if not self.APP_FILE.exists():
+            pytest.skip(f"Файл {self.APP_FILE} не найден")
+
+        # Готовим окружение с debug mode
+        env = os.environ.copy()
+        env["RAG_DEBUG_MODE"] = "true"
+        env["RAG_TEST_QUESTION"] = "Что такое RAG?"
+
+        logger.info("Запуск Streamlit в debug режиме...")
+
+        try:
+            # Запускаем Streamlit как subprocess
+            process = subprocess.Popen(
+                [sys.executable, str(self.APP_FILE), "--mode", "ui"],
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+
+            logger.info(f"Streamlit процесс запущен (PID: {process.pid})")
+
+            # Ждем 20 секунд
+            wait_time = 20
+            start_time = time.time()
+
+            while time.time() - start_time < wait_time:
+                # Проверяем что процесс еще работает
+                exit_code = process.poll()
+                if exit_code is not None:
+                    # Процесс неожиданно завершился
+                    stdout, stderr = process.communicate()
+                    pytest.fail(
+                        f"Streamlit процесс завершился с кодом {exit_code} "
+                        f"после {time.time() - start_time:.1f} сек\n"
+                        f"stderr: {stderr}"
+                    )
+
+                time.sleep(1)
+
+            logger.info(f"✅ Streamlit работает стабильно ({wait_time} сек)")
+
+            # Graceful shutdown
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка при запуске Streamlit: {e}")
+            raise
+
+    def test_debug_streamlit_no_oom_kill(self):
+        """Тест 14: Проверка что Streamlit не убивается с SIGKILL -9 (OOM)"""
+        if not self.APP_FILE.exists():
+            pytest.skip(f"Файл {self.APP_FILE} не найден")
+
+        env = os.environ.copy()
+        env["RAG_DEBUG_MODE"] = "true"
+        env["RAG_TEST_QUESTION"] = "Что такое RAG?"
+
+        logger.info("Запуск Streamlit для проверки на OOM...")
+
+        try:
+            process = subprocess.Popen(
+                [sys.executable, str(self.APP_FILE), "--mode", "ui"],
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+
+            logger.info(f"Streamlit процесс запущен (PID: {process.pid})")
+
+            # Ждем 25 секунд (дольше, чтобы пройти фазу загрузки модели)
+            wait_time = 25
+            start_time = time.time()
+
+            while time.time() - start_time < wait_time:
+                exit_code = process.poll()
+                if exit_code is not None:
+                    # Проверяем что это не SIGKILL (-9) из-за OOM
+                    if exit_code == -9:
+                        pytest.fail(
+                            f"Streamlit убит с SIGKILL -9 (OOM) "
+                            f"после {time.time() - start_time:.1f} сек\n"
+                            f"Регрессия: float32 модель требует > 1GB памяти"
+                        )
+                    elif exit_code == -11:
+                        pytest.fail(
+                            f"Streamlit убит с SIGSEGV -11 (segmentation fault) "
+                            f"после {time.time() - start_time:.1f} сек"
+                        )
+                    elif exit_code != 0 and exit_code != -15:  # -15 это SIGTERM от нас
+                        logger.warning(
+                            f"⚠️  Streamlit завершился с кодом {exit_code} "
+                            f"после {time.time() - start_time:.1f} сек"
+                        )
+
+                time.sleep(1)
+
+            logger.info(f"✅ Streamlit не упал на SIGKILL -9 ({wait_time} сек)")
+
+            # Graceful shutdown
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка при запуске Streamlit: {e}")
+            raise
+
+    def test_debug_streamlit_env_vars_passed(self):
+        """Тест 15: Проверка что переменные окружения корректно передаются"""
+        if not self.APP_FILE.exists():
+            pytest.skip(f"Файл {self.APP_FILE} не найден")
+
+        # Тест что RAG_DEBUG_MODE передается в subprocess
+        env = os.environ.copy()
+        env["RAG_DEBUG_MODE"] = "true"
+
+        logger.info("Проверка передачи RAG_DEBUG_MODE в subprocess...")
+
+        try:
+            # Запускаем скрипт который проверяет переменные окружения
+            result = subprocess.run(
+                [sys.executable, "-c",
+                 "import os; exit(0 if os.getenv('RAG_DEBUG_MODE') == 'true' else 1)"],
+                env=env,
+                timeout=5,
+                capture_output=True
+            )
+
+            assert result.returncode == 0, \
+                "Переменная окружения RAG_DEBUG_MODE не передана в subprocess"
+
+            logger.info("✅ Переменные окружения передаются корректно")
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка при проверке env vars: {e}")
+            raise
