@@ -1,0 +1,46 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 7 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CONTENTS
+13.5ManifoldInterpretationofPCA. . . . . . . . . . . . . . . . .. .499
+14 Autoencoders 502
+14.1UndercompleteAutoencoders. . . . . . . . . .. . . . . . . .. .503
+14.2RegularizedAutoencoders. . . . . . . . .. . . . . . . .. . . . .504
+14.3RepresentationalPower,LayerSizeandDepth. . . . . .. . . . .508
+14.4StochasticEncodersandDecoders. . . . . . . . . . .. . . . . . .509
+14.5DenoisingAutoencoders. .. . . . . . . .. . . . . . . . .. . . .510
+14.6LearningManifoldswithAutoencoders. . . . . .. . . . . . . . .515
+14.7ContractiveAutoencoders.. . . . . . . .. . . . . . . .. . . . .521
+14.8PredictiveSparseDecomposition. . . . . . . .. . . . . . . . ..523
+14.9ApplicationsofAutoencoders. . . . .. . . . . . . . .. . . . . .524
+15 RepresentationLearning 526
+15.1GreedyLayer-WiseUnsupervisedPretraining. . . . . .. . . . .528
+15.2TransferLearningandDomainAdaptation. . . .. . . . . . . ..536
+15.3Semi-SupervisedDisentanglingofCausalFactors. . . . .. . . .541
+15.4DistributedRepresentation. . . . . . . . . . . .. . . . . . . . ..546
+15.5ExponentialGainsfromDepth. . . . . . . . . .. . . . . . . ..553
+15.6ProvidingCluestoDiscoverUnderlyingCauses. . . .. . . . . .554
+16 StructuredProbabilisticModelsforDeepLearning 558
+16.1TheChallengeofUnstructuredModeling.. . . . . . . .. . . . .559
+16.2UsingGraphstoDescribeModelStructure. .. . . . . . . .. . .563
+16.3SamplingfromGraphicalModels. . .. . . . . . . .. . . . . . .580
+16.4AdvantagesofStructuredModeling .. . . . . . . . .. . . . . . .582
+16.5LearningaboutDependencies. . . .. . . . . . . .. . . . . . . .582
+16.6InferenceandApproximateInference. . . . . . . . .. . . . . . .584
+16.7TheDeepLearningApproachtoStructuredProbabilisticModels585
+17 MonteCarloMethods 590
+17.1SamplingandMonteCarloMethods. . . . . . . .. . . . . . . .590
+17.2ImportanceSampling. . . . . . . . . . . .. . . . . . . .. . . . .592
+17.3MarkovChainMonteCarloMethods. . . . .. . . . . . . .. . .595
+17.4GibbsSampling . . . . . . .. . . . . . . . .. . . . . . . .. . . .599
+17.5TheChallengeofMixingbetweenSeparatedModes. . . . . . ..599
+18 ConfrontingthePartitionFunction 605
+18.1TheLog-LikelihoodGradient.. . . . . . . .. . . . . . . . .. .606
+18.2StochasticMaximumLikelihoodandContrastiveDivergence. . .607
+v

@@ -1,0 +1,64 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 43 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER1.INTRODUCTION
+1950 1985 2000 2015 2056
+10−2
+10−1
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+1010
+1011
+Numberofneurons(logarithmicscale)
+1 2
+3
+4
+5
+6
+7
+8
+9 10
+11
+12
+13
+14
+15
+1617
+18
+1920
+SpongeRoundwormLeechAntBeeFrogOctopusHumanFigure1.11:Sincetheintroductionofhiddenunits,artiﬁcialneuralnetworkshavedoubledinsizeroughlyevery2.4years.Biologicalneuralnetworksizesfrom ().Wikipedia2015
+1.Perceptron( , , )Rosenblatt19581962
+2.Adaptivelinearelement( , )WidrowandHoﬀ1960
+3.Neocognitron(Fukushima1980, )
+4.Earlyback-propagationnetwork( , )Rumelhartetal.1986b
+5.Recurrentneuralnetworkforspeechrecognition(RobinsonandFallside1991, )
+6.Multilayerperceptronforspeechrecognition( , )Bengioetal.1991
+7.Meanﬁeldsigmoidbeliefnetwork( , )Sauletal.1996
+8.LeNet-5( , )LeCunetal.1998b
+9.Echostatenetwork( , )JaegerandHaas2004
+10.Deepbeliefnetwork( , )Hintonetal.2006
+11.GPU-acceleratedconvolutionalnetwork( , )Chellapillaetal.2006
+12.DeepBoltzmannmachine(SalakhutdinovandHinton2009a, )
+13.GPU-accelerateddeepbeliefnetwork( , )Rainaetal.2009
+14.Unsupervisedconvolutionalnetwork( , )Jarrettetal.2009
+15.GPU-acceleratedmultilayerperceptron( , )Ciresanetal.2010
+16.OMP-1network( , )CoatesandNg2011
+17.Distributedautoencoder( , )Leetal.2012
+18.Multi-GPUconvolutionalnetwork( , )Krizhevskyetal.2012
+19.COTSHPCunsupervisedconvolutionalnetwork( , )Coatesetal.2013
+20.GoogLeNet( , )Szegedyetal.2014a
+27

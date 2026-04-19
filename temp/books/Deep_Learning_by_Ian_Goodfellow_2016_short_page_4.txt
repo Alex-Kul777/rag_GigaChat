@@ -1,0 +1,46 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 4 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CONTENTS
+3.2RandomVariables. . . . .. . . . . . . .. . . . . . . . .. . . .56
+3.3ProbabilityDistributions. . . . . . . . .. . . . . . . .. . . . . .56
+3.4MarginalProbability. . . . . . . . .. . . . . . . . .. . . . . . .58
+3.5ConditionalProbability. .. . . . . . . .. . . . . . . .. . . . .59
+3.6TheChainRuleofConditionalProbabilities. . . . . . . . .. . .59
+3.7IndependenceandConditionalIndependence. . . . . . . . .. . .60
+3.8Expectation,VarianceandCovariance. . . . . . . . . .. . . . .60
+3.9CommonProbabilityDistributions. . . . . . . . . . . . . . .. .62
+3.10UsefulPropertiesofCommonFunctions. . .. . . . . . . . .. .67
+3.11Bayes’Rule. . . . . . . . . .. . . . . . . .. . . . . . . .. . . .70
+3.12TechnicalDetailsofContinuousVariables. . . . . .. . . . . . .71
+3.13InformationTheory. . . . . . . . . .. . . . . . . .. . . . . . . .73
+3.14StructuredProbabilisticModels. . . .. . . . . . . .. . . . . . .75
+4NumericalComputation 80
+4.1OverﬂowandUnderﬂow. . . . . . . . .. . . . . . . .. . . . . .80
+4.2PoorConditioning. . . . . . . . .. . . . . . . .. . . . . . . . .82
+4.3Gradient-BasedOptimization. . . . . . .. . . . . . . .. . . . .82
+4.4ConstrainedOptimization. . . . . . . . . . . . .. . . . . . . ..93
+4.5Example:LinearLeastSquares. . . . . . .. . . . . . . . .. . .96
+5MachineLearningBasics 98
+5.1LearningAlgorithms. . . . . . . . . . .. . . . . . . .. . . . . .99
+5.2Capacity,OverﬁttingandUnderﬁtting. .. . . . . . . .. . . . .110
+5.3HyperparametersandValidationSets.. . . . . . . .. . . . . . .120
+5.4Estimators,BiasandVariance. . . . . .. . . . . . . .. . . . . .122
+5.5MaximumLikelihoodEstimation. . . . . .. . . . . . . . .. . .131
+5.6BayesianStatistics. . . . . . . . . . .. . . . . . . .. . . . . . .135
+5.7SupervisedLearningAlgorithms. . .. . . . . . . .. . . . . . . .140
+5.8UnsupervisedLearningAlgorithms. . . . . . . . . . . . . . .. .146
+5.9StochasticGradientDescent. . . .. . . . . . . . .. . . . . . . .151
+5.10BuildingaMachineLearningAlgorithm. . . . . . . . . . . . ..153
+5.11ChallengesMotivatingDeepLearning. . . . .. . . . . . . . .. .155
+IIDeepNetworks:ModernPractices 166
+6DeepFeedforwardNetworks 168
+6.1Example:LearningXOR.. . . . . . . . .. . . . . . . .. . . . .171
+6.2Gradient-BasedLearning.. . . . . . . .. . . . . . . .. . . . . .177
+ii

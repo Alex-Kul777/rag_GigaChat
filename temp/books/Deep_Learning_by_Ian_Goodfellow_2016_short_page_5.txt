@@ -1,0 +1,48 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 5 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CONTENTS
+6.3HiddenUnits. . . . . .. . . . . . . .. . . . . . . . .. . . . . .191
+6.4ArchitectureDesign. . . . . . . . .. . . . . . . .. . . . . . . ..197
+6.5Back-PropagationandOtherDiﬀerentiationAlgorithms. . . . .204
+6.6HistoricalNotes. . . . . . .. . . . . . . .. . . . . . . . .. . . .224
+7RegularizationforDeepLearning 228
+7.1ParameterNormPenalties. . . . .. . . . . . . . .. . . . . . . .230
+7.2NormPenaltiesasConstrainedOptimization. . . . . . . .. . . .237
+7.3RegularizationandUnder-ConstrainedProblems. .. . . . . . .239
+7.4DatasetAugmentation. . . . . . . . . .. . . . . . . . .. . . . .240
+7.5NoiseRobustness. . . . . . . . .. . . . . . . .. . . . . . . .. .242
+7.6Semi-SupervisedLearning. . . . . . . . . . . . . . . .. . . . . .243
+7.7Multi-TaskLearning. . . . . . . . . . . . . .. . . . . . . . .. .244
+7.8EarlyStopping. . . . . . . . .. . . . . . . .. . . . . . . .. . .246
+7.9ParameterTyingandParameterSharing . . . . . . . . . . . . . .253
+7.10SparseRepresentations. . . . . . . . .. . . . . . . .. . . . . . .254
+7.11BaggingandOtherEnsembleMethods.. . . . . . . . .. . . . .256
+7.12Dropout. . . . . . . .. . . . . . . . .. . . . . . . .. . . . . . .258
+7.13AdversarialTraining. . . . . . . .. . . . . . . . .. . . . . . . .268
+7.14TangentDistance,TangentProp,andManifoldTangentClassiﬁer270
+8OptimizationforTrainingDeepModels 274
+8.1HowLearningDiﬀersfromPureOptimization. . . . . . . . . . .275
+8.2ChallengesinNeuralNetworkOptimization. . . . .. . . . . . .282
+8.3BasicAlgorithms. . . . . . . . . . . . .. . . . . . . .. . . . . .294
+8.4ParameterInitializationStrategies.. . . . . . . . .. . . . . . .301
+8.5AlgorithmswithAdaptiveLearningRates. . . . . . .. . . . . .306
+8.6ApproximateSecond-OrderMethods. . . .. . . . . . . . .. . .310
+8.7OptimizationStrategiesandMeta-Algorithms. . . . .. . . . . .317
+9ConvolutionalNetworks 330
+9.1TheConvolutionOperation. . . . . . . . . . . . . . . .. . . . .331
+9.2Motivation. .. . . . . . . .. . . . . . . . .. . . . . . . .. . . .335
+9.3Pooling. . . . . . . . . . . . .. . . . . . . .. . . . . . . . .. . .339
+9.4ConvolutionandPoolingasanInﬁnitelyStrongPrior. .. . . . .345
+9.5VariantsoftheBasicConvolutionFunction. . . . . . . . . . . .347
+9.6StructuredOutputs.. . . . . . . .. . . . . . . . .. . . . . . . .358
+9.7DataTypes. . . . . .. . . . . . . .. . . . . . . .. . . . . . . .360
+9.8EﬃcientConvolutionAlgorithms. . . . . . . .. . . . . . . .. .362
+9.9RandomorUnsupervisedFeatures. . . . . . . .. . . . . . . ..363
+iii

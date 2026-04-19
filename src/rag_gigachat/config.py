@@ -235,15 +235,18 @@ class ExperimentConfig:
 
 @dataclass
 class LoggingConfig:
-    """Конфигурация логирования"""
+    """Конфигурация логирования с поддержкой process mining"""
 
-    #log_level: str = "INFO"
     log_level: str = "DEBUG"
-    log_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    log_format: str = '%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d | %(message)s'
     log_date_format: str = '%Y-%m-%d %H:%M:%S'
     log_to_file: bool = True
     log_to_console: bool = True
     log_file_name: str = "logs/rag_app.log"
+    log_json_file: str = "logs/rag_app.json"  # JSON файл для process mining анализа
+
+    # Использовать расширенное логирование (модуль/класс/метод)
+    use_contextual_formatting: bool = True
 
 
 @dataclass
@@ -282,43 +285,53 @@ SILENCE_LIBRARIES = [
 
 
 def configure_logging():
-    """Настройка логирования с подавлением логов сторонних библиотек"""
-    # Получаем уровень из конфигурации
+    """Настройка логирования с расширенным форматированием для process mining"""
+    from rag_gigachat.logging_utils import ContextualFormatter, JSONFormatter
+
     log_level = getattr(logging, logging_config.log_level.upper(), logging.INFO)
-    
-    # Устанавливаем уровень для корневого логгера ИЗ КОНФИГУРАЦИИ
+
+    # Устанавливаем уровень для корневого логгера
     root_logger = logging.getLogger()
-    root_logger.setLevel(log_level)  # ← ИСПРАВЛЕНО: используем log_level вместо WARNING
-    
+    root_logger.setLevel(log_level)
+
     # Очищаем существующие обработчики
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
-    
-    # Настраиваем обработчики
-    formatter = logging.Formatter(
-        logging_config.log_format,
-        logging_config.log_date_format
-    )
-    
-    log_level = getattr(logging, logging_config.log_level.upper(), logging.INFO)
-    
-    # Консольный обработчик (только для наших модулей)
+
+    # Консольный обработчик (расширенный формат)
     if logging_config.log_to_console:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(log_level)
-        console_handler.setFormatter(formatter)
-        console_handler.addFilter(ModuleFilter(OUR_MODULES))
+        console_formatter = ContextualFormatter(
+            fmt='%(message)s',
+            datefmt=logging_config.log_date_format
+        )
+        console_handler.setFormatter(console_formatter)
         root_logger.addHandler(console_handler)
-    
-    # Файловый обработчик (все логи)
+
+    # Текстовый файловый обработчик
     if logging_config.log_to_file:
         log_file = Path(logging_config.log_file_name)
         log_file.parent.mkdir(parents=True, exist_ok=True)
         file_handler = logging.FileHandler(log_file, encoding='utf-8')
         file_handler.setLevel(log_level)
-        file_handler.setFormatter(formatter)
+        file_formatter = ContextualFormatter(
+            fmt='%(message)s',
+            datefmt=logging_config.log_date_format
+        )
+        file_handler.setFormatter(file_formatter)
         root_logger.addHandler(file_handler)
-    
+
+    # JSON файловый обработчик (для process mining анализа)
+    if logging_config.log_to_file:
+        json_file = Path(logging_config.log_json_file)
+        json_file.parent.mkdir(parents=True, exist_ok=True)
+        json_handler = logging.FileHandler(json_file, encoding='utf-8')
+        json_handler.setLevel(log_level)
+        json_formatter = JSONFormatter()
+        json_handler.setFormatter(json_formatter)
+        root_logger.addHandler(json_handler)
+
     # Подавляем логи от сторонних библиотек
     for lib in SILENCE_LIBRARIES:
         logging.getLogger(lib).setLevel(logging.WARNING)

@@ -1,0 +1,20 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 44 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER1.INTRODUCTION
+2010 2011 2012 2013 2014 2015
+000.
+005.
+010.
+015.
+020.
+025.
+030.
+ILSVRC classiﬁcationerrorrateFigure1.12:SincedeepnetworksreachedthescalenecessarytocompeteintheImageNetLargeScaleVisualRecognitionChallenge,theyhaveconsistentlywonthecompetitioneveryyear,andyieldedlowerandlowererrorrateseachtime. DatafromRussakovskyetal. etal.()and2014bHe().2015
+28

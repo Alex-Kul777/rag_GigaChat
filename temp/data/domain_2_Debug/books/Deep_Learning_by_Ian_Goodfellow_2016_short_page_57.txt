@@ -1,0 +1,24 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 57 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER2.LINEARALGEBRAalli=j. Wehavealreadyseenoneexampleofadiagonalmatrix: theidentitymatrix,whereallofthediagonalentriesare1.Wewritediag(v) todenoteasquarediagonalmatrixwhosediagonalentriesaregivenbytheentriesofthevectorv.
+Diagonalmatricesareofinterestinpartbecausemultiplyingbyadiagonalmatrixisverycomputationallyeﬃcient.Tocomputediag(v)x,weonlyneedtoscaleeachelementxibyvi.Inotherwords,diag(v)x=v x.Invertingasquarediagonalmatrixisalsoeﬃcient.Theinverseexistsonlyifeverydiagonalentryisnonzero,
+andinthatcase,diag(v)−1=diag([1/v1,...,1/vn]).Inmanycases,wemayderivesomeverygeneralmachinelearningalgorithmintermsofarbitrarymatrices,
+butobtainalessexpensive(andlessdescriptive)algorithmbyrestrictingsomematricestobediagonal.
+Notalldiagonalmatricesneedbesquare.Itispossibletoconstructarectangulardiagonalmatrix.Non-squarediagonalmatricesdonothaveinversesbutitisstillpossibletomultiplybythemcheaply.Foranon-squarediagonalmatrixD,theproductDxwillinvolvescalingeachelementofx,andeitherconcatenatingsomezerostotheresultifDistallerthanitiswide,ordiscardingsomeofthelastelementsofthevectorifiswiderthanitistall.DA matrixisanymatrixthatisequaltoitsowntranspose:symmetricA A= . (2.35)
+Symmetricmatricesoftenarisewhentheentriesaregeneratedbysomefunctionoftwoargumentsthatdoesnotdependontheorderofthearguments.Forexample,
+ifAisamatrixofdistancemeasurements,withAi,jgivingthedistancefrompointitopoint,thenj Ai,j= Aj,ibecausedistancefunctionsaresymmetric.
+A isavectorwith :unitvector unitnorm
+||||x2= 1. (2.36)
+Avectorxandavectoryareorthogonaltoeachotherifxy= 0.Ifbothvectorshavenonzeronorm,thismeansthattheyareata90degreeangletoeachother.InRn,atmostnvectorsmaybemutuallyorthogonalwithnonzeronorm.
+Ifthevectorsarenotonlyorthogonalbutalsohaveunitnorm,wecallthemorthonormal.
+Anorthogonalmatrixisasquarematrixwhoserowsaremutuallyorthonor-
+malandwhosecolumnsaremutuallyorthonormal:
+AA AA= = I. (2.37)
+41

@@ -1,0 +1,51 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Глубокое обучение_short.pdf
+Страница: 16 из 60
+Заголовок: Глубокое обучение
+Автор: Ян Гудфеллоу, Иошуа Бенджио, Аарон Курвилль
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+БлагодарностиЭта книга не состоялась бы, если бы не помощь со стороны многих людей.
+Мы благодарны тем, кто откликнулся на наше предложение о написании книги
+и помог спланировать ее содержание и структуру: Гийом Ален (Guillaume Alain),
+Кюнгхюн Чо (K yunghyun Cho), Чаглар Гюльчехре (Çaglar Gülçehre), Дэвид Крюгер
+(David Krueger), Г уго Ларошель (Hugo Larochelle), Разван Паскану (Razvan Pascanu)
+и Томас Рохе (Thomas Rohée).
+Мы также благодарны всем, кто присылал отзывы о самой книге, иногда даже о не-
+скольких главах: Мартен Абади (Martí n Abadi), Гийом Ален, Йон Андруцопулос (Ion
+Androutsopoulos), Фред Берщ (Fred Bertsch), Олекса Биланюк (Olexa Bilaniuk), У фук
+Джан Бичиджи (Ufuk Can Biç ici), Матко Босняк (Matko Boš njak), Джон Буерсма
+(John Boersma), Грег Брокман (Greg Brockman), Александр де Бребиссон (Alexandre
+de Bré bisson), Пьер Люк Каррье (Pierre Luc Carrier), Саратх Чандар (Sarath Chandar),
+Павел Чилински (Pawel Chilinski), Марк Дауст (Mark Daoust), Олег Дашевский, Лоран
+Дин (Laurent Dinh), Стефан Дрезейтль (Stephan Dreseitl), Джим Фан (Jim Fan), Мяо
+Фан (Miao Fan), Мейре Фортунато (Meire Fortunato), Фредерик Франсис (Fré dé ric
+Francis), Нандо де Фрейтас (Nando de Freitas), Чаглар Гюльчехре (Ç aglar Gü l çehre), Юр-
+ген Ван Гаэл (Jurgen V an Gael), Хавьер Алонсо Гарсиа (Javier Alonso Garcí a), Джонатан
+Хант (Jonathan Hunt), Г опи Джейярам (Gopi Jeyaram), Чингиз Кабытаев (Chingiz Ka-
+bytayev), Лукаш Кайзер (Lukasz Kaiser), Варун Канаде (V arun Kanade), Азифулла Хан
+(Asifullah Khan), Акиель Хан (Akiel Khan), Джон Кинг (John King), Дидерик П. Кингма
+(Diederik P . Kingma), Ян Лекун (Y ann LeCun), Рудольф Матей (Rudolf Mathey), Ма-
+тиас Маттамала (Matí as Mattamala), Абхинав Мауриа (Abhinav Maurya), Кэвин Мер-
+фи (Kevin Murphy), Олег Мюрк (Oleg Mü rk), Роман Новак (Roman Novak), Огастес
+К. Одена (Augustus Q. Odena), Симон Павлик (Simon Pavlik), Карл Пичотта (Karl Pi-
+chotta), Эдди Пирс (Eddie Pierce), Кари Пулли (Kari Pulli), Руссель Рахман (Roussel
+Rahman), Тапани Райко (Tapani Raiko), Анурга Ранджан (Anurag Ranjan), Йохан нес
+Ройт (Johannes Roith), Михаэла Роска (Mihaela Rosca), Халис Сак (Halis Sak), Сезар
+Салгадо (Cé sar Salgado), Григорий Сапунов, Ёсинори Сасаки (Y oshinori Sasaki), Майк
+Шустер (Mike Schuster), Джулиан Сербан (Julian Serban), Нир Шабат (Nir Shabat), Кен
+Ширрифф (Ken Shirriff), Андрэ Симпело (Andre Simpelo), Дэвид Слейт (David Slate),
+Скотт Стэнли (Scott Stanley), Давид Суссилло (David Sussillo), Илья Суцкевер (Ilya
+Sutskever), Карлес Г елада Саец (Carles Gelada Sá ez), Грэхэм Т ейлор (Graham Taylor), Ва-
+лентин Толмер (V alentin T olmer), Массимильяно Томассоли (Massimiliano T omassoli),
+Ан Т ран (An Tran), Шубхенду Т риведи (Shubhendu Trivedi), Алексей У мнов, Винсет
+Ванхоуке (Vincent V anhoucke), Марко Висентини-Скарцанелла (Marco Visentini-Scar-
+zanella), Матрин Вита (Martin Vita), Дэвид У орд-Фарли (David W arde-Farley), Дастин
+Уэбб (Dustin W ebb), Кэлвин Су (Kelvin Xu), Вэй Сюэ (W ei Xue), Ке Янг (Ke Y ang), Ли
+Яо (Li Y ao), Зигмунт Заяц (Zygmunt Zajac) и Озан Чаглаян (Ozan Ç aglayan).
+Мы признательны и тем, кто делился своим мнением об отдельных главах.
+ Обозначения: Чжан Юань Хан (Zhang Yuanhang).
+ Глава 1 «Введение»: Юсуф Акгуль (Yusuf Akgul), Себастьен Братьерес (Sebas-
+tien Bratieres), Самира Эбрахими (Samira Ebrahimi), Чарли Г оричаназ (Charlie

@@ -662,9 +662,15 @@ class RAGPipeline:
                 progress_callback(stage, message, progress)
             print(f"🔍 [{stage}] {message}")
 
+        # 🧪 PIPELINE START - начало обработки запроса
+        logger.info(
+            f"🚀 [PIPELINE START] Query='{query[:80]}...'",
+            extra={'stage': 'PIPELINE', 'action': 'START', 'metrics': {'query_length': len(query)}}
+        )
         _progress("init", "Начало обработки запроса")
 
         if not self.vector_store_initialized:
+            logger.error("❌ [PIPELINE ERROR] FAISS индекс не инициализирован")
             raise ValueError("FAISS индекс не инициализирован. Сначала загрузите документы.")
 
         _progress("init", "Индекс инициализирован", 0.1)
@@ -678,10 +684,15 @@ class RAGPipeline:
         if k:
             model_config.default_k_retrieve = k
 
-        start_time = time.time()
+        retrieval_start_time = time.time()
+        start_time = retrieval_start_time
 
         try:
             _progress("retrieval", "Поиск релевантных документов...", 0.3)
+            logger.info(
+                f"🔍 [RETRIEVAL START] k={k or model_config.default_k_retrieve}",
+                extra={'stage': 'RETRIEVAL', 'action': 'START', 'metrics': {'k': k or model_config.default_k_retrieve}}
+            )
 
             # Получаем документы с реальными scores от FAISS
             docs_with_scores = self.vector_store_manager.similarity_search_with_scores(
@@ -692,6 +703,16 @@ class RAGPipeline:
             # Преобразуем в список документов и список scores
             docs = [doc for doc, _ in docs_with_scores]
             real_scores = [score for _, score in docs_with_scores]
+
+            retrieval_time_ms = int((time.time() - retrieval_start_time) * 1000)
+            logger.info(
+                f"✅ [RETRIEVAL END] Found {len(docs)} docs, duration={retrieval_time_ms}ms",
+                extra={'stage': 'RETRIEVAL', 'action': 'END', 'metrics': {
+                    'duration_ms': retrieval_time_ms,
+                    'docs_count': len(docs),
+                    'top_score': real_scores[0] if real_scores else 0.0
+                }}
+            )
 
             _progress("retrieval", f"Найдено {len(docs)} документов", 0.5)
 
@@ -705,8 +726,31 @@ class RAGPipeline:
             model_display = llm_model_name if llm_model_name else "LLM"
             _progress("generation", f"Генерация ответа с помощью {model_display}...", 0.65)
 
+            # 🧪 GENERATION START - начало генерации ответа
+            generation_start_time = time.time()
+            logger.info(
+                f"🤖 [GENERATION START] model={model_display}, prompt_tokens={prompt_tokens}",
+                extra={'stage': 'GENERATION', 'action': 'START', 'metrics': {
+                    'model': model_display,
+                    'prompt_tokens': prompt_tokens
+                }}
+            )
+
             # Увеличиваем timeout для медленных моделей
             response = self.graph.invoke({"question": query}, config={"recursion_limit": 50})
+
+            # 🧪 GENERATION END - генерация завершена
+            generation_time_ms = int((time.time() - generation_start_time) * 1000)
+            response_text = response.get("answer", "")
+            response_tokens = len(response_text.split())
+            logger.info(
+                f"✅ [GENERATION END] duration={generation_time_ms}ms, tokens={response_tokens}",
+                extra={'stage': 'GENERATION', 'action': 'END', 'metrics': {
+                    'duration_ms': generation_time_ms,
+                    'tokens_generated': response_tokens
+                }}
+            )
+
             _progress("generation", "Ответ получен", 0.95)
             logger.debug (f"🔍 logger.debug: Граф выполнен, ответ получен")
             
@@ -786,10 +830,24 @@ class RAGPipeline:
             else:
                 self.token_counter.add_request(query, result.answer)
 
+            # 🧪 PIPELINE END - завершение обработки
+            total_time_ms = int((time.time() - start_time) * 1000)
+            logger.info(
+                f"✅ [PIPELINE END] duration={total_time_ms}ms, docs={len(context_docs)}, tokens={result.tokens_generated}",
+                extra={'stage': 'PIPELINE', 'action': 'END', 'metrics': {
+                    'duration_ms': total_time_ms,
+                    'docs_retrieved': len(context_docs),
+                    'tokens_generated': result.tokens_generated
+                }}
+            )
+
             return result
-            
+
         except Exception as e:
-            logger.error(f"Ошибка обработки запроса: {e}")
+            logger.error(
+                f"❌ [PIPELINE ERROR] {type(e).__name__}: {str(e)[:100]}",
+                extra={'stage': 'PIPELINE', 'action': 'ERROR', 'metrics': {'error_type': type(e).__name__}}
+            )
             import traceback
             print(f"🔍 DEBUG: Ошибка: {e}")
             traceback.print_exc()

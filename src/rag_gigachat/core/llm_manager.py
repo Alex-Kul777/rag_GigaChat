@@ -146,6 +146,9 @@ class LLMManager:
                 temperature=model_config.temperature,
                 top_p=model_config.top_p,
                 do_sample=True,
+                repetition_penalty=1.2,  # Предотвращение зацикливания
+                no_repeat_ngram_size=3,  # Не повторять n-граммы из 3+ слов
+                early_stopping=True,  # Остановить генерацию если логично
             )
             print("🔍 DEBUG: Pipeline создан")
 

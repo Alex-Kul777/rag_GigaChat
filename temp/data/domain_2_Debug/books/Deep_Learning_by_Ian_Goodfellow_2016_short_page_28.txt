@@ -1,0 +1,34 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 28 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER1.INTRODUCTION
+1. IntroductionPart I: Applied Math and Machine Learning Basics
+2. Linear Algebra 3. Probability and
+Information Theory
+4. Numerical
+Computation
+5. Machine Learning
+BasicsPart II: Deep Networks: Modern Practices
+6. Deep Feedforward
+Networks
+7. Regularization 8. Optimization 9. CNNs 10. RNNs
+11. Practical
+Methodology 12. ApplicationsPart III: Deep Learning Research
+13. Linear Factor
+Models 14. Autoencoders 15. Representation
+Learning
+16. Structured
+Probabilistic Models
+17. Monte Carlo
+Methods
+18. Partition
+Function19. Inference
+20. Deep Generative
+ModelsFigure1.6:Thehigh-levelorganizationofthebook.Anarrowfromonechaptertoanotherindicatesthattheformerchapterisprerequisitematerialforunderstandingthelatter.
+12

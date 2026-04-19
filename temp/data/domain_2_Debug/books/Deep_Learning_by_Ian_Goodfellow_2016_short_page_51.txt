@@ -1,0 +1,35 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 51 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CHAPTER2.LINEARALGEBRAMatrixproductoperationshavemanyusefulpropertiesthatmakemathematicalanalysis ofmatrices moreconvenient.For example, matrix multiplication isdistributive:
+AB C AB AC(+) = + . (2.6)
+Itisalsoassociative:
+ABC ABC( ) = ( ). (2.7)
+Matrixmultiplicationiscommutative(theconditionnot AB=BAdoesnotalwayshold),unlikescalarmultiplication.However,thedotproductbetweentwovectorsiscommutative:
+xy y= x. (2.8)
+Thetransposeofamatrixproducthasasimpleform:
+( )AB= BA. (2.9)
+Thisallowsustodemonstrateequation,byexploitingthefactthatthevalue2.8
+ofsuchaproductisascalarandthereforeequaltoitsowntranspose:
+xy=
+
+xy
+
+= yx. (2.10)
+Sincethefocusofthistextbookisnotlinearalgebra,wedonotattempttodevelopacomprehensivelistofusefulpropertiesofthematrixproducthere,butthereadershouldbeawarethatmanymoreexist.
+Wenowknowenoughlinearalgebranotationtowritedownasystemoflinearequations:
+Ax b= (2.11)
+whereA∈Rmn×isaknownmatrix,b∈Rmisaknownvector,andx∈Rnisavectorofunknownvariableswewouldliketosolvefor.Eachelementxiofxisoneoftheseunknownvariables.EachrowofAandeachelementofbprovideanotherconstraint.Wecanrewriteequationas:2.11
+A1:,x= b1 (2.12)
+A2:,x= b2 (2.13)
+... (2.14)
+Am,:x= bm (2.15)
+or,evenmoreexplicitly,as:
+A11,x1+A12,x2++··· A1,nxn= b1 (2.16)
+35

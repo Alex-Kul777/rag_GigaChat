@@ -1,0 +1,40 @@
+=== МЕТАДАННЫЕ ДОКУМЕНТА ===
+Файл: Deep_Learning_by_Ian_Goodfellow_2016_short.pdf
+Страница: 8 из 60
+Заголовок: Deep Learning
+Автор: Ian Goodfellow
+Дата создания: 
+
+=== СОДЕРЖИМОЕ СТРАНИЦЫ ===
+
+CONTENTS
+18.3Pseudolikelihood. . . . . . . . . . .. . . . . . . . .. . . . . . .615
+18.4ScoreMatchingandRatioMatching. . . . . . . .. . . . . . . .617
+18.5DenoisingScoreMatching. . . . . . . . .. . . . . . . .. . . . .619
+18.6Noise-ContrastiveEstimation. . . . .. . . . . . . .. . . . . . .620
+18.7EstimatingthePartitionFunction. . . . . . . . . . .. . . . . . .623
+19 ApproximateInference 631
+19.1InferenceasOptimization.. . . . . . . . .. . . . . . . .. . . .633
+19.2ExpectationMaximization. .. . . . . . . .. . . . . . . . .. . .634
+19.3MAPInferenceandSparseCoding.. . . . . . . . .. . . . . . .635
+19.4VariationalInferenceandLearning. . . . . . . . . . . . . . .. .638
+19.5LearnedApproximateInference. . .. . . . . . . . .. . . . . . .651
+20 DeepGenerativeModels 654
+20.1BoltzmannMachines. . . . . . . . . . .. . . . . . . . .. . . . .654
+20.2RestrictedBoltzmannMachines. . . . . . .. . . . . . . . .. . .656
+20.3DeepBeliefNetworks.. . . . . . . .. . . . . . . .. . . . . . . .660
+20.4DeepBoltzmannMachines. . . . . . . . . .. . . . . . . .. . . .663
+20.5BoltzmannMachinesforReal-ValuedData. . . . . . . . .. . . .676
+20.6ConvolutionalBoltzmannMachines . . . . . . . . . . . . . . . ..683
+20.7BoltzmannMachinesforStructuredorSequentialOutputs. . . .685
+20.8OtherBoltzmannMachines. . . . .. . . . . . . .. . . . . . . .686
+20.9Back-PropagationthroughRandomOperations. . . . . .. . . .687
+20.10 DirectedGenerativeNets. . . . . . . . . . . .. . . . . . . . .. .692
+20.11 DrawingSamplesfromAutoencoders. . . . .. . . . . . . . .. .711
+20.12 GenerativeStochasticNetworks. . .. . . . . . . .. . . . . . . .714
+20.13 OtherGenerationSchemes. . . . . . . . . . . . .. . . . . . . . .716
+20.14 EvaluatingGenerativeModels . . . . . . . . . . . . .. . . . . . .717
+20.15 Conclusion. . . . . . . .. . . . . . . . .. . . . . . . .. . . . . .720
+Bibliography 721
+Index 777
+vi
