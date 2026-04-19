@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.10.0] - 2026-04-19
+
+### Added
+- **Comprehensive Process Mining Logging System** (Phases 1-3):
+  - `ContextualFormatter` — Adds module/class/method context to all logs
+  - `JSONFormatter` — Structured JSON logging for process mining analysis
+  - `PipelineTimer` — Stage timing with UUID-based request ID tracing
+  - `MemoryTracker` — Per-stage RAM and GPU memory tracking
+  - `BottleneckAnalyzer` — Automatic bottleneck detection with recommendations
+  - `MetricsExporter` — Export metrics to DataFrame and Excel
+  - `DualLogHandler` — Simultaneous console and JSON file logging
+- **Metrics Dashboard** (`src/rag_gigachat/ui/metrics_dashboard.py`):
+  - Streamlit-based visualization of pipeline metrics
+  - Interactive timeline view with request ID tracing
+  - Stage duration analysis and distribution
+  - Real-time log filtering by stage/action/level
+  - Excel export of metrics
+- **Benchmarking System** (`src/rag_gigachat/utils/benchmarking.py`):
+  - `BenchmarkRun` — Parse and analyze individual benchmark runs
+  - `BenchmarkComparator` — Compare multiple runs with regression detection
+  - `PerformanceAnalyzer` — Bottleneck detection and optimization recommendations
+  - Support for multi-run performance regression analysis
+- **Comprehensive Unit Test Suite** (18 new tests):
+  - Full coverage of all logging_utils components
+  - Integration tests for pipeline logging flow
+  - Memory tracking verification
+  - DataFrame/Excel export tests
+
+### Improved
+- **Logging Infrastructure** — Unified DEBUG-level logging across config classes
+- **Debug Mode** — Explicit activation diagnostics with model selection logging
+- **Test Coverage** — Added tests for max_new_tokens production config
+- **Documentation** — New LOGGING_GUIDE.md (442 lines) with complete usage examples
+
+### Fixed
+- **Configuration Test** — Updated max_new_tokens assertion (500 → 256 for GPU stability)
+
 ## [1.9.0] - 2026-04-18
 
 ### Added

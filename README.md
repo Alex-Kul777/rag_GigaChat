@@ -9,7 +9,31 @@
 
 This project implements a **Retrieval-Augmented Generation (RAG)** system for answering questions based on PDF documents. The system combines document retrieval with LLM generation to provide accurate, context-aware answers.
 
-## ✨ What's New in v1.9.0
+## ✨ What's New in v1.10.0
+
+- **Comprehensive Process Mining Logging System** (3 phases):
+  - Contextual logging with module/class/method information
+  - Structured JSON logging for process mining analysis
+  - Request ID-based tracing for full query path visibility
+  - Per-stage memory tracking (RAM and GPU)
+- **Metrics Dashboard** (Streamlit):
+  - Interactive timeline visualization of pipeline stages
+  - Stage duration analysis and performance distribution
+  - Real-time log filtering and Excel export
+- **Performance Analysis Tools**:
+  - `BottleneckAnalyzer` — Automatic bottleneck detection with recommendations
+  - `MetricsExporter` — Export metrics to DataFrame and Excel
+  - Benchmarking system for comparing multiple runs with regression detection
+- **18 New Unit Tests** (158 total passing):
+  - Full test coverage for logging_utils components
+  - Integration tests for pipeline logging flow
+  - Memory tracking and metrics export verification
+- **Documentation** (`LOGGING_GUIDE.md`):
+  - 442-line comprehensive guide with code examples
+  - Integration patterns for RAG pipeline
+  - Best practices and troubleshooting
+
+### Previous (v1.9.0)
 
 - **Integration Tests** (17 new tests): Complete testing coverage for RAG pipeline:
   - 7 tests for RAGPipeline API (`test_rag_pipeline_query.py`)
