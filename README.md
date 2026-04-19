@@ -9,6 +9,15 @@
 
 This project implements a **Retrieval-Augmented Generation (RAG)** system for answering questions based on PDF documents. The system combines document retrieval with LLM generation to provide accurate, context-aware answers.
 
+## ✨ What's New in v1.10.1
+
+- **Debug Mode Stability** — Float16 precision to prevent OOM crashes
+- **Streamlit Robustness** — Restart limits and comprehensive crash diagnostics
+- **Session State Fixes** — Correct LLM model name initialization
+- **Environment Detection** — Proper RAG_DEBUG_MODE environment variable handling
+- **UI Persistence** — Keep streamlit interface running after query processing
+- **Model Selection** — Fast debug model with embedding_dim getter support
+
 ## ✨ What's New in v1.10.0
 
 - **Comprehensive Process Mining Logging System** (3 phases):

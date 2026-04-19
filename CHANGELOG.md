@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.10.1] - 2026-04-19
+
+### Fixed
+- **Debug Mode Stability** — Use float16 precision to prevent OOM crashes
+- **Streamlit Process Crashes** — Add restart limits and comprehensive diagnostics
+- **Session State** — Correct LLM model name initialization in debug mode
+- **RAG_DEBUG_MODE Environment** — Fix environment variable detection and application
+- **UI Persistence** — Keep streamlit UI running after request processing completes
+- **Model Selection** — Use fast debug model when RAG_DEBUG_MODE enabled, add embedding_dim getter
+
 ## [1.10.0] - 2026-04-19
 
 ### Added
