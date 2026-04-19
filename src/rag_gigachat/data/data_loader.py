@@ -388,12 +388,13 @@ class DocumentLoader:
                 'error': str(e)
             }
     
-    def load_pdf_with_metadata(self, pdf_path: Path) -> List[LangChainDocument]:
+    def load_pdf_with_metadata(self, pdf_path: Path, normalize: bool = True) -> List[LangChainDocument]:
         """
-        Загрузка PDF файла с извлечением метаданных и диагностикой.
+        Загрузка PDF файла с извлечением метаданных, диагностикой и нормализацией.
 
         Args:
             pdf_path: Путь к PDF файлу
+            normalize: Применять ли нормализацию текста (удаление PDF артефактов)
 
         Returns:
             Список документов LangChain с метаданными
@@ -422,6 +423,9 @@ class DocumentLoader:
                     ocr_text = load_pdf_with_ocr(pdf_path)
                     if ocr_text.strip():
                         logger.info(f"✅ OCR извлёк {len(ocr_text)} символов")
+                        # Нормализуем OCR текст если нужно
+                        if normalize:
+                            ocr_text = normalize_text(ocr_text)
                         documents = [LangChainDocument(
                             page_content=ocr_text,
                             metadata={"source": str(pdf_path), "ocr": True, "ocr_method": "docling"}
@@ -433,6 +437,12 @@ class DocumentLoader:
                         f"❌ '{pdf_path.name}' не содержит извлекаемого текста и OCR отключён. "
                         f"Включите OCR: pip install docling и установите ocr_enabled=True в config.py"
                     )
+            # Нормализуем текст каждой страницы (удаляем PDF артефакты)
+            if normalize:
+                for doc in documents:
+                    doc.page_content = normalize_text(doc.page_content)
+                logger.debug(f"✓ Нормализация применена к {len(documents)} страницам")
+
             # Добавляем метаданные к каждой странице
             for i, doc in enumerate(documents):
                 doc.metadata.update({
@@ -443,7 +453,8 @@ class DocumentLoader:
                     'filename': doc_metadata.get('filename', ''),
                     'filepath': doc_metadata.get('filepath', ''),
                     'total_pages': doc_metadata.get('num_pages', 0),
-                    'page_number': i + 1
+                    'page_number': i + 1,
+                    'normalized': normalize
                 })
 
             #print ( f"load_pdf_with_metadata , logging_config.log_level.upper() = {logging_config.log_level.upper()}")
