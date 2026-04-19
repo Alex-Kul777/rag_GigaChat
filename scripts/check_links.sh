@@ -4,13 +4,16 @@
 # Scans all .md files (excluding .venv/) for [text](path.md) links
 # Reports any links to .md files that don't exist
 
+set -e
+
 echo "=== Checking Markdown Links ==="
 
 broken=0
 checked=0
-project_root=$(pwd)
 
-for file in $(find . -name "*.md" -type f -not -path "./.venv/*"); do
+for file in $(find . -name "*.md" -type f -not -path "./.venv/*" 2>/dev/null || true); do
+    [ ! -f "$file" ] && continue
+
     # Extract all markdown links: [text](path.md)
     while IFS= read -r line; do
         [ -z "$line" ] && continue
@@ -21,22 +24,23 @@ for file in $(find . -name "*.md" -type f -not -path "./.venv/*"); do
 
         checked=$((checked + 1))
 
-        # Get file directory for relative path resolution
-        file_dir=$(dirname "$file")
+        # Get absolute path of current file
+        file_abs=$(cd "$(dirname "$file")" && pwd)/$(basename "$file")
+        file_dir=$(dirname "$file_abs")
 
-        # Resolve relative path from file's directory
-        if [[ "$target" == /* ]]; then
-            # Absolute path
+        # Resolve target path relative to file directory
+        if [[ "$target" = /* ]]; then
+            # Absolute path - check from repo root
             target_path="$target"
         else
-            # Relative path
+            # Relative path - resolve from file's directory
             target_path="$file_dir/$target"
-            target_path=$(cd "$project_root" && cd "$(dirname "$target_path")" 2>/dev/null && pwd)/$(basename "$target_path")
-            target_path="${target_path#$project_root/}"
+            # Normalize path (remove .. and .)
+            target_path=$(python3 -c "import os; print(os.path.normpath('$target_path'))" 2>/dev/null || echo "$target_path")
         fi
 
         # Check if file exists
-        if [ ! -f "$project_root/$target_path" ]; then
+        if [ ! -f "$target_path" ]; then
             echo "❌ $file -> $target"
             broken=$((broken + 1))
         fi
