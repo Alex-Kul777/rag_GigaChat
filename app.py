@@ -154,22 +154,46 @@ def run_streamlit_ui():
         print(f"🧪 TEST QUESTION: {env.get('RAG_TEST_QUESTION')}")
 
     try:
+        restart_count = 0
+        max_restarts = 3
+        restart_delay = 2
+
         process = subprocess.Popen(
             streamlit_cmd,
             cwd=str(current_dir),
             env=env
         )
+
         # Ждем завершения процесса пользователем (Ctrl+C)
         # Используем poll() чтобы проверять статус периодически
         while True:
-            if process.poll() is not None:
-                # Процесс неожиданно завершился, перезапустим его
-                print("⚠️  Streamlit процесс завершился, перезапускаю...")
+            exit_code = process.poll()
+            if exit_code is not None:
+                # Процесс завершился с кодом ошибки или 0
+                if restart_count >= max_restarts:
+                    print(f"\n❌ Streamlit завершился {max_restarts} раз подряд с кодом {exit_code}")
+                    print(f"💡 Возможные причины:")
+                    print(f"   1. Порт 8501 уже занят другим процессом (pkill -f 'streamlit run')")
+                    print(f"   2. Ошибка в коде streamlit_app.py")
+                    print(f"   3. Недостаточно памяти")
+                    print(f"   4. GPU ошибка при загрузке моделей")
+                    return False
+
+                restart_count += 1
+                print(f"⚠️  Streamlit процесс завершился (exit code: {exit_code}), попытка {restart_count}/{max_restarts}...")
+                time.sleep(restart_delay)
+
+                print(f"🔄 Перезапускаю Streamlit...")
                 process = subprocess.Popen(
                     streamlit_cmd,
                     cwd=str(current_dir),
-                    env=os.environ.copy()
+                    env=env
                 )
+            else:
+                # Процесс еще работает, сбросим счетчик ошибок если был
+                if restart_count > 0:
+                    restart_count = 0
+
             time.sleep(1)
     except KeyboardInterrupt:
         print("\n🛑 Остановка Streamlit...")
