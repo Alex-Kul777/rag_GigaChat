@@ -215,3 +215,113 @@ class TestDebugModeModelLoading:
             logger.info(f"✅ В индексе загружены документы ({len(result)} найдено для тестового поиска)")
         except Exception as e:
             logger.warning(f"⚠️  Не удалось проверить документы: {e}")
+
+
+@pytest.mark.slow
+class TestDebugModeQueryProcessing:
+    """Тесты для проверки end-to-end обработки запроса в debug режиме"""
+
+    @pytest.fixture(scope="class")
+    def initialized_pipeline(self):
+        """Fixture: инициализированный debug pipeline готов к запросам"""
+        logger.info("Инициализация debug pipeline для query processing...")
+
+        os.environ["RAG_DEBUG_MODE"] = "true"
+
+        try:
+            pipeline = RAGPipeline(
+                retrieval_type=RetrievalType.DENSE,
+                embedding_type="huggingface",
+                llm_type="local"
+            )
+
+            if TEST_DATA_DIR.exists():
+                pipeline.load_from_pdf_directory_with_metadata(
+                    TEST_DATA_DIR,
+                    recursive=False,
+                    force_reload=False
+                )
+
+            pipeline.llm_manager.load_local_model()
+            logger.info("✅ Pipeline готов к запросам")
+            yield pipeline
+
+        finally:
+            if "RAG_DEBUG_MODE" in os.environ:
+                del os.environ["RAG_DEBUG_MODE"]
+
+    def test_debug_auto_question_end_to_end(self, initialized_pipeline):
+        """Тест 7: Проверка обработки автоматического вопроса"""
+        query = TEST_QUERY  # "Что такое RAG?"
+
+        # Обрабатываем запрос через pipeline
+        result = initialized_pipeline.process_query(query, k=K_RETRIEVE)
+
+        # Проверяем что результат получен
+        assert result is not None, "Результат обработки не должен быть None"
+        assert result.answer is not None, "Ответ не должен быть None"
+        assert isinstance(result.answer, str), "Ответ должен быть строкой"
+        assert len(result.answer) > 10, \
+            f"Ответ должен содержать достаточно текста (получен: {len(result.answer)} символов)"
+
+        # Проверяем что найдены документы
+        assert result.retrieval_results is not None, \
+            "Результаты поиска не должны быть None"
+        assert len(result.retrieval_results.retrieved_docs) > 0, \
+            "Должны быть найдены документы в поиске"
+        assert len(result.retrieval_results.retrieved_docs) <= K_RETRIEVE, \
+            f"Найдено документов ({len(result.retrieval_results.retrieved_docs)}) " \
+            f"должно быть <= {K_RETRIEVE}"
+
+        logger.info(f"✅ Автоматический вопрос обработан: {len(result.answer)} символов, "
+                   f"{len(result.retrieval_results.retrieved_docs)} документов найдено")
+
+    def test_debug_answer_contains_relevant_words(self, initialized_pipeline):
+        """Тест 8: Проверка что ответ содержит релевантное содержание"""
+        query = TEST_QUERY  # "Что такое RAG?"
+
+        result = initialized_pipeline.process_query(query, k=K_RETRIEVE)
+
+        # Проверяем что ответ адекватен
+        answer_lower = result.answer.lower()
+
+        # Проверяем минимальную длину
+        assert len(answer_lower.split()) > 5, \
+            f"Ответ должен содержать > 5 слов (получен: {len(answer_lower.split())})"
+
+        # Проверяем что содержит хотя бы одно релевантное слово
+        relevant_words = ["rag", "поиск", "документ", "генер", "модел", "контекст"]
+        has_relevant = any(word in answer_lower for word in relevant_words)
+
+        assert has_relevant, \
+            f"Ответ должен содержать хотя бы одно из слов: {relevant_words}\n" \
+            f"Получен ответ: {result.answer[:100]}..."
+
+        logger.info(f"✅ Ответ содержит релевантное содержание: {answer_lower[:80]}...")
+
+    def test_debug_document_retrieval_quality(self, initialized_pipeline):
+        """Тест 9: Проверка качества поиска документов"""
+        query = TEST_QUERY
+
+        result = initialized_pipeline.process_query(query, k=K_RETRIEVE)
+
+        # Проверяем структуру результатов
+        assert len(result.retrieval_results.retrieved_docs) > 0, \
+            "Должны быть найдены документы"
+
+        # Проверяем каждый документ
+        for i, doc in enumerate(result.retrieval_results.retrieved_docs):
+            assert "doc_id" in doc, f"Документ {i} должен иметь doc_id"
+            assert "text" in doc or "page_content" in doc, \
+                f"Документ {i} должен иметь содержание"
+            assert "score" in doc, f"Документ {i} должен иметь score"
+
+            # Score должен быть числом в разумном диапазоне
+            score = doc.get("score", 0)
+            assert isinstance(score, (int, float)), \
+                f"Score должен быть числом, получен {type(score)}"
+            assert 0 <= score <= 1, \
+                f"Score должен быть в диапазоне [0, 1], получен {score}"
+
+        logger.info(f"✅ Найдено {len(result.retrieval_results.retrieved_docs)} " \
+                   f"валидных документов с корректными scores")
