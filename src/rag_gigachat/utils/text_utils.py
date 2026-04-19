@@ -249,3 +249,173 @@ class SpacySmartSplitter:
         except Exception as e:
             logger.error(f"Ошибка при разбиении spaCy: {e}")
             return [text]
+
+
+def estimate_token_count(text: str, language: str = 'ru') -> int:
+    """Оценка количества токенов в тексте.
+
+    Использует простую эвристику:
+    - Русский текст: 1 токен на 4 символа (русский текст более плотный)
+    - Английский текст: 1 токен на 3.5 символа
+
+    Args:
+        text: Входной текст
+        language: Язык ('ru', 'en' или другое)
+
+    Returns:
+        Приблизительное количество токенов
+    """
+    if not text:
+        return 0
+
+    # Простая эвристика для оценки токенов
+    # GigaChat использует более детальную токенизацию, но это приемлемая оценка
+    if language == 'ru':
+        chars_per_token = 4.0  # Русский текст более плотный
+    else:
+        chars_per_token = 3.5  # Английский текст менее плотный
+
+    # Оценка на основе символов
+    estimated = max(1, int(len(text) / chars_per_token))
+    return estimated
+
+
+def estimate_language(text: str) -> str:
+    """Оценка языка текста для подсчёта токенов.
+
+    Args:
+        text: Входной текст
+
+    Returns:
+        'ru', 'en' или другой языковой код
+    """
+    if not SPACY_AVAILABLE or len(text) < 100:
+        return 'ru'  # По умолчанию русский
+
+    try:
+        from langdetect import detect
+        lang = detect(text)
+        return lang
+    except Exception:
+        return 'ru'  # Fallback на русский
+
+
+def filter_chunks_by_token_count(
+    chunks: List[str],
+    min_tokens: int = 30,
+    max_tokens: Optional[int] = None,
+    language: Optional[str] = None
+) -> List[str]:
+    """Фильтрация чанков по минимальному количеству токенов.
+
+    Удаляет слишком короткие чанки, которые будут низкого качества
+    для эмбеддингов. Минимум ~30 токенов соответствует ~1-2 предложениям.
+
+    Args:
+        chunks: Список текстовых чанков
+        min_tokens: Минимальное количество токенов (по умолчанию 30)
+        max_tokens: Максимальное количество токенов (опционально)
+        language: Язык для расчёта (ru/en). Если None, определяется автоматически
+
+    Returns:
+        Отфильтрованный список чанков
+    """
+    if not chunks:
+        return []
+
+    filtered = []
+    removed_count = 0
+
+    for chunk in chunks:
+        # Определяем язык если нужно
+        if language is None:
+            chunk_lang = estimate_language(chunk)
+        else:
+            chunk_lang = language
+
+        # Считаем токены
+        token_count = estimate_token_count(chunk, chunk_lang)
+
+        # Проверяем минимум
+        if token_count < min_tokens:
+            removed_count += 1
+            logger.debug(f"Отфильтрован чанк: {token_count} токенов < {min_tokens} (минимум)")
+            continue
+
+        # Проверяем максимум если установлен
+        if max_tokens is not None and token_count > max_tokens:
+            removed_count += 1
+            logger.debug(f"Отфильтрован чанк: {token_count} токенов > {max_tokens} (максимум)")
+            continue
+
+        # Чанк прошёл фильтр
+        filtered.append(chunk)
+
+    if removed_count > 0:
+        logger.info(
+            f"Фильтрация чанков: {len(chunks)} → {len(filtered)} чанков "
+            f"({removed_count} удалено, min={min_tokens})"
+        )
+
+    return filtered
+
+
+def filter_documents_by_token_count(
+    documents: List,
+    min_tokens: int = 30,
+    max_tokens: Optional[int] = None,
+    language: Optional[str] = None
+) -> List:
+    """Фильтрация LangChain документов по количеству токенов.
+
+    Args:
+        documents: Список LangChainDocument объектов
+        min_tokens: Минимальное количество токенов
+        max_tokens: Максимальное количество токенов
+        language: Язык для расчёта
+
+    Returns:
+        Отфильтрованный список документов
+    """
+    if not documents:
+        return []
+
+    filtered = []
+    removed_count = 0
+
+    for doc in documents:
+        # Определяем язык если нужно
+        if language is None:
+            doc_lang = estimate_language(doc.page_content)
+        else:
+            doc_lang = language
+
+        # Считаем токены
+        token_count = estimate_token_count(doc.page_content, doc_lang)
+
+        # Проверяем минимум
+        if token_count < min_tokens:
+            removed_count += 1
+            logger.debug(f"Отфильтрован документ: {token_count} токенов < {min_tokens}")
+            continue
+
+        # Проверяем максимум если установлен
+        if max_tokens is not None and token_count > max_tokens:
+            removed_count += 1
+            logger.debug(f"Отфильтрован документ: {token_count} токенов > {max_tokens}")
+            continue
+
+        # Добавляем информацию о токенах в метаданные
+        if hasattr(doc, 'metadata') and isinstance(doc.metadata, dict):
+            doc.metadata['token_count'] = token_count
+            doc.metadata['language'] = doc_lang
+
+        filtered.append(doc)
+
+    if removed_count > 0:
+        logger.info(
+            f"Фильтрация документов: {len(documents)} → {len(filtered)} документов "
+            f"({removed_count} удалено, min={min_tokens} токенов)"
+        )
+
+    return filtered
